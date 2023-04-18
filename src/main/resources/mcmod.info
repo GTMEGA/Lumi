@@ -1,0 +1,18 @@
+[
+  {
+    "modid": "${modId}",
+    "name": "${modName}",
+    "description": "The power of a thousand suns!",
+    "version": "${modVersion}",
+    "mcversion": "${minecraftVersion}",
+    "url": "https://github.com/FalsePattern/LUMINA",
+    "updateUrl": "",
+    "authorList": [
+      "FalsePattern"
+    ],
+    "credits": "Special thanks to: CaffeineMC for Phosphor, embeddedt for the backport inside ArchaicFix.",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]
