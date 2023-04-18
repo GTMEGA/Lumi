@@ -1,23 +1,22 @@
 package com.falsepattern.lumina.internal.world.lighting;
 
-import atomicstryker.dynamiclights.client.DynamicLights;
+import com.falsepattern.lumina.api.ILumiWorld;
+import com.falsepattern.lumina.api.ILumiChunk;
+import com.falsepattern.lumina.api.ILumiEBS;
+import lombok.val;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.IChunkProvider;
-import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 public class LightingEngineHelpers {
     private static final Block DEFAULT_BLOCK_STATE = Blocks.air;
 
     // Avoids some additional logic in Chunk#getBlockState... 0 is always air
-    static Block posToState(final BlockPos pos, final Chunk chunk) {
-        return posToState(pos, chunk.getBlockStorageArray()[pos.getY() >> 4]);
+    static Block posToState(final BlockPos pos, final ILumiChunk chunk) {
+        return posToState(pos, chunk.getLumiEBS(pos.getY() >> 4));
     }
 
-    static Block posToState(final BlockPos pos, final ExtendedBlockStorage section) {
+    static Block posToState(final BlockPos pos, final ILumiEBS section) {
         final int x = pos.getX();
         final int y = pos.getY();
         final int z = pos.getZ();
@@ -30,16 +29,10 @@ public class LightingEngineHelpers {
         return DEFAULT_BLOCK_STATE;
     }
 
-    static int getLightValueForState(final Block state, final IBlockAccess world, final int x, final int y, final int z) {
-        if(LightingEngine.isDynamicLightsLoaded) {
-            return DynamicLights.getLightValue(world, state, x, y, z);
-        } else
-            return state.getLightValue(world, x, y, z);
-    }
-
-    public static Chunk getLoadedChunk(final IChunkProvider provider, int chunkX, int chunkZ) {
+    public static ILumiChunk getLoadedChunk(ILumiWorld world, int chunkX, int chunkZ) {
+        val provider = world.provider();
         if(!provider.chunkExists(chunkX, chunkZ))
             return null;
-        return provider.provideChunk(chunkX, chunkZ);
+        return world.wrap(provider.provideChunk(chunkX, chunkZ));
     }
 }

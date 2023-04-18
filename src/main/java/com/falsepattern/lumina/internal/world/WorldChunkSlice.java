@@ -1,25 +1,24 @@
 package com.falsepattern.lumina.internal.world;
 
+import com.falsepattern.lumina.api.ILumiWorld;
+import com.falsepattern.lumina.api.ILumiChunk;
 import com.falsepattern.lumina.internal.world.lighting.LightingEngineHelpers;
-
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
 
 public class WorldChunkSlice {
     private static final int DIAMETER = 5;
 
-    private final Chunk[] chunks;
+    private final ILumiChunk[] chunks;
 
     private final int x, z;
 
-    public WorldChunkSlice(World world, int x, int z) {
-        this.chunks = new Chunk[DIAMETER * DIAMETER];
+    public WorldChunkSlice(ILumiWorld world, int x, int z) {
+        this.chunks = new ILumiChunk[DIAMETER * DIAMETER];
 
         int radius = DIAMETER / 2;
 
         for (int xDiff = -radius; xDiff <= radius; xDiff++) {
             for (int zDiff = -radius; zDiff <= radius; zDiff++) {
-                Chunk chunk = LightingEngineHelpers.getLoadedChunk(world.getChunkProvider(), x + xDiff, z + zDiff);
+                ILumiChunk chunk = LightingEngineHelpers.getLoadedChunk(world, x + xDiff, z + zDiff);
                 this.chunks[((xDiff + radius) * DIAMETER) + (zDiff + radius)] = chunk;
             }
         }
@@ -28,11 +27,11 @@ public class WorldChunkSlice {
         this.z = z - radius;
     }
 
-    public Chunk getChunk(int x, int z) {
+    public ILumiChunk getChunk(int x, int z) {
         return this.chunks[(x * DIAMETER) + z];
     }
 
-    public Chunk getChunkFromWorldCoords(int x, int z) {
+    public ILumiChunk getChunkFromWorldCoords(int x, int z) {
         return this.getChunk((x >> 4) - this.x, (z >> 4) - this.z);
     }
 

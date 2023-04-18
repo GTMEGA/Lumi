@@ -21,8 +21,25 @@
 
 package com.falsepattern.lumina.api;
 
-import net.minecraft.world.EnumSkyBlock;
+import net.minecraft.block.Block;
 
-public interface IChunkLighting {
-    int getCachedLightFor(EnumSkyBlock enumSkyBlock, int xIn, int yIn, int zIn);
+public interface ILumiEBS {
+    /**
+     * The custom skylight data
+     */
+    int getExtSkylightValue(int x, int y, int z);
+    void setExtSkylightValue(int x, int y, int z, int defaultLightValue);
+
+    /**
+     * The custom blocklight data
+     */
+    int getExtBlocklightValue(int x, int y, int z);
+
+    /**
+     * Should defer to the vanilla ExtendedBlockStorage coupled to this instance.
+     */
+    Block getBlockByExtId(int x, int y, int z);
+
+    int getYLocation();
+
 }

@@ -21,7 +21,9 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
-import com.falsepattern.lumina.api.ILightingEngineProvider;
+import com.falsepattern.lumina.api.ILumiWorldProvider;
+import com.falsepattern.lumina.api.phosphor.ILightingEngineProvider;
+import lombok.val;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -47,7 +49,11 @@ public abstract class MixinChunkProviderServer {
      */
     @Inject(method = "saveChunks", at = @At("HEAD"))
     private void onSaveChunks(boolean all, IProgressUpdate update, CallbackInfoReturnable<Boolean> cir) {
-        ((ILightingEngineProvider) this.worldObj).getLightingEngine().processLightUpdates();
+        val prov = (ILumiWorldProvider) this.worldObj;
+        for (int i = 0; i < prov.lumiWorldCount(); i++) {
+            val world = prov.getWorld(i);
+            world.getLightingEngine().processLightUpdates();
+        }
     }
 
     /**
@@ -60,7 +66,11 @@ public abstract class MixinChunkProviderServer {
     private void onTick(CallbackInfoReturnable<Boolean> cir) {
         if (!this.worldObj.levelSaving) {
             if (!this.chunksToUnload.isEmpty()) {
-                ((ILightingEngineProvider) this.worldObj).getLightingEngine().processLightUpdates();
+                val prov = (ILumiWorldProvider) this.worldObj;
+                for (int i = 0; i < prov.lumiWorldCount(); i++) {
+                    val world = prov.getWorld(i);
+                    world.getLightingEngine().processLightUpdates();
+                }
             }
         }
     }

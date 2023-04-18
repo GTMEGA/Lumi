@@ -19,23 +19,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.mixin.mixins.common;
+package com.falsepattern.lumina.internal.mixin.mixins.common.impl;
 
+import com.falsepattern.lumina.api.ILumiEBS;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
+import net.minecraft.block.Block;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @Mixin(ExtendedBlockStorage.class)
-public class MixinExtendedBlockStorage {
+public abstract class MixinExtendedBlockStorageILumiEBS implements ILumiEBS {
     @Shadow
     private int blockRefCount;
 
     @Shadow private NibbleArray skylightArray;
     @Shadow private NibbleArray blocklightArray;
     private int lightRefCount = -1;
+
+    @Shadow
+    @Override
+    public abstract int getExtSkylightValue(int x, int y, int z);
 
     /**
      * @author Angeline
@@ -46,6 +52,10 @@ public class MixinExtendedBlockStorage {
         this.skylightArray.set(x, y, z, value);
         this.lightRefCount = -1;
     }
+
+    @Shadow
+    @Override
+    public abstract int getExtBlocklightValue(int x, int y, int z);
 
     /**
      * @author Angeline
@@ -116,4 +126,12 @@ public class MixinExtendedBlockStorage {
 
         return true;
     }
+
+    @Shadow
+    @Override
+    public abstract Block getBlockByExtId(int x, int y, int z);
+
+    @Shadow
+    @Override
+    public abstract int getYLocation();
 }

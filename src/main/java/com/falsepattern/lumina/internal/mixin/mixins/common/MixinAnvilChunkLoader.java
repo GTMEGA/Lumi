@@ -21,8 +21,8 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
-import com.falsepattern.lumina.api.IChunkLightingData;
-import com.falsepattern.lumina.api.ILightingEngineProvider;
+import com.falsepattern.lumina.api.ILumiChunk;
+import com.falsepattern.lumina.api.phosphor.ILightingEngineProvider;
 import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -34,7 +34,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.AnvilChunkLoader;
-
+//TODO
 @Mixin(AnvilChunkLoader.class)
 public abstract class MixinAnvilChunkLoader {
     /**
@@ -56,9 +56,9 @@ public abstract class MixinAnvilChunkLoader {
     private void onReadChunkFromNBT(World world, NBTTagCompound compound, CallbackInfoReturnable<Chunk> cir) {
         Chunk chunk = cir.getReturnValue();
 
-        LightingHooks.readNeighborLightChecksFromNBT(chunk, compound);
+        LightingHooks.readNeighborLightChecksFromNBT((ILumiChunk)chunk, compound);
 
-        ((IChunkLightingData) chunk).setLightInitialized(compound.getBoolean("LightPopulated"));
+        ((ILumiChunk) chunk).setLightInitialized(compound.getBoolean("LightPopulated"));
 
     }
 
@@ -68,8 +68,8 @@ public abstract class MixinAnvilChunkLoader {
      */
     @Inject(method = "writeChunkToNBT", at = @At("RETURN"))
     private void onWriteChunkToNBT(Chunk chunk, World world, NBTTagCompound compound, CallbackInfo ci) {
-        LightingHooks.writeNeighborLightChecksToNBT(chunk, compound);
+        LightingHooks.writeNeighborLightChecksToNBT((ILumiChunk)chunk, compound);
 
-        compound.setBoolean("LightPopulated", ((IChunkLightingData) chunk).isLightInitialized());
+        compound.setBoolean("LightPopulated", ((ILumiChunk) chunk).isLightInitialized());
     }
 }

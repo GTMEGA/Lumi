@@ -1,8 +1,10 @@
 package com.falsepattern.lumina.internal.world.lighting;
 
 import com.falsepattern.lib.internal.Share;
-import com.falsepattern.lumina.api.IChunkLighting;
-import com.falsepattern.lumina.api.ILightingEngine;
+import com.falsepattern.lumina.api.ILumiEBS;
+import com.falsepattern.lumina.api.phosphor.ILightingEngine;
+import com.falsepattern.lumina.api.ILumiChunk;
+import com.falsepattern.lumina.api.ILumiWorld;
 import com.falsepattern.lumina.internal.collections.PooledLongQueue;
 
 import net.minecraft.block.Block;
@@ -11,10 +13,6 @@ import net.minecraft.profiler.Profiler;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.EnumSkyBlock;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.IChunkProvider;
-import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -29,7 +27,7 @@ public class LightingEngine implements ILightingEngine {
 
     private final Thread ownedThread = Thread.currentThread();
 
-    private final World world;
+    private final ILumiWorld world;
 
     private final Profiler profiler;
 
@@ -88,7 +86,7 @@ public class LightingEngine implements ILightingEngine {
     //Iteration state data
     //Cache position to avoid allocation of new object each time
     private final BlockPos.MutableBlockPos curPos = new BlockPos.MutableBlockPos();
-    private Chunk curChunk;
+    private ILumiChunk curChunk;
     private long curChunkIdentifier;
     private long curData;
     static boolean isDynamicLightsLoaded;
@@ -101,9 +99,9 @@ public class LightingEngine implements ILightingEngine {
 
     private final ReentrantLock lock = new ReentrantLock();
 
-    public LightingEngine(final World world) {
+    public LightingEngine(final ILumiWorld world) {
         this.world = world;
-        this.profiler = world.theProfiler;
+        this.profiler = world.theProfiler();
         isDynamicLightsLoaded = Loader.isModLoaded("DynamicLights");
 
         PooledLongQueue.Pool pool = new PooledLongQueue.Pool();
@@ -174,7 +172,7 @@ public class LightingEngine implements ILightingEngine {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
-        if (this.world.isRemote && !this.isCallingFromMainThread()) {
+        if (this.world.isRemote() && !this.isCallingFromMainThread()) {
             return;
         }
 
@@ -322,7 +320,7 @@ public class LightingEngine implements ILightingEngine {
                     this.fetchNeighborDataFromCursor(lightType);
 
                     for (NeighborInfo info : this.neighborInfos) {
-                        final Chunk nChunk = info.chunk;
+                        final ILumiChunk nChunk = info.chunk;
 
                         if (nChunk == null) {
                             continue;
@@ -363,7 +361,7 @@ public class LightingEngine implements ILightingEngine {
 
                 if (oldLight == curLight) //only process this if nothing else has happened at this position since scheduling
                 {
-                    this.world.func_147479_m(this.curPos.getX(), this.curPos.getY(), this.curPos.getZ());
+                    this.world.markBlockForRenderUpdate(this.curPos.getX(), this.curPos.getY(), this.curPos.getZ());
 
                     if (curLight > 1) {
                         this.spreadLightFromCursor(curLight, lightType);
@@ -403,7 +401,7 @@ public class LightingEngine implements ILightingEngine {
 
             final BlockPos.MutableBlockPos nPos = decodeWorldCoord(info.pos, nLongPos);
 
-            final Chunk nChunk;
+            final ILumiChunk nChunk;
 
             if ((nLongPos & mChunk) == this.curChunkIdentifier) {
                 nChunk = info.chunk = this.curChunk;
@@ -412,7 +410,7 @@ public class LightingEngine implements ILightingEngine {
             }
 
             if (nChunk != null) {
-                ExtendedBlockStorage nSection = nChunk.getBlockStorageArray()[nPos.getY() >> 4];
+                ILumiEBS nSection = nChunk.getLumiEBS(nPos.getY() >> 4);
 
                 info.light = getCachedLightFor(nChunk, nSection, nPos, lightType);
                 info.section = nSection;
@@ -421,7 +419,7 @@ public class LightingEngine implements ILightingEngine {
     }
 
 
-    private static int getCachedLightFor(Chunk chunk, ExtendedBlockStorage storage, BlockPos pos, EnumSkyBlock type) {
+    private static int getCachedLightFor(ILumiChunk chunk, ILumiEBS storage, BlockPos pos, EnumSkyBlock type) {
         int i = pos.getX() & 15;
         int j = pos.getY();
         int k = pos.getZ() & 15;
@@ -433,7 +431,7 @@ public class LightingEngine implements ILightingEngine {
                 return 0;
             }
         } else if (type == EnumSkyBlock.Sky) {
-            if (chunk.worldObj.provider.hasNoSky) {
+            if (chunk.world().hasNoSky()) {
                 return 0;
             } else {
                 return storage.getExtSkylightValue(i, j & 15, k);
@@ -489,7 +487,7 @@ public class LightingEngine implements ILightingEngine {
         this.fetchNeighborDataFromCursor(lightType);
 
         for (NeighborInfo info : this.neighborInfos) {
-            final Chunk nChunk = info.chunk;
+            final ILumiChunk nChunk = info.chunk;
 
             if (nChunk == null) {
                 continue;
@@ -510,7 +508,7 @@ public class LightingEngine implements ILightingEngine {
     /**
      * Enqueues the pos for brightening and sets its light value to <code>newLight</code>
      */
-    private void enqueueBrightening(final BlockPos pos, final long longPos, final int newLight, final Chunk chunk, final EnumSkyBlock lightType) {
+    private void enqueueBrightening(final BlockPos pos, final long longPos, final int newLight, final ILumiChunk chunk, final EnumSkyBlock lightType) {
         this.queuedBrightenings[newLight].add(longPos);
 
         chunk.setLightValue(lightType, pos.getX() & 15, pos.getY(), pos.getZ() & 15, newLight);
@@ -519,7 +517,7 @@ public class LightingEngine implements ILightingEngine {
     /**
      * Enqueues the pos for darkening and sets its light value to 0
      */
-    private void enqueueDarkening(final BlockPos pos, final long longPos, final int oldLight, final Chunk chunk, final EnumSkyBlock lightType) {
+    private void enqueueDarkening(final BlockPos pos, final long longPos, final int oldLight, final ILumiChunk chunk, final EnumSkyBlock lightType) {
         this.queuedDarkenings[oldLight].add(longPos);
 
         chunk.setLightValue(lightType, pos.getX() & 15, pos.getY(), pos.getZ() & 15, 0);
@@ -571,7 +569,7 @@ public class LightingEngine implements ILightingEngine {
     }
 
     private int getCursorCachedLight(final EnumSkyBlock lightType) {
-        return ((IChunkLighting) this.curChunk).getCachedLightFor(lightType, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ());
+        return this.curChunk.getCachedLightFor(lightType, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ());
     }
 
     /**
@@ -586,23 +584,23 @@ public class LightingEngine implements ILightingEngine {
             }
         }
 
-        return MathHelper.clamp_int(LightingEngineHelpers.getLightValueForState(state, this.world, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ()), 0, MAX_LIGHT);
+        return MathHelper.clamp_int(
+                world.getLightValueForState(state, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ()), 0, MAX_LIGHT);
     }
 
     private int getPosOpacity(final BlockPos pos, final Block state) {
-        return MathHelper.clamp_int(state.getLightOpacity(world, pos.getX(), pos.getY(), pos.getZ()), 1, MAX_LIGHT);
+        return MathHelper.clamp_int(world.getLightOpacity(state, pos.getX(), pos.getY(), pos.getZ()), 1, MAX_LIGHT);
     }
 
-    private Chunk getChunk(final BlockPos pos) {
-        IChunkProvider prov = this.world.getChunkProvider();
+    private ILumiChunk getChunk(final BlockPos pos) {
         int chunkX = pos.getX() >> 4;
         int chunkZ = pos.getZ() >> 4;
-        return LightingEngineHelpers.getLoadedChunk(prov, chunkX, chunkZ);
+        return LightingEngineHelpers.getLoadedChunk(world, chunkX, chunkZ);
     }
 
     private static class NeighborInfo {
-        Chunk chunk;
-        ExtendedBlockStorage section;
+        ILumiChunk chunk;
+        ILumiEBS section;
 
         int light;
 

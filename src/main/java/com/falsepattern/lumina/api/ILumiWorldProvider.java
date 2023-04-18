@@ -21,14 +21,7 @@
 
 package com.falsepattern.lumina.api;
 
-public interface IChunkLightingData {
-    short[] getNeighborLightChecks();
-
-    void setNeighborLightChecks(short[] data);
-
-    boolean isLightInitialized();
-
-    void setLightInitialized(boolean val);
-
-    void setSkylightUpdatedPublic();
+public interface ILumiWorldProvider {
+    int lumiWorldCount();
+    ILumiWorld getWorld(int i);
 }
