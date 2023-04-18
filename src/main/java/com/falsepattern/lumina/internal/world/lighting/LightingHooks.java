@@ -4,7 +4,6 @@ import com.falsepattern.lib.internal.Share;
 import com.falsepattern.lumina.api.ILumiChunk;
 import com.falsepattern.lumina.api.ILumiEBS;
 import com.falsepattern.lumina.api.ILumiWorld;
-import com.falsepattern.lumina.api.phosphor.ILightingEngine;
 import com.falsepattern.lumina.internal.world.WorldChunkSlice;
 
 import net.minecraft.block.Block;

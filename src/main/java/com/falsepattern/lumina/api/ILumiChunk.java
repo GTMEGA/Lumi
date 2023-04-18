@@ -21,8 +21,6 @@
 
 package com.falsepattern.lumina.api;
 
-import com.falsepattern.lumina.api.phosphor.ILightingEngineProvider;
-
 import net.minecraft.block.Block;
 import net.minecraft.world.EnumSkyBlock;
 

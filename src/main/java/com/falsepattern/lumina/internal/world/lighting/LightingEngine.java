@@ -2,7 +2,7 @@ package com.falsepattern.lumina.internal.world.lighting;
 
 import com.falsepattern.lib.internal.Share;
 import com.falsepattern.lumina.api.ILumiEBS;
-import com.falsepattern.lumina.api.phosphor.ILightingEngine;
+import com.falsepattern.lumina.api.ILightingEngine;
 import com.falsepattern.lumina.api.ILumiChunk;
 import com.falsepattern.lumina.api.ILumiWorld;
 import com.falsepattern.lumina.internal.collections.PooledLongQueue;

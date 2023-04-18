@@ -21,7 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.client;
 
-import com.falsepattern.lumina.api.phosphor.ILightingEngineProvider;
+import com.falsepattern.lumina.api.ILightingEngineProvider;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

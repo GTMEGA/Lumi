@@ -19,8 +19,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api.phosphor;
+package com.falsepattern.lumina.api;
 
-public interface ILightingEngineProvider {
-    ILightingEngine getLightingEngine();
+import net.minecraft.world.EnumSkyBlock;
+
+public interface ILightingEngine {
+    void scheduleLightUpdate(EnumSkyBlock lightType, int xIn, int yIn, int zIn);
+
+    void processLightUpdates();
+
+    void processLightUpdatesForType(EnumSkyBlock lightType);
 }

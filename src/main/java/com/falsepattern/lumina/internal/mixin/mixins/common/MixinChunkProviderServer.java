@@ -22,7 +22,6 @@
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
 import com.falsepattern.lumina.api.ILumiWorldProvider;
-import com.falsepattern.lumina.api.phosphor.ILightingEngineProvider;
 import lombok.val;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

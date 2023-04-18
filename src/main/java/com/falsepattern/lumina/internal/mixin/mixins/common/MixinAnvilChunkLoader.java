@@ -22,7 +22,7 @@
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
 import com.falsepattern.lumina.api.ILumiChunk;
-import com.falsepattern.lumina.api.phosphor.ILightingEngineProvider;
+import com.falsepattern.lumina.api.ILightingEngineProvider;
 import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
