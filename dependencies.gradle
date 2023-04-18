@@ -21,4 +21,6 @@ dependencies {
 
     compileOnly("org.jetbrains:annotations:[24,25)")
 
+    compileOnly(deobfCurse("dynamiclights-227874:2337326"))
+
 }

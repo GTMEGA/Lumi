@@ -15,9 +15,21 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.function.Predicate;
 
+import static com.falsepattern.lib.mixin.IMixin.PredicateHelpers.always;
+
 @RequiredArgsConstructor
 public enum Mixin implements IMixin {
     // @formatter:off
+    common_lighting_MixinAnvilChunkLoader(Side.COMMON, always(), "lighting.MixinAnvilChunkLoader"),
+    common_lighting_MixinChunk(Side.COMMON, always(), "lighting.MixinChunk"),
+    common_lighting_MixinChunkProviderServer(Side.COMMON, always(), "lighting.MixinChunkProviderServer"),
+    common_lighting_MixinChunkVanilla(Side.COMMON, always(), "lighting.MixinChunkVanilla"),
+    common_lighting_MixinExtendedBlockStorage(Side.COMMON, always(), "lighting.MixinExtendedBlockStorage"),
+    common_lighting_MixinSPacketChunkData(Side.COMMON, always(), "lighting.MixinSPacketChunkData"),
+    common_lighting_MixinWorld(Side.COMMON, always(), "lighting.MixinWorld_Lighting"),
+    client_lighting_MixinMinecraft(Side.CLIENT, always(), "lighting.MixinMinecraft"),
+    client_lighting_MixinWorld(Side.CLIENT, always(), "lighting.MixinWorld"),
+    client_lighting_MixinChunkCache(Side.CLIENT, always(), "lighting.MixinChunkCache"),
     ;
     // @formatter:on
 
