@@ -21,7 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
-import com.falsepattern.lumina.internal.LumiWorldManager;
+import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import lombok.val;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -31,8 +31,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.AnvilChunkLoader;
-@Mixin(value = AnvilChunkLoader.class,
-       priority = 1001)
+@Mixin(value = AnvilChunkLoader.class)
 public abstract class MixinAnvilChunkLoader {
     /**
      * Injects into the head of saveChunk() to forcefully process all pending light updates. Fail-safe.

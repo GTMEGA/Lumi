@@ -21,7 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.client;
 
-import com.falsepattern.lumina.internal.LumiWorldManager;
+import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import lombok.val;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;

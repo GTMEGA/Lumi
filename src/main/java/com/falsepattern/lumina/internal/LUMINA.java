@@ -22,6 +22,8 @@
 package com.falsepattern.lumina.internal;
 
 import com.falsepattern.chunk.api.ChunkDataRegistry;
+import com.falsepattern.lumina.internal.saving.LightChecksBuiltin;
+import com.falsepattern.lumina.internal.saving.LightChecksExtended;
 
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -30,11 +32,12 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
      version = Tags.VERSION,
      name = Tags.MODNAME,
      acceptedMinecraftVersions = "[1.7.10]",
-     dependencies = "required-after:falsepatternlib@[0.11,);")
+     dependencies = "required-after:falsepatternlib@[0.11,);required-after:chunkapi@[0.2,)")
 public class LUMINA {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        ChunkDataRegistry.registerDataManager(new LightPopulatedManager());
+        ChunkDataRegistry.registerDataManager(new LightChecksBuiltin());
+        ChunkDataRegistry.registerDataManager(new LightChecksExtended());
     }
 }

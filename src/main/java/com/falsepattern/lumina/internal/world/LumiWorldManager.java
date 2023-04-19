@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal;
+package com.falsepattern.lumina.internal.world;
 
 import com.falsepattern.lumina.api.ILumiWorld;
 import com.falsepattern.lumina.api.ILumiWorldProvider;

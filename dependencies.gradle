@@ -19,7 +19,7 @@ dependencies {
 
     implementation("com.falsepattern:falsepatternlib-mc1.7.10:[0.11,0.12):dev")
 
-    implementation("com.falsepattern:chunkapi-mc1.7.10:0.1.3:dev")
+    implementation("com.falsepattern:chunkapi-mc1.7.10:0.2.0:dev")
 
     compileOnly("org.jetbrains:annotations:[24,25)")
 

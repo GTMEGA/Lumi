@@ -21,8 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
-import com.falsepattern.lumina.api.ILumiWorldProvider;
-import com.falsepattern.lumina.internal.LumiWorldManager;
+import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
 import lombok.val;
 import org.spongepowered.asm.mixin.Mixin;
