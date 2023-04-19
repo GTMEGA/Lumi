@@ -34,9 +34,11 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 public abstract class MixinExtendedBlockStorageILumiEBS implements ILumiEBS {
     @Shadow
     private int blockRefCount;
+    @Shadow
+    private NibbleArray skylightArray;
+    @Shadow
+    private NibbleArray blocklightArray;
 
-    @Shadow private NibbleArray skylightArray;
-    @Shadow private NibbleArray blocklightArray;
     private int lightRefCount = -1;
 
     @Shadow
@@ -48,6 +50,7 @@ public abstract class MixinExtendedBlockStorageILumiEBS implements ILumiEBS {
      * @reason Reset lightRefCount on call
      */
     @Overwrite
+    @Override
     public void setExtSkylightValue(int x, int y, int z, int value) {
         this.skylightArray.set(x, y, z, value);
         this.lightRefCount = -1;

@@ -24,6 +24,7 @@ package com.falsepattern.lumina.internal.mixin.mixins.common;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
 import lombok.val;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -34,6 +35,8 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import net.minecraft.block.Block;
+import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
@@ -47,6 +50,14 @@ public abstract class MixinChunk {
     public World worldObj;
     @Shadow
     public boolean isTerrainPopulated;
+
+    @Shadow private int queuedLightChecks;
+
+    @Shadow @Final public int xPosition;
+
+    @Shadow @Final public int zPosition;
+
+    @Shadow private ExtendedBlockStorage[] storageArrays;
 
     /**
      * Callback injected to the head of getLightSubtracted(BlockPos, int) to force deferred light updates to be processed.
@@ -222,61 +233,61 @@ public abstract class MixinChunk {
     }
 
     //TODO port
-//    /**
-//     * @author embeddedt
-//     * @reason optimize random light checks so they complete faster
-//     */
-//    @Overwrite
-//    public void enqueueRelightChecks() {
-//        /* Skip object allocation if we weren't going to run checks anyway */
-//        if (this.queuedLightChecks >= 4096) {
-//            return;
-//        }
-//        boolean isActiveChunk = worldObj.activeChunkSet.contains(new ChunkCoordIntPair(this.xPosition, this.zPosition));
-//        int lightRecheckSpeed;
-//        if (worldObj.isRemote && isActiveChunk) {
-//            lightRecheckSpeed = 256;
-//        } else if (worldObj.isRemote) {
-//            lightRecheckSpeed = 64;
-//        } else {
-//            lightRecheckSpeed = 32;
-//        }
-//        for (int i = 0; i < lightRecheckSpeed; ++i) {
-//            if (this.queuedLightChecks >= 4096) {
-//                return;
-//            }
-//
-//            int section = this.queuedLightChecks % 16;
-//            int x = this.queuedLightChecks / 16 % 16;
-//            int z = this.queuedLightChecks / 256;
-//            ++this.queuedLightChecks;
-//            int bx = (this.xPosition << 4) + x;
-//            int bz = (this.zPosition << 4) + z;
-//
-//            for (int y = 0; y < 16; ++y) {
-//                int by = (section << 4) + y;
-//                ExtendedBlockStorage storage = this.storageArrays[section];
-//
-//                boolean performFullLightUpdate = false;
-//                if (storage == null && (y == 0 || y == 15 || x == 0 || x == 15 || z == 0 || z == 15)) {
-//                    performFullLightUpdate = true;
-//                } else if (storage != null) {
-//                    Block block = storage.getBlockByExtId(x, y, z);
-//                    if (block.getLightOpacity(this.worldObj, bx, by, bz) >= 255 &&
-//                        block.getLightValue(this.worldObj, bx, by, bz) <= 0) {
-//                        int prevLight = storage.getExtBlocklightValue(x, y, z);
-//                        if (prevLight != 0) {
-//                            storage.setExtBlocklightValue(x, y, z, 0);
-//                            this.worldObj.markBlockRangeForRenderUpdate(bx, by, bz, bx, by, bz);
-//                        }
-//                    } else {
-//                        performFullLightUpdate = true;
-//                    }
-//                }
-//                if (performFullLightUpdate) {
-//                    this.worldObj.func_147451_t(bx, by, bz);
-//                }
-//            }
-//        }
-//    }
+    /**
+     * @author embeddedt
+     * @reason optimize random light checks so they complete faster
+     */
+    @Overwrite
+    public void enqueueRelightChecks() {
+        /* Skip object allocation if we weren't going to run checks anyway */
+        if (this.queuedLightChecks >= 4096) {
+            return;
+        }
+        boolean isActiveChunk = worldObj.activeChunkSet.contains(new ChunkCoordIntPair(this.xPosition, this.zPosition));
+        int lightRecheckSpeed;
+        if (worldObj.isRemote && isActiveChunk) {
+            lightRecheckSpeed = 256;
+        } else if (worldObj.isRemote) {
+            lightRecheckSpeed = 64;
+        } else {
+            lightRecheckSpeed = 32;
+        }
+        for (int i = 0; i < lightRecheckSpeed; ++i) {
+            if (this.queuedLightChecks >= 4096) {
+                return;
+            }
+
+            int section = this.queuedLightChecks % 16;
+            int x = this.queuedLightChecks / 16 % 16;
+            int z = this.queuedLightChecks / 256;
+            ++this.queuedLightChecks;
+            int bx = (this.xPosition << 4) + x;
+            int bz = (this.zPosition << 4) + z;
+
+            for (int y = 0; y < 16; ++y) {
+                int by = (section << 4) + y;
+                ExtendedBlockStorage storage = this.storageArrays[section];
+
+                boolean performFullLightUpdate = false;
+                if (storage == null && (y == 0 || y == 15 || x == 0 || x == 15 || z == 0 || z == 15)) {
+                    performFullLightUpdate = true;
+                } else if (storage != null) {
+                    Block block = storage.getBlockByExtId(x, y, z);
+                    if (block.getLightOpacity(this.worldObj, bx, by, bz) >= 255 &&
+                        block.getLightValue(this.worldObj, bx, by, bz) <= 0) {
+                        int prevLight = storage.getExtBlocklightValue(x, y, z);
+                        if (prevLight != 0) {
+                            storage.setExtBlocklightValue(x, y, z, 0);
+                            this.worldObj.markBlockRangeForRenderUpdate(bx, by, bz, bx, by, bz);
+                        }
+                    } else {
+                        performFullLightUpdate = true;
+                    }
+                }
+                if (performFullLightUpdate) {
+                    this.worldObj.func_147451_t(bx, by, bz);
+                }
+            }
+        }
+    }
 }

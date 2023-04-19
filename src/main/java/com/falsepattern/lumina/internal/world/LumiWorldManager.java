@@ -23,6 +23,8 @@ package com.falsepattern.lumina.internal.world;
 
 import com.falsepattern.lumina.api.ILumiWorld;
 import com.falsepattern.lumina.api.ILumiWorldProvider;
+import com.falsepattern.lumina.internal.world.lighting.LightingEngine;
+import lombok.val;
 
 import net.minecraft.world.World;
 
@@ -41,5 +43,12 @@ public class LumiWorldManager {
 
     public static ILumiWorld getWorld(World world, int i) {
         return providers.get(i).getWorld(world);
+    }
+
+    public static void initialize(World world) {
+        for (final ILumiWorldProvider provider: providers) {
+            val lWorld = provider.getWorld(world);
+            lWorld.setLightingEngine(new LightingEngine(lWorld));
+        }
     }
 }

@@ -41,19 +41,20 @@ import java.util.Arrays;
 
 @Mixin(value = Chunk.class)
 public abstract class MixinChunkILumiChunk implements ILumiChunk {
-    @Shadow public boolean isModified;
+    @Shadow
+    public boolean isModified;
     @Shadow
     public boolean[] updateSkylightColumns;
-    private short[] neighborLightChecks;
-    private boolean isLightInitialized;
     @Shadow
     public boolean isLightPopulated;
     @Shadow
     private boolean isGapLightingUpdated;
-
     @Shadow
     public World worldObj;
+
     private ILightingEngine lightingEngine;
+    private short[] neighborLightChecks;
+    private boolean isLightInitialized;
 
     @Shadow
     @Override

@@ -33,6 +33,8 @@ public interface ILumiWorld extends ILightingEngineProvider {
 
     ILumiEBS wrap(ExtendedBlockStorage ebs);
 
+    void setLightingEngine(ILightingEngine engine);
+
     int getLightValueForState(final Block state, final int x, final int y, final int z);
 
     int getLightOpacity(Block state, int x, int y, int z);
