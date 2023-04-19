@@ -21,16 +21,15 @@ import static com.falsepattern.lib.mixin.IMixin.PredicateHelpers.always;
 public enum Mixin implements IMixin {
     // @formatter:off
     common_MixinAnvilChunkLoader(Side.COMMON, always(), "MixinAnvilChunkLoader"),
-    common_MixinChunkB(Side.COMMON, always(), "MixinChunk"),
+    common_MixinChunk(Side.COMMON, always(), "MixinChunk"),
     common_MixinChunkProviderServer(Side.COMMON, always(), "MixinChunkProviderServer"),
     common_MixinSPacketChunkData(Side.COMMON, always(), "MixinSPacketChunkData"),
-    common_MixinWorld(Side.COMMON, always(), "MixinWorld"),
     common_impl_MixinChunkILumiChunk(Side.COMMON, always(), "impl.MixinChunkILumiChunk"),
     common_impl_MixinExtendedBlockStorage(Side.COMMON, always(), "impl.MixinExtendedBlockStorageILumiEBS"),
     common_impl_MixinWorldILumiWorld(Side.COMMON, always(), "impl.MixinWorldILumiWorld"),
     client_MixinMinecraft(Side.CLIENT, always(), "MixinMinecraft"),
-    client_MixinWorld(Side.CLIENT, always(), "MixinWorld"),
     client_MixinChunkCache(Side.CLIENT, always(), "MixinChunkCache"),
+    client_impl_MixinWorld(Side.CLIENT, always(), "impl.MixinWorldILumiWorld"),
     ;
     // @formatter:on
 

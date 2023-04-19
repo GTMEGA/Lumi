@@ -28,7 +28,6 @@ import net.minecraft.world.EnumSkyBlock;
  * Chunk placeholder for implementation.
  */
 public interface ILumiChunk extends ILightingEngineProvider {
-
     /**
      * Sets the light value at the coordinate. If enumskyblock is set to sky it sets it in the skylightmap and if its a
      * block then into the blocklightmap. Args enumSkyBlock, x, y, z, lightValue
@@ -37,11 +36,8 @@ public interface ILumiChunk extends ILightingEngineProvider {
     int getSavedLightValue(EnumSkyBlock enumSkyBlock, int x, int y, int z);
 
     boolean canBlockSeeTheSky(int x, int y, int z);
-
     ILumiEBS getLumiEBS(int arrayIndex);
-
     ILumiWorld world();
-
 
     //IChunkLighting
     default int getCachedLightFor(EnumSkyBlock type, int xIn, int yIn, int zIn) {
@@ -74,32 +70,22 @@ public interface ILumiChunk extends ILightingEngineProvider {
 
     //IChunkLightingData
     short[] getNeighborLightChecks();
-
     void setNeighborLightChecks(short[] data);
-
     boolean isLightInitialized();
-
     void setLightInitialized(boolean val);
-
     void setSkylightUpdatedPublic();
-
     void isLightPopulated(boolean state);
-
     void isGapLightingUpdated(boolean b);
 
-    //Proxy these to carrier chunk
+    //Proxy these to the minecraft chunk
     void setHeightValue(int x, int z, int val);
     int getHeightValue(int x, int z);
     int x();
     int z();
     void setChunkModified();
     Block getBlock(int x, int y, int z);
-
     int heightMapMinimum();
-
     void heightMapMinimum(int min);
-
     boolean[] updateSkylightColumns();
-
     void isModified(boolean b);
 }

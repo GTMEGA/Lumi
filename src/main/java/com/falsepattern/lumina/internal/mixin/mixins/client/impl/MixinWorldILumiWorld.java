@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.mixin.mixins.client;
+package com.falsepattern.lumina.internal.mixin.mixins.client.impl;
 
 import com.falsepattern.lumina.api.ILumiChunk;
 import com.falsepattern.lumina.api.ILumiWorld;
@@ -36,7 +36,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 //TODO
 @Mixin(World.class)
-public abstract class MixinWorld {
+public abstract class MixinWorldILumiWorld {
     @SuppressWarnings({"FieldCanBeLocal", "unused"}) //Used by MixinWorldILumiWorld in common
     private LightingEngine lightingEngine;
 

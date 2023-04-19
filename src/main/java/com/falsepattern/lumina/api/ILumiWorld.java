@@ -39,6 +39,8 @@ public interface ILumiWorld extends ILightingEngineProvider {
 
     boolean updateLightByType(EnumSkyBlock lightType, int x, int y, int z);
 
+    String id();
+
     //Proxy these to carrier world
 
     Profiler theProfiler();
@@ -48,6 +50,5 @@ public interface ILumiWorld extends ILightingEngineProvider {
     void markBlockForRenderUpdate(int x, int y, int z);
     IChunkProvider provider();
     boolean checkChunksExist(int minX, int minY, int minZ, int maxX, int maxY, int maxZ);
-
     boolean doChunksNearChunkExist(int x, int y, int z, int dist);
 }

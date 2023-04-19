@@ -21,7 +21,9 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
-import com.falsepattern.lumina.api.ILightingEngineProvider;
+import com.falsepattern.lumina.api.ILumiWorldProvider;
+import com.falsepattern.lumina.internal.LumiWorldManager;
+import lombok.val;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -29,8 +31,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.minecraft.network.play.server.S21PacketChunkData;
 import net.minecraft.world.chunk.Chunk;
-//TODO
-@Mixin(S21PacketChunkData.class)
+@Mixin(value = S21PacketChunkData.class,
+       priority = 1001)
 public abstract class MixinSPacketChunkData {
     /**
      * @author Angeline
@@ -40,6 +42,10 @@ public abstract class MixinSPacketChunkData {
      */
     @Inject(method = "func_149269_a", at = @At("HEAD"))
     private static void onCalculateChunkSize(Chunk chunkIn, boolean hasSkyLight, int changedSectionFilter, CallbackInfoReturnable<S21PacketChunkData.Extracted> cir) {
-        ((ILightingEngineProvider) chunkIn).getLightingEngine().processLightUpdates();
+        for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
+            val world = LumiWorldManager.getWorld(chunkIn.worldObj, i);
+            val lChunk = world.wrap(chunkIn);
+            lChunk.getLightingEngine().processLightUpdates();
+        }
     }
 }

@@ -24,6 +24,7 @@ package com.falsepattern.lumina.internal.mixin.mixins.common.impl;
 import com.falsepattern.lumina.api.ILumiChunk;
 import com.falsepattern.lumina.api.ILumiEBS;
 import com.falsepattern.lumina.api.ILumiWorld;
+import com.falsepattern.lumina.internal.Tags;
 import com.falsepattern.lumina.internal.world.lighting.LightingEngine;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -49,10 +50,6 @@ import java.util.Set;
 
 @Mixin(World.class)
 public abstract class MixinWorldILumiWorld implements ILumiWorld, IBlockAccess {
-    @Shadow protected Set activeChunkSet;
-
-    @Shadow public abstract IChunkProvider getChunkProvider();
-
     private LightingEngine lightingEngine;
 
     /**
@@ -148,4 +145,9 @@ public abstract class MixinWorldILumiWorld implements ILumiWorld, IBlockAccess {
     @Shadow
     @Override
     public abstract boolean doChunksNearChunkExist(int x, int y, int z, int dist);
+
+    @Override
+    public String id() {
+        return Tags.MODID;
+    }
 }

@@ -21,7 +21,8 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.client;
 
-import com.falsepattern.lumina.api.ILightingEngineProvider;
+import com.falsepattern.lumina.internal.LumiWorldManager;
+import lombok.val;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -32,7 +33,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.profiler.Profiler;
-//TODO
+
 @Mixin(Minecraft.class)
 public abstract class MixinMinecraft {
 
@@ -48,8 +49,10 @@ public abstract class MixinMinecraft {
     @Inject(method = "runTick", at = @At(value = "CONSTANT", args = "stringValue=levelRenderer", shift = At.Shift.BY, by = -3))
     private void onRunTick(CallbackInfo ci) {
         this.mcProfiler.endStartSection("lighting");
-
-        ((ILightingEngineProvider) this.theWorld).getLightingEngine().processLightUpdates();
+        for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
+            val lWorld = LumiWorldManager.getWorld(theWorld, i);
+            lWorld.getLightingEngine().processLightUpdates();
+        }
     }
 
 }

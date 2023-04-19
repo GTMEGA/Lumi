@@ -21,21 +21,18 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
-import com.falsepattern.lumina.api.ILumiChunk;
-import com.falsepattern.lumina.api.ILightingEngineProvider;
-import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
+import com.falsepattern.lumina.internal.LumiWorldManager;
+import lombok.val;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.AnvilChunkLoader;
-//TODO
-@Mixin(AnvilChunkLoader.class)
+@Mixin(value = AnvilChunkLoader.class,
+       priority = 1001)
 public abstract class MixinAnvilChunkLoader {
     /**
      * Injects into the head of saveChunk() to forcefully process all pending light updates. Fail-safe.
@@ -44,32 +41,9 @@ public abstract class MixinAnvilChunkLoader {
      */
     @Inject(method = "saveChunk", at = @At("HEAD"))
     private void onConstructed(World world, Chunk chunkIn, CallbackInfo callbackInfo) {
-        ((ILightingEngineProvider) world).getLightingEngine().processLightUpdates();
-    }
-
-    /**
-     * Injects the deserialization logic for chunk data on load so we can extract whether or not we've populated light yet.
-     *
-     * @author Angeline
-     */
-    @Inject(method = "readChunkFromNBT", at = @At("RETURN"))
-    private void onReadChunkFromNBT(World world, NBTTagCompound compound, CallbackInfoReturnable<Chunk> cir) {
-        Chunk chunk = cir.getReturnValue();
-
-        LightingHooks.readNeighborLightChecksFromNBT((ILumiChunk)chunk, compound);
-
-        ((ILumiChunk) chunk).setLightInitialized(compound.getBoolean("LightPopulated"));
-
-    }
-
-    /**
-     * Injects the serialization logic for chunk data on save so we can store whether or not we've populated light yet.
-     * @author Angeline
-     */
-    @Inject(method = "writeChunkToNBT", at = @At("RETURN"))
-    private void onWriteChunkToNBT(Chunk chunk, World world, NBTTagCompound compound, CallbackInfo ci) {
-        LightingHooks.writeNeighborLightChecksToNBT((ILumiChunk)chunk, compound);
-
-        compound.setBoolean("LightPopulated", ((ILumiChunk) chunk).isLightInitialized());
+        for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
+            val lWorld = LumiWorldManager.getWorld(world, i);
+            lWorld.getLightingEngine().processLightUpdates();
+        }
     }
 }

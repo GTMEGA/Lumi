@@ -19,23 +19,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.mixin.mixins.common;
+package com.falsepattern.lumina.internal;
 
 import com.falsepattern.lumina.api.ILumiWorld;
 import com.falsepattern.lumina.api.ILumiWorldProvider;
-import org.spongepowered.asm.mixin.Mixin;
 
 import net.minecraft.world.World;
-//TODO
-@Mixin(World.class)
-public abstract class MixinWorld implements ILumiWorldProvider {
-    @Override
-    public int lumiWorldCount() {
-        return 1;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class LumiWorldManager {
+    private static final List<ILumiWorldProvider> providers = new ArrayList<>();
+    static {
+        providers.add(world -> (ILumiWorld) world);
     }
 
-    @Override
-    public ILumiWorld getWorld(int i) {
-        return i == 0 ? (ILumiWorld) this : null;
+    public static int lumiWorldCount() {
+        return providers.size();
+    }
+
+    public static ILumiWorld getWorld(World world, int i) {
+        return providers.get(i).getWorld(world);
     }
 }

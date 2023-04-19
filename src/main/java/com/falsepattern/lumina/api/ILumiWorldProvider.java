@@ -21,7 +21,8 @@
 
 package com.falsepattern.lumina.api;
 
+import net.minecraft.world.World;
+
 public interface ILumiWorldProvider {
-    int lumiWorldCount();
-    ILumiWorld getWorld(int i);
+    ILumiWorld getWorld(World world);
 }

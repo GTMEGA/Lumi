@@ -21,7 +21,10 @@
 
 package com.falsepattern.lumina.internal;
 
+import com.falsepattern.chunk.api.ChunkDataRegistry;
+
 import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
 
 @Mod(modid = Tags.MODID,
      version = Tags.VERSION,
@@ -30,4 +33,8 @@ import cpw.mods.fml.common.Mod;
      dependencies = "required-after:falsepatternlib@[0.11,);")
 public class LUMINA {
 
+    @Mod.EventHandler
+    public void init(FMLInitializationEvent event) {
+        ChunkDataRegistry.registerDataManager(new LightPopulatedManager());
+    }
 }
