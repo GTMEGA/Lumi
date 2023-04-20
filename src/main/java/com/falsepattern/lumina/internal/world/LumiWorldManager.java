@@ -28,25 +28,39 @@ import lombok.val;
 
 import net.minecraft.world.World;
 
-import java.util.ArrayList;
-import java.util.List;
-
+//HOLY COW I'M TOTALLY GOING SO FAST OH F***
 public class LumiWorldManager {
-    private static final List<ILumiWorldProvider> providers = new ArrayList<>();
-    static {
-        providers.add(world -> (ILumiWorld) world);
-    }
+    //Not using a list because:
+    //1. This array only needs to grow during init
+    //2. Elements are never removed
+    //3. Bounds are known
+    //Growth factor is 1, because the number of custom providers is expected to be very small
+    private static ILumiWorldProvider[] providers = new ILumiWorldProvider[0];
 
     public static int lumiWorldCount() {
-        return providers.size();
+        return providers.length + 1;
     }
 
+    //No bounds checking, because this is an internal method
     public static ILumiWorld getWorld(World world, int i) {
-        return providers.get(i).getWorld(world);
+        return i == 0 ? (ILumiWorld) world : providers[i - 1].getWorld(world);
     }
 
+    //Synchronized just in case, only called during init anyway
+    public static synchronized void addProvider(ILumiWorldProvider provider) {
+        val oldProviders = providers;
+        ILumiWorldProvider[] newProviders = new ILumiWorldProvider[oldProviders.length + 1];
+        System.arraycopy(oldProviders, 0, newProviders, 0, oldProviders.length);
+        newProviders[newProviders.length - 1] = provider;
+        providers = newProviders;
+    }
+
+    @SuppressWarnings("ForLoopReplaceableByForEach")
     public static void initialize(World world) {
-        for (final ILumiWorldProvider provider: providers) {
+        val providers = LumiWorldManager.providers;
+        ((ILumiWorld) world).setLightingEngine(new LightingEngine((ILumiWorld) world));
+        for (int i = 0, providersLength = providers.length; i < providersLength; i++) {
+            ILumiWorldProvider provider = providers[i];
             val lWorld = provider.getWorld(world);
             lWorld.setLightingEngine(new LightingEngine(lWorld));
         }

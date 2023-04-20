@@ -21,9 +21,8 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.client;
 
-import com.falsepattern.lumina.internal.world.LumiWorldManager;
+import com.falsepattern.lumina.api.ILumiChunk;
 import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
-import lombok.val;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -36,10 +35,10 @@ import net.minecraft.world.chunk.Chunk;
 public class MixinChunkCache {
     @Redirect(method = "getSpecialBlockBrightness", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/chunk/Chunk;getSavedLightValue(Lnet/minecraft/world/EnumSkyBlock;III)I"))
     private int getIntrinsicValue(Chunk instance, EnumSkyBlock type, int posX, int posY, int posZ) {
-        val lWorld = LumiWorldManager.getWorld(instance.worldObj, 0);
-        val lChunk = lWorld.wrap(instance);
+
         return type == EnumSkyBlock.Sky ?
-                instance.getSavedLightValue(type, posX, posY, posZ) :
-                LightingHooks.getIntrinsicOrSavedBlockLightValue(lChunk, posX, posY, posZ);
+               instance.getSavedLightValue(type, posX, posY, posZ) :
+               //Optimization: bypass LumiWorldManager for world index 0 (the "vanilla" lighting)
+               LightingHooks.getIntrinsicOrSavedBlockLightValue((ILumiChunk) instance, posX, posY, posZ);
     }
 }

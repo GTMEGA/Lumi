@@ -22,6 +22,7 @@
 package com.falsepattern.lumina.internal.saving;
 
 import com.falsepattern.chunk.api.ChunkDataManager;
+import com.falsepattern.lumina.api.ILumiChunk;
 import com.falsepattern.lumina.internal.Tags;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
@@ -30,19 +31,22 @@ import lombok.val;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.Chunk;
 
+/**
+ * IDK why index 0 needs to be done differently, but if I don't do this, we get chunk errors.
+ * <p>
+ * Uses direct casting to avoid the overhead of LumiWorldManager.
+ */
 public class LightChecksBuiltin implements ChunkDataManager.ChunkNBTDataManager{
     @Override
     public void writeChunkToNBT(Chunk chunk, NBTTagCompound nbt) {
-        val lWorld = LumiWorldManager.getWorld(chunk.worldObj, 0);
-        val lChunk = lWorld.wrap(chunk);
+        val lChunk = (ILumiChunk) chunk;
         LightingHooks.writeNeighborLightChecksToNBT(lChunk, nbt);
         nbt.setBoolean("LightPopulated", lChunk.isLightInitialized());
     }
 
     @Override
     public void readChunkFromNBT(Chunk chunk, NBTTagCompound nbt) {
-        val lWorld = LumiWorldManager.getWorld(chunk.worldObj, 0);
-        val lChunk = lWorld.wrap(chunk);
+        val lChunk = (ILumiChunk) chunk;
         LightingHooks.readNeighborLightChecksFromNBT(lChunk, nbt);
         lChunk.setLightInitialized(nbt.getBoolean("LightPopulated"));
     }
