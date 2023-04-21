@@ -30,6 +30,7 @@ public enum Mixin implements IMixin {
     common_impl_MixinExtendedBlockStorageILumiEBS(Side.COMMON, always(), "impl.MixinExtendedBlockStorageILumiEBS"),
     common_impl_MixinWorldILumiWorld(Side.COMMON, always(), "impl.MixinWorldILumiWorld"),
     client_MixinMinecraft(Side.CLIENT, always(), "MixinMinecraft"),
+    client_MixinChunk(Side.CLIENT, always(), "MixinChunk"),
     client_MixinChunkCache(Side.CLIENT, always(), "MixinChunkCache"),
     client_MixinWorld(Side.CLIENT, always(), "MixinWorld"),
     ;

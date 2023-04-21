@@ -16,6 +16,9 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.chunk.Chunk;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
 import java.util.Arrays;
 
 @SuppressWarnings("unused")
@@ -291,6 +294,113 @@ public class LightingHooks {
 
     public static void lumiSetBlocklight(ILumiEBS iLumiEBS, int x, int y, int z, int defaultLightValue) {
         iLumiEBS.lumiBlocklightArray().set(x, y, z, defaultLightValue);
+    }
+
+    /**
+     * Generates the initial skylight map for the chunk upon generation or load.
+     */
+    public static void generateSkylightMap(ILumiChunk chunk) {
+        val root = chunk.root();
+        int topSegment = root.getTopFilledSegment();
+        chunk.lumiHeightMapMinimum(Integer.MAX_VALUE);
+        int heightMapMinimum = Integer.MAX_VALUE;
+        val heightMap = chunk.lumiHeightMap();
+        for (int x = 0; x < 16; ++x) {
+            int z = 0;
+            while (z < 16) {
+                chunk.root().precipitationHeightMap()[x + (z << 4)] = -999;
+                int y = topSegment + 16 - 1;
+
+                while (true) {
+                    if (y > 0) {
+                        if (getLightOpacity(chunk, x, y - 1, z) == 0) {
+                            --y;
+                            continue;
+                        }
+
+                        heightMap[z << 4 | x] = y;
+
+                        if (y < heightMapMinimum) {
+                            heightMapMinimum = y;
+                        }
+                    }
+
+                    if (!chunk.lumiWorld().root().hasNoSky()) {
+                        int lightLevel = 15;
+                        y = topSegment + 16 - 1;
+
+                        do {
+                            int opacity = getLightOpacity(chunk, x, y, z);
+
+                            if (opacity == 0 && lightLevel != 15) {
+                                opacity = 1;
+                            }
+
+                            lightLevel -= opacity;
+
+                            if (lightLevel > 0) {
+                                val ebs = chunk.lumiEBS(y >> 4);
+
+                                if (ebs != null) {
+                                    ebs.lumiSkylightArray().set(x, y & 15, z, lightLevel);
+                                    chunk.lumiWorld().root().markBlockForRenderUpdate((chunk.x() << 4) + x, y, (chunk.z() << 4) + z);
+                                }
+                            }
+
+                            --y;
+                        }
+                        while (y > 0 && lightLevel > 0);
+                    }
+
+                    ++z;
+                    break;
+                }
+            }
+        }
+
+        chunk.root().setChunkModified();
+        chunk.lumiHeightMapMinimum(heightMapMinimum);
+    }
+
+    /**
+     * Generates the height map for a chunk from scratch
+     * @param chunk
+     */
+    @SideOnly(Side.CLIENT)
+    public static void generateHeightMap(ILumiChunk chunk) {
+        int i = chunk.root().getTopFilledSegment();
+        int heightMapMinimum = Integer.MAX_VALUE;
+        val heightMap = chunk.lumiHeightMap();
+
+        for (int j = 0; j < 16; ++j) {
+            int k = 0;
+
+            while (k < 16) {
+                chunk.root().precipitationHeightMap()[j + (k << 4)] = -999;
+                int l = i + 16 - 1;
+
+                while (true) {
+                    if (l > 0) {
+                        if (getLightOpacity(chunk, j, l - 1, k) == 0) {
+                            --l;
+                            continue;
+                        }
+
+                        heightMap[k << 4 | j] = l;
+
+                        if (l < heightMapMinimum) {
+                            heightMapMinimum = l;
+                        }
+                    }
+
+                    ++k;
+                    break;
+                }
+            }
+        }
+
+        chunk.lumiHeightMapMinimum(heightMapMinimum);
+        chunk.root().setChunkModified();
     }
 
     public enum EnumBoundaryFacing {
@@ -614,5 +724,11 @@ public class LightingHooks {
         Block block = chunk.getBlock(x, y, z);
         int lightValue = block.getLightValue(chunk.worldObj, bx, y, bz);
         return Math.max(savedLightValue, lightValue);
+    }
+
+    public static int getLightOpacity(ILumiChunk chunk, int cx, int y, int cz) {
+        int x = (chunk.x() << 4) + cx;
+        int z = (chunk.z() << 4) + cz;
+        return chunk.lumiWorld().getLightOpacity(chunk.root().getBlock(cx, y, cz), x, y, z);
     }
 }

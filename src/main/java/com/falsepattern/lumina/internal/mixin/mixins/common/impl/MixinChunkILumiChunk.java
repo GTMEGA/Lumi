@@ -171,4 +171,15 @@ public abstract class MixinChunkILumiChunk implements ILumiChunk, ILumiChunkRoot
         }
         setChunkModified();
     }
+
+    @Shadow
+    @Override
+    public abstract int getTopFilledSegment();
+
+    @Shadow public int[] precipitationHeightMap;
+
+    @Override
+    public int[] precipitationHeightMap() {
+        return precipitationHeightMap;
+    }
 }

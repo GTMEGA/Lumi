@@ -125,6 +125,20 @@ public abstract class MixinChunk {
         }
     }
 
+
+    /**
+     * @author FalsePattern
+     * @reason Fix
+     */
+    @Overwrite
+    public void generateSkylightMap() {
+        for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
+            val world = LumiWorldManager.getWorld(worldObj, i);
+            val chunk = world.wrap((Chunk) (Object) this);
+            LightingHooks.generateSkylightMap(chunk);
+        }
+    }
+
     /**
      * @reason Hook for calculating light updates only as needed. {@link MixinChunk#getCachedLightFor(EnumSkyBlock, int, int, int)} does not
      * call this hook.
