@@ -27,36 +27,22 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 import net.minecraft.block.Block;
+import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @Mixin(ExtendedBlockStorage.class)
 public abstract class MixinExtendedBlockStorageILumiEBS implements ILumiEBS, ILumiEBSRoot {
-    @Shadow public abstract void setExtBlocklightValue(int p_76677_1_, int p_76677_2_, int p_76677_3_, int p_76677_4_);
-
-    @Shadow public abstract int getExtBlocklightValue(int p_76674_1_, int p_76674_2_, int p_76674_3_);
-
-    @Shadow public abstract void setExtSkylightValue(int p_76657_1_, int p_76657_2_, int p_76657_3_, int p_76657_4_);
-
-    @Shadow public abstract int getExtSkylightValue(int p_76670_1_, int p_76670_2_, int p_76670_3_);
+    @Shadow private NibbleArray blocklightArray;
+    @Shadow private NibbleArray skylightArray;
 
     @Override
-    public int lumiGetSkylight(int x, int y, int z) {
-        return getExtSkylightValue(x, y, z);
+    public NibbleArray lumiSkylightArray() {
+        return skylightArray;
     }
 
     @Override
-    public void lumiSetSkylight(int x, int y, int z, int defaultLightValue) {
-        setExtSkylightValue(x, y, z, defaultLightValue);
-    }
-
-    @Override
-    public int lumiGetBlocklight(int x, int y, int z) {
-        return getExtBlocklightValue(x, y, z);
-    }
-
-    @Override
-    public void lumiSetBlocklight(int x, int y, int z, int defaultLightValue) {
-        setExtBlocklightValue(x, y, z, defaultLightValue);
+    public NibbleArray lumiBlocklightArray() {
+        return blocklightArray;
     }
 
     @Override

@@ -434,11 +434,11 @@ public class LightingEngine implements ILightingEngine {
             if (chunk.lumiWorld().root().hasNoSky()) {
                 return 0;
             } else {
-                return storage.lumiGetSkylight(i, j & 15, k);
+                return LightingHooks.lumiGetSkylight(storage, i, j & 15, k);
             }
         } else {
             if (type == EnumSkyBlock.Block) {
-                return storage.lumiGetBlocklight(i, j & 15, k);
+                return LightingHooks.lumiGetBlocklight(storage, i, j & 15, k);
             } else {
                 return type.defaultLightValue;
             }

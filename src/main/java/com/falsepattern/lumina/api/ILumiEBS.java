@@ -21,20 +21,11 @@
 
 package com.falsepattern.lumina.api;
 
-import net.minecraft.block.Block;
+import net.minecraft.world.chunk.NibbleArray;
 
 public interface ILumiEBS {
-    /**
-     * The custom skylight data
-     */
-    int lumiGetSkylight(int x, int y, int z);
-    void lumiSetSkylight(int x, int y, int z, int defaultLightValue);
-
-    /**
-     * The custom blocklight data
-     */
-    int lumiGetBlocklight(int x, int y, int z);
-    void lumiSetBlocklight(int x, int y, int z, int defaultLightValue);
+    NibbleArray lumiSkylightArray();
+    NibbleArray lumiBlocklightArray();
 
 
     //Proxy this to carrier
