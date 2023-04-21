@@ -59,6 +59,12 @@ public abstract class MixinChunk {
 
     @Shadow private ExtendedBlockStorage[] storageArrays;
 
+    @Shadow public abstract void setLightValue(EnumSkyBlock p_76633_1_, int p_76633_2_, int p_76633_3_, int p_76633_4_, int p_76633_5_);
+
+    @Shadow public abstract void setChunkModified();
+
+    @Shadow public boolean isLightPopulated;
+
     /**
      * Callback injected to the head of getLightSubtracted(BlockPos, int) to force deferred light updates to be processed.
      *
@@ -102,7 +108,7 @@ public abstract class MixinChunk {
         for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
             val world = LumiWorldManager.getWorld(worldObj, i);
             val lChunk = world.wrap(chunk);
-            LightingHooks.initSkylightForSection(world, lChunk, lChunk.getLumiEBS(y >> 4));
+            LightingHooks.initSkylightForSection(world, lChunk, lChunk.lumiEBS(y >> 4));
         }
     }
 
@@ -132,7 +138,7 @@ public abstract class MixinChunk {
             val chunk = world.wrap((Chunk) (Object) this);
             chunk.getLightingEngine().processLightUpdatesForType(type);
             if (i == 0) {
-                ret = chunk.getCachedLightFor(type, x, y, z);
+                ret = LightingHooks.getCachedLightFor(chunk, type, x, y, z);
             }
         }
         return ret;
@@ -145,11 +151,14 @@ public abstract class MixinChunk {
     @Overwrite
     public void func_150809_p() {
         this.isTerrainPopulated = true;
-
+        boolean doLightPop = true;
         for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
             val world = LumiWorldManager.getWorld(worldObj, i);
             val chunk = world.wrap((Chunk) (Object) this);
-            LightingHooks.checkChunkLighting(chunk, world);
+            doLightPop &= LightingHooks.checkChunkLighting(chunk, world);
+        }
+        if (doLightPop) {
+            isLightPopulated = true;
         }
     }
 

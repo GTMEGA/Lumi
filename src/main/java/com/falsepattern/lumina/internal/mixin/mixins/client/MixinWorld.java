@@ -42,7 +42,7 @@ public abstract class MixinWorld {
     @Redirect(method = { "getSkyBlockTypeBrightness", "getSavedLightValue" }, at = @At(value = "INVOKE", target = "Lnet/minecraft/world/chunk/Chunk;getSavedLightValue(Lnet/minecraft/world/EnumSkyBlock;III)I"))
     private int useBlockIntrinsicBrightness(Chunk instance, EnumSkyBlock type, int x, int y, int z) {
         if(type == EnumSkyBlock.Block)
-            return LightingHooks.getIntrinsicOrSavedBlockLightValue(LumiWorldManager.getWorld((World) (Object) this, 0).wrap(instance), x, y, z);
+            return LightingHooks.getIntrinsicOrSavedBlockLightValue(instance, x, y, z);
         else
             return instance.getSavedLightValue(type, x, y, z);
     }

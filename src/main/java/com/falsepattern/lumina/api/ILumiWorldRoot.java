@@ -21,28 +21,16 @@
 
 package com.falsepattern.lumina.api;
 
-import net.minecraft.block.Block;
 import net.minecraft.profiler.Profiler;
-import net.minecraft.world.EnumSkyBlock;
-import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkProvider;
-import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
-public interface ILumiWorld extends ILightingEngineProvider {
-    ILumiChunk wrap(Chunk chunk);
-
-    ILumiEBS wrap(ExtendedBlockStorage ebs);
-
-    void setLightingEngine(ILightingEngine engine);
-
-    int getLightValueForState(final Block state, final int x, final int y, final int z);
-
-    int getLightOpacity(Block state, int x, int y, int z);
-
-    boolean updateLightByType(EnumSkyBlock lightType, int x, int y, int z);
-
-    String id();
-
-    //Proxy this to carrier
-    ILumiWorldRoot root();
+public interface ILumiWorldRoot {
+    Profiler theProfiler();
+    boolean isRemote();
+    //.provider.hasNoSky
+    boolean hasNoSky();
+    void markBlockForRenderUpdate(int x, int y, int z);
+    IChunkProvider provider();
+    boolean checkChunksExist(int minX, int minY, int minZ, int maxX, int maxY, int maxZ);
+    boolean doChunksNearChunkExist(int x, int y, int z, int dist);
 }

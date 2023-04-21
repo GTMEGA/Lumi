@@ -27,19 +27,16 @@ public interface ILumiEBS {
     /**
      * The custom skylight data
      */
-    int getExtSkylightValue(int x, int y, int z);
-    void setExtSkylightValue(int x, int y, int z, int defaultLightValue);
+    int lumiGetSkylight(int x, int y, int z);
+    void lumiSetSkylight(int x, int y, int z, int defaultLightValue);
 
     /**
      * The custom blocklight data
      */
-    int getExtBlocklightValue(int x, int y, int z);
+    int lumiGetBlocklight(int x, int y, int z);
+    void lumiSetBlocklight(int x, int y, int z, int defaultLightValue);
 
-    /**
-     * Should defer to the vanilla ExtendedBlockStorage coupled to this instance.
-     */
-    Block getBlockByExtId(int x, int y, int z);
 
-    int getYLocation();
-
+    //Proxy this to carrier
+    ILumiEBSRoot root();
 }

@@ -13,7 +13,7 @@ public class LightingEngineHelpers {
 
     // Avoids some additional logic in Chunk#getBlockState... 0 is always air
     static Block posToState(final BlockPos pos, final ILumiChunk chunk) {
-        return posToState(pos, chunk.getLumiEBS(pos.getY() >> 4));
+        return posToState(pos, chunk.lumiEBS(pos.getY() >> 4));
     }
 
     static Block posToState(final BlockPos pos, final ILumiEBS section) {
@@ -23,14 +23,14 @@ public class LightingEngineHelpers {
 
         if (section != null)
         {
-            return section.getBlockByExtId(x & 15, y & 15, z & 15);
+            return section.root().getBlockByExtId(x & 15, y & 15, z & 15);
         }
 
         return DEFAULT_BLOCK_STATE;
     }
 
     public static ILumiChunk getLoadedChunk(ILumiWorld world, int chunkX, int chunkZ) {
-        val provider = world.provider();
+        val provider = world.root().provider();
         if(!provider.chunkExists(chunkX, chunkZ))
             return null;
         return world.wrap(provider.provideChunk(chunkX, chunkZ));

@@ -22,70 +22,32 @@
 package com.falsepattern.lumina.api;
 
 import net.minecraft.block.Block;
-import net.minecraft.world.EnumSkyBlock;
 
 /**
  * Chunk placeholder for implementation.
  */
 public interface ILumiChunk extends ILightingEngineProvider {
-    /**
-     * Sets the light value at the coordinate. If enumskyblock is set to sky it sets it in the skylightmap and if its a
-     * block then into the blocklightmap. Args enumSkyBlock, x, y, z, lightValue
-     */
-    void setLightValue(EnumSkyBlock enumSkyBlock, int x, int y, int z, int lightValue);
-    int getSavedLightValue(EnumSkyBlock enumSkyBlock, int x, int y, int z);
+    //Implement these
+    ILumiEBS lumiEBS(int arrayIndex);
+    ILumiWorld lumiWorld();
 
-    boolean canBlockSeeTheSky(int x, int y, int z);
-    ILumiEBS getLumiEBS(int arrayIndex);
-    ILumiWorld world();
+    int[] lumiHeightMap();
 
-    //IChunkLighting
-    default int getCachedLightFor(EnumSkyBlock type, int xIn, int yIn, int zIn) {
-        int i = xIn & 15;
-        int j = yIn;
-        int k = zIn & 15;
+    short[] lumiGetNeighborLightChecks();
+    void lumiGetNeighborLightChecks(short[] data);
 
-        ILumiEBS extendedblockstorage = this.getLumiEBS(j >> 4);
+    boolean lumiIsLightInitialized();
+    void lumiIsLightInitialized(boolean val);
 
-        if (extendedblockstorage == null) {
-            if (this.canBlockSeeTheSky(i, j, k)) {
-                return type.defaultLightValue;
-            } else {
-                return 0;
-            }
-        } else if (type == EnumSkyBlock.Sky) {
-            if (this.world().hasNoSky()) {
-                return 0;
-            } else {
-                return extendedblockstorage.getExtSkylightValue(i, j & 15, k);
-            }
-        } else {
-            if (type == EnumSkyBlock.Block) {
-                return extendedblockstorage.getExtBlocklightValue(i, j & 15, k);
-            } else {
-                return type.defaultLightValue;
-            }
-        }
-    }
+    boolean[] lumiUpdateSkylightColumns();
 
-    //IChunkLightingData
-    short[] getNeighborLightChecks();
-    void setNeighborLightChecks(short[] data);
-    boolean isLightInitialized();
-    void setLightInitialized(boolean val);
-    void setSkylightUpdatedPublic();
-    void isLightPopulated(boolean state);
-    void isGapLightingUpdated(boolean b);
+    int lumiHeightMapMinimum();
+    void lumiHeightMapMinimum(int min);
 
-    //Proxy these to the minecraft chunk
-    void setHeightValue(int x, int z, int val);
-    int getHeightValue(int x, int z);
+    //Proxy this to carrier
+    ILumiChunkRoot root();
+
+    //Keeping this here for now
     int x();
     int z();
-    void setChunkModified();
-    Block getBlock(int x, int y, int z);
-    int heightMapMinimum();
-    void heightMapMinimum(int min);
-    boolean[] updateSkylightColumns();
-    void isModified(boolean b);
 }

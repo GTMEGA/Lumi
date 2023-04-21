@@ -21,7 +21,6 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.client;
 
-import com.falsepattern.lumina.api.ILumiChunk;
 import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -39,6 +38,6 @@ public class MixinChunkCache {
         return type == EnumSkyBlock.Sky ?
                instance.getSavedLightValue(type, posX, posY, posZ) :
                //Optimization: bypass LumiWorldManager for world index 0 (the "vanilla" lighting)
-               LightingHooks.getIntrinsicOrSavedBlockLightValue((ILumiChunk) instance, posX, posY, posZ);
+               LightingHooks.getIntrinsicOrSavedBlockLightValue(instance, posX, posY, posZ);
     }
 }

@@ -25,6 +25,7 @@ import com.falsepattern.lumina.api.ILightingEngine;
 import com.falsepattern.lumina.api.ILumiChunk;
 import com.falsepattern.lumina.api.ILumiEBS;
 import com.falsepattern.lumina.api.ILumiWorld;
+import com.falsepattern.lumina.api.ILumiWorldRoot;
 import com.falsepattern.lumina.internal.Tags;
 import lombok.Getter;
 import lombok.Setter;
@@ -43,7 +44,7 @@ import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @Mixin(World.class)
-public abstract class MixinWorldILumiWorld implements ILumiWorld, IBlockAccess {
+public abstract class MixinWorldILumiWorld implements ILumiWorld, IBlockAccess, ILumiWorldRoot {
     @Getter
     @Setter
     private ILightingEngine lightingEngine;
@@ -81,6 +82,11 @@ public abstract class MixinWorldILumiWorld implements ILumiWorld, IBlockAccess {
     @Shadow public abstract void func_147479_m(int p_147479_1_, int p_147479_2_, int p_147479_3_);
 
     @Shadow protected IChunkProvider chunkProvider;
+
+    @Override
+    public ILumiWorldRoot root() {
+        return this;
+    }
 
     @Override
     public Profiler theProfiler() {

@@ -39,7 +39,7 @@ public class LightChecksExtended implements ChunkDataManager.ChunkNBTDataManager
             val subTag = new NBTTagCompound();
             LightingHooks.writeNeighborLightChecksToNBT(lChunk, subTag);
 
-            subTag.setBoolean("LightPopulated", lChunk.isLightInitialized());
+            subTag.setBoolean("LightPopulated", lChunk.lumiIsLightInitialized());
             nbt.setTag(lWorld.id(), subTag);
         }
     }
@@ -51,7 +51,7 @@ public class LightChecksExtended implements ChunkDataManager.ChunkNBTDataManager
             val lChunk = lWorld.wrap(chunk);
             val subTag = nbt.getCompoundTag(lWorld.id());
             LightingHooks.readNeighborLightChecksFromNBT(lChunk, subTag);
-            lChunk.setLightInitialized(subTag.getBoolean("LightPopulated"));
+            lChunk.lumiIsLightInitialized(subTag.getBoolean("LightPopulated"));
         }
     }
 

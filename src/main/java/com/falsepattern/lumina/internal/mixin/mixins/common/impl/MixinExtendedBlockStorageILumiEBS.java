@@ -22,119 +22,53 @@
 package com.falsepattern.lumina.internal.mixin.mixins.common.impl;
 
 import com.falsepattern.lumina.api.ILumiEBS;
+import com.falsepattern.lumina.api.ILumiEBSRoot;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
 import net.minecraft.block.Block;
-import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @Mixin(ExtendedBlockStorage.class)
-public abstract class MixinExtendedBlockStorageILumiEBS implements ILumiEBS {
-    @Shadow
-    private int blockRefCount;
-    @Shadow
-    private NibbleArray skylightArray;
-    @Shadow
-    private NibbleArray blocklightArray;
+public abstract class MixinExtendedBlockStorageILumiEBS implements ILumiEBS, ILumiEBSRoot {
+    @Shadow public abstract void setExtBlocklightValue(int p_76677_1_, int p_76677_2_, int p_76677_3_, int p_76677_4_);
 
-    private int lightRefCount = -1;
+    @Shadow public abstract int getExtBlocklightValue(int p_76674_1_, int p_76674_2_, int p_76674_3_);
 
-    @Shadow
+    @Shadow public abstract void setExtSkylightValue(int p_76657_1_, int p_76657_2_, int p_76657_3_, int p_76657_4_);
+
+    @Shadow public abstract int getExtSkylightValue(int p_76670_1_, int p_76670_2_, int p_76670_3_);
+
     @Override
-    public abstract int getExtSkylightValue(int x, int y, int z);
-
-    /**
-     * @author Angeline
-     * @reason Reset lightRefCount on call
-     */
-    @Overwrite
-    @Override
-    public void setExtSkylightValue(int x, int y, int z, int value) {
-        this.skylightArray.set(x, y, z, value);
-        this.lightRefCount = -1;
+    public int lumiGetSkylight(int x, int y, int z) {
+        return getExtSkylightValue(x, y, z);
     }
 
+    @Override
+    public void lumiSetSkylight(int x, int y, int z, int defaultLightValue) {
+        setExtSkylightValue(x, y, z, defaultLightValue);
+    }
+
+    @Override
+    public int lumiGetBlocklight(int x, int y, int z) {
+        return getExtBlocklightValue(x, y, z);
+    }
+
+    @Override
+    public void lumiSetBlocklight(int x, int y, int z, int defaultLightValue) {
+        setExtBlocklightValue(x, y, z, defaultLightValue);
+    }
+
+    @Override
+    public ILumiEBSRoot root() {
+        return this;
+    }
+
+    @Override
     @Shadow
-    @Override
-    public abstract int getExtBlocklightValue(int x, int y, int z);
-
-    /**
-     * @author Angeline
-     * @reason Reset lightRefCount on call
-     */
-    @Overwrite
-    public void setExtBlocklightValue(int x, int y, int z, int value) {
-        this.blocklightArray.set(x, y, z, value);
-        this.lightRefCount = -1;
-    }
-
-    /**
-     * @author Angeline
-     * @reason Reset lightRefCount on call
-     */
-    @Overwrite
-    public void setBlocklightArray(NibbleArray array) {
-        this.blocklightArray = array;
-        this.lightRefCount = -1;
-    }
-
-    /**
-     * @author Angeline
-     * @reason Reset lightRefCount on call
-     */
-    @Overwrite
-    public void setSkylightArray(NibbleArray array) {
-        this.skylightArray = array;
-        this.lightRefCount = -1;
-    }
-
-
-    /**
-     * @author Angeline
-     * @reason Send light data to clients when lighting is non-trivial
-     */
-    @Overwrite
-    public boolean isEmpty() {
-        if (this.blockRefCount != 0) {
-            return false;
-        }
-
-        // -1 indicates the lightRefCount needs to be re-calculated
-        if (this.lightRefCount == -1) {
-            if (this.checkLightArrayEqual(this.skylightArray, (byte) 0xFF)
-                    && this.checkLightArrayEqual(this.blocklightArray, (byte) 0x00)) {
-                this.lightRefCount = 0; // Lighting is trivial, don't send to clients
-            } else {
-                this.lightRefCount = 1; // Lighting is not trivial, send to clients
-            }
-        }
-
-        return this.lightRefCount == 0;
-    }
-
-    private boolean checkLightArrayEqual(NibbleArray storage, byte val) {
-        if (storage == null) {
-            return true;
-        }
-
-        byte[] arr = storage.data;
-
-        for (byte b : arr) {
-            if (b != val) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    @Shadow
-    @Override
     public abstract Block getBlockByExtId(int x, int y, int z);
 
-    @Shadow
     @Override
+    @Shadow
     public abstract int getYLocation();
 }

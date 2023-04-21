@@ -101,7 +101,7 @@ public class LightingEngine implements ILightingEngine {
 
     public LightingEngine(final ILumiWorld world) {
         this.world = world;
-        this.profiler = world.theProfiler();
+        this.profiler = world.root().theProfiler();
         isDynamicLightsLoaded = Loader.isModLoaded("DynamicLights");
 
         PooledLongQueue.Pool pool = new PooledLongQueue.Pool();
@@ -172,7 +172,7 @@ public class LightingEngine implements ILightingEngine {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
-        if (this.world.isRemote() && !this.isCallingFromMainThread()) {
+        if (this.world.root().isRemote() && !this.isCallingFromMainThread()) {
             return;
         }
 
@@ -361,7 +361,7 @@ public class LightingEngine implements ILightingEngine {
 
                 if (oldLight == curLight) //only process this if nothing else has happened at this position since scheduling
                 {
-                    this.world.markBlockForRenderUpdate(this.curPos.getX(), this.curPos.getY(), this.curPos.getZ());
+                    this.world.root().markBlockForRenderUpdate(this.curPos.getX(), this.curPos.getY(), this.curPos.getZ());
 
                     if (curLight > 1) {
                         this.spreadLightFromCursor(curLight, lightType);
@@ -410,7 +410,7 @@ public class LightingEngine implements ILightingEngine {
             }
 
             if (nChunk != null) {
-                ILumiEBS nSection = nChunk.getLumiEBS(nPos.getY() >> 4);
+                ILumiEBS nSection = nChunk.lumiEBS(nPos.getY() >> 4);
 
                 info.light = getCachedLightFor(nChunk, nSection, nPos, lightType);
                 info.section = nSection;
@@ -425,20 +425,20 @@ public class LightingEngine implements ILightingEngine {
         int k = pos.getZ() & 15;
 
         if (storage == null) {
-            if (type == EnumSkyBlock.Sky && chunk.canBlockSeeTheSky(i, j, k)) {
+            if (type == EnumSkyBlock.Sky && LightingHooks.lumiCanBlockSeeTheSky(chunk, i, j, k)) {
                 return type.defaultLightValue;
             } else {
                 return 0;
             }
         } else if (type == EnumSkyBlock.Sky) {
-            if (chunk.world().hasNoSky()) {
+            if (chunk.lumiWorld().root().hasNoSky()) {
                 return 0;
             } else {
-                return storage.getExtSkylightValue(i, j & 15, k);
+                return storage.lumiGetSkylight(i, j & 15, k);
             }
         } else {
             if (type == EnumSkyBlock.Block) {
-                return storage.getExtBlocklightValue(i, j & 15, k);
+                return storage.lumiGetBlocklight(i, j & 15, k);
             } else {
                 return type.defaultLightValue;
             }
@@ -511,7 +511,7 @@ public class LightingEngine implements ILightingEngine {
     private void enqueueBrightening(final BlockPos pos, final long longPos, final int newLight, final ILumiChunk chunk, final EnumSkyBlock lightType) {
         this.queuedBrightenings[newLight].add(longPos);
 
-        chunk.setLightValue(lightType, pos.getX() & 15, pos.getY(), pos.getZ() & 15, newLight);
+        LightingHooks.lumiSetLightValue(chunk, lightType, pos.getX() & 15, pos.getY(), pos.getZ() & 15, newLight);
     }
 
     /**
@@ -520,7 +520,7 @@ public class LightingEngine implements ILightingEngine {
     private void enqueueDarkening(final BlockPos pos, final long longPos, final int oldLight, final ILumiChunk chunk, final EnumSkyBlock lightType) {
         this.queuedDarkenings[oldLight].add(longPos);
 
-        chunk.setLightValue(lightType, pos.getX() & 15, pos.getY(), pos.getZ() & 15, 0);
+        LightingHooks.lumiSetLightValue(chunk, lightType, pos.getX() & 15, pos.getY(), pos.getZ() & 15, 0);
     }
 
     private static BlockPos.MutableBlockPos decodeWorldCoord(final BlockPos.MutableBlockPos pos, final long longPos) {
@@ -569,7 +569,7 @@ public class LightingEngine implements ILightingEngine {
     }
 
     private int getCursorCachedLight(final EnumSkyBlock lightType) {
-        return this.curChunk.getCachedLightFor(lightType, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ());
+        return LightingHooks.getCachedLightFor(this.curChunk, lightType, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ());
     }
 
     /**
@@ -577,7 +577,7 @@ public class LightingEngine implements ILightingEngine {
      */
     private int getCursorLuminosity(final Block state, final EnumSkyBlock lightType) {
         if (lightType == EnumSkyBlock.Sky) {
-            if (this.curChunk.canBlockSeeTheSky(this.curPos.getX() & 15, this.curPos.getY(), this.curPos.getZ() & 15)) {
+            if (LightingHooks.lumiCanBlockSeeTheSky(this.curChunk, this.curPos.getX() & 15, this.curPos.getY(), this.curPos.getZ() & 15)) {
                 return EnumSkyBlock.Sky.defaultLightValue;
             } else {
                 return 0;

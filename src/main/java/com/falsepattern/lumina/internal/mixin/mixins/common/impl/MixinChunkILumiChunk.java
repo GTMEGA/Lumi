@@ -22,10 +22,13 @@
 package com.falsepattern.lumina.internal.mixin.mixins.common.impl;
 
 import com.falsepattern.lumina.api.ILumiChunk;
+import com.falsepattern.lumina.api.ILumiChunkRoot;
 import com.falsepattern.lumina.api.ILumiEBS;
 import com.falsepattern.lumina.api.ILumiWorld;
 import com.falsepattern.lumina.api.ILightingEngine;
 import com.falsepattern.lumina.api.ILightingEngineProvider;
+import com.falsepattern.lumina.internal.world.LumiWorldManager;
+import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
 import lombok.val;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -37,90 +40,65 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
-import java.util.Arrays;
-
 @Mixin(value = Chunk.class)
-public abstract class MixinChunkILumiChunk implements ILumiChunk {
+public abstract class MixinChunkILumiChunk implements ILumiChunk, ILumiChunkRoot {
     @Shadow
-    public boolean isModified;
+    @Final
+    public int xPosition;
     @Shadow
-    public boolean[] updateSkylightColumns;
-    @Shadow
-    public boolean isLightPopulated;
-    @Shadow
-    private boolean isGapLightingUpdated;
+    @Final
+    public int zPosition;
     @Shadow
     public World worldObj;
 
+    @Shadow
+    private ExtendedBlockStorage[] storageArrays;
+    @Shadow
+    public int[] heightMap;
+    @Shadow
+    public boolean[] updateSkylightColumns;
+    @Shadow
+    private boolean isGapLightingUpdated;
+    @Shadow
+    public int heightMapMinimum;
     private ILightingEngine lightingEngine;
     private short[] neighborLightChecks;
     private boolean isLightInitialized;
 
-    @Shadow
     @Override
-    public abstract void setLightValue(EnumSkyBlock enumSkyBlock, int x, int y, int z, int lightValue);
-
-    @Shadow
-    @Override
-    public abstract int getSavedLightValue(EnumSkyBlock enumSkyBlock, int x, int y, int z);
-
-    @Shadow
-    @Override
-    public abstract boolean canBlockSeeTheSky(int x, int y, int z);
-
-    @Override
-    public ILumiWorld world() {
+    public ILumiWorld lumiWorld() {
         return (ILumiWorld) worldObj;
     }
 
     @Override
-    public ILumiEBS getLumiEBS(int arrayIndex) {
+    public ILumiEBS lumiEBS(int arrayIndex) {
         val ebs = storageArrays[arrayIndex];
         return ebs == null ? null : (ILumiEBS) ebs;
     }
 
     @Override
-    public short[] getNeighborLightChecks() {
+    public short[] lumiGetNeighborLightChecks() {
         return this.neighborLightChecks;
     }
 
     @Override
-    public void setNeighborLightChecks(short[] data) {
+    public void lumiGetNeighborLightChecks(short[] data) {
         this.neighborLightChecks = data;
     }
 
     @Override
-    public boolean isLightInitialized() {
+    public boolean lumiIsLightInitialized() {
         return this.isLightInitialized;
     }
 
     @Override
-    public void setLightInitialized(boolean lightInitialized) {
+    public void lumiIsLightInitialized(boolean lightInitialized) {
         this.isLightInitialized = lightInitialized;
     }
 
     @Override
-    public void isLightPopulated(boolean state) {
-        isLightPopulated = state;
-    }
-
-    @Override
-    public void isGapLightingUpdated(boolean b) {
-        isGapLightingUpdated = b;
-    }
-
-    @Shadow
-    protected abstract void recheckGaps(boolean p_150803_1_);
-
-    @Shadow private ExtendedBlockStorage[] storageArrays;
-
-    @Shadow public int[] heightMap;
-
-    @Override
-    public void setSkylightUpdatedPublic() {
-        Arrays.fill(this.updateSkylightColumns, true);
-
-        this.recheckGaps(false);
+    public int[] lumiHeightMap() {
+        return heightMap;
     }
 
     @Override
@@ -134,20 +112,27 @@ public abstract class MixinChunkILumiChunk implements ILumiChunk {
         return this.lightingEngine;
     }
 
-    //Proxies
-
     @Override
-    public void setHeightValue(int x, int z, int val) {
-        this.heightMap[z << 4 | x] = val;
+    public int lumiHeightMapMinimum() {
+        return heightMapMinimum;
     }
 
-    @Shadow
     @Override
-    public abstract int getHeightValue(int x, int z);
+    public void lumiHeightMapMinimum(int min) {
+        heightMapMinimum = min;
+    }
 
-    @Shadow @Final public int xPosition;
+    @Override
+    public boolean[] lumiUpdateSkylightColumns() {
+        return updateSkylightColumns;
+    }
 
-    @Shadow @Final public int zPosition;
+    @Override
+    public ILumiChunkRoot root() {
+        return this;
+    }
+
+    //Root
 
     @Override
     public int x() {
@@ -167,25 +152,23 @@ public abstract class MixinChunkILumiChunk implements ILumiChunk {
     @Override
     public abstract Block getBlock(int x, int y, int z);
 
-    @Shadow public int heightMapMinimum;
-
     @Override
-    public int heightMapMinimum() {
-        return heightMapMinimum;
+    public void isGapLightingUpdated(boolean b) {
+        isGapLightingUpdated = b;
     }
 
     @Override
-    public void heightMapMinimum(int min) {
-        heightMapMinimum = min;
-    }
+    public void ensureEBSPresent(int y) {
+        val ebs = storageArrays[y >> 4];
 
-    @Override
-    public boolean[] updateSkylightColumns() {
-        return updateSkylightColumns;
-    }
-
-    @Override
-    public void isModified(boolean b) {
-        isModified = b;
+        if (ebs == null) {
+            this.storageArrays[y >> 4] = new ExtendedBlockStorage(y >> 4 << 4, !this.worldObj.provider.hasNoSky);
+            for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
+                val world = LumiWorldManager.getWorld(worldObj, i);
+                val lChunk = world.wrap((Chunk) (Object) this);
+                LightingHooks.initSkylightForSection(world, lChunk, lChunk.lumiEBS(y >> 4));
+            }
+        }
+        setChunkModified();
     }
 }
