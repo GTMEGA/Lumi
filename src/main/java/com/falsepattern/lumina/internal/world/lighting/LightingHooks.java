@@ -39,7 +39,7 @@ public class LightingHooks {
         scheduleRelightChecksForColumn(world, EnumSkyBlock.Sky, xBase, zBase, yMin, yMax);
 
         if (chunk.lumiEBS(yMin >> 4) == null && yMin > 0) {
-            world.updateLightByType(EnumSkyBlock.Sky, xBase, yMin - 1, zBase);
+            chunk.getLightingEngine().scheduleLightUpdate(EnumSkyBlock.Sky, xBase, yMin - 1, zBase);
         }
 
         short emptySections = 0;
@@ -84,7 +84,7 @@ public class LightingHooks {
 
     private static void scheduleRelightChecksForColumn(final ILumiWorld world, final EnumSkyBlock lightType, final int x, final int z, final int yMin, final int yMax) {
         for (int y = yMin; y <= yMax; ++y) {
-            world.updateLightByType(lightType, x, y, z);
+            world.getLightingEngine().scheduleLightUpdate(lightType, x, y, z);
         }
     }
 
@@ -207,7 +207,7 @@ public class LightingHooks {
             }
 
             for (int i = startY; i < endY; ++i) {
-                chunk.lumiWorld().updateLightByType(EnumSkyBlock.Sky, x, i, z);
+                chunk.getLightingEngine().scheduleLightUpdate(EnumSkyBlock.Sky, x, i, z);
             }
 
             chunk.root().setChunkModified();
@@ -548,7 +548,7 @@ public class LightingHooks {
                                 int light = chunk.lumiWorld().getLightValueForState(block, pos.getX(), pos.getY(), pos.getZ());
 
                                 if (light > 0) {
-                                    world.updateLightByType(EnumSkyBlock.Block, pos.getX(), pos.getY(), pos.getZ());
+                                    world.getLightingEngine().scheduleLightUpdate(EnumSkyBlock.Block, pos.getX(), pos.getY(), pos.getZ());
                                 }
                             }
                         }

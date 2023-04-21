@@ -39,8 +39,6 @@ public interface ILumiWorld extends ILightingEngineProvider {
 
     int getLightOpacity(Block state, int x, int y, int z);
 
-    boolean updateLightByType(EnumSkyBlock lightType, int x, int y, int z);
-
     String id();
 
     //Proxy this to carrier

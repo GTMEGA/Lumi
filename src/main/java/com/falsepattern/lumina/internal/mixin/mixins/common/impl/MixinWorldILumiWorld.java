@@ -69,10 +69,6 @@ public abstract class MixinWorldILumiWorld implements ILumiWorld, IBlockAccess, 
         return state.getLightOpacity(this, x, y, z);
     }
 
-    @Shadow
-    @Override
-    public abstract boolean updateLightByType(EnumSkyBlock lightType, int x, int y, int z);
-
     @Shadow @Final public Profiler theProfiler;
 
     @Shadow public boolean isRemote;
