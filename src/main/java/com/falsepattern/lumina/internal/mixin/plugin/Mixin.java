@@ -16,10 +16,13 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import static com.falsepattern.lib.mixin.IMixin.PredicateHelpers.always;
+import static com.falsepattern.lib.mixin.IMixin.PredicateHelpers.avoid;
+import static com.falsepattern.lumina.internal.mixin.plugin.TargetedMod.ARCHAICFIX;
 
 @RequiredArgsConstructor
 public enum Mixin implements IMixin {
     // @formatter:off
+    common_MixinLongHashMap(Side.COMMON, avoid(ARCHAICFIX), "MixinLongHashMap"),
     common_MixinAnvilChunkLoader(Side.COMMON, always(), "MixinAnvilChunkLoader"),
     common_MixinChunk(Side.COMMON, always(), "MixinChunk"),
     common_MixinChunkProviderServer(Side.COMMON, always(), "MixinChunkProviderServer"),
