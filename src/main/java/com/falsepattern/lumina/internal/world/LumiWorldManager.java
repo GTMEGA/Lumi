@@ -38,12 +38,12 @@ public class LumiWorldManager {
     private static ILumiWorldProvider[] providers = new ILumiWorldProvider[0];
 
     public static int lumiWorldCount() {
-        return providers.length + 1;
+        return providers.length;
     }
 
     //No bounds checking, because this is an internal method
     public static ILumiWorld getWorld(World world, int i) {
-        return providers[i - 1].getWorld(world);
+        return providers[i].getWorld(world);
     }
 
     //Synchronized just in case, only called during init anyway
@@ -58,7 +58,6 @@ public class LumiWorldManager {
     @SuppressWarnings("ForLoopReplaceableByForEach")
     public static void initialize(World world) {
         val providers = LumiWorldManager.providers;
-        ((ILumiWorld) world).setLightingEngine(new LightingEngine((ILumiWorld) world));
         for (int i = 0, providersLength = providers.length; i < providersLength; i++) {
             ILumiWorldProvider provider = providers[i];
             val lWorld = provider.getWorld(world);
