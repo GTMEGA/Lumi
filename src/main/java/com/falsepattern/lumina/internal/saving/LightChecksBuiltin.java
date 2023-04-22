@@ -24,6 +24,7 @@ package com.falsepattern.lumina.internal.saving;
 import com.falsepattern.chunk.api.ChunkDataManager;
 import com.falsepattern.lumina.api.ILumiChunk;
 import com.falsepattern.lumina.internal.Tags;
+import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
 import lombok.val;
 
@@ -38,14 +39,14 @@ import net.minecraft.world.chunk.Chunk;
 public class LightChecksBuiltin implements ChunkDataManager.ChunkNBTDataManager{
     @Override
     public void writeChunkToNBT(Chunk chunk, NBTTagCompound nbt) {
-        val lChunk = (ILumiChunk) chunk;
+        val lChunk = LumiWorldManager.getWorld(chunk.worldObj, 0).wrap(chunk);
         LightingHooks.writeNeighborLightChecksToNBT(lChunk, nbt);
         nbt.setBoolean("LightPopulated", lChunk.lumiIsLightInitialized());
     }
 
     @Override
     public void readChunkFromNBT(Chunk chunk, NBTTagCompound nbt) {
-        val lChunk = (ILumiChunk) chunk;
+        val lChunk = LumiWorldManager.getWorld(chunk.worldObj, 0).wrap(chunk);
         LightingHooks.readNeighborLightChecksFromNBT(lChunk, nbt);
         lChunk.lumiIsLightInitialized(nbt.getBoolean("LightPopulated"));
     }

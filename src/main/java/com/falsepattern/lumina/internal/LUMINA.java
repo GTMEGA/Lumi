@@ -22,11 +22,17 @@
 package com.falsepattern.lumina.internal;
 
 import com.falsepattern.chunk.api.ChunkDataRegistry;
+import com.falsepattern.lumina.api.ILumiWorld;
+import com.falsepattern.lumina.api.ILumiWorldProvider;
+import com.falsepattern.lumina.api.LumiWorldProviderRegistry;
 import com.falsepattern.lumina.internal.saving.LightChecksBuiltin;
 import com.falsepattern.lumina.internal.saving.LightChecksExtended;
 
+import net.minecraft.world.World;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Mod(modid = Tags.MODID,
      version = Tags.VERSION,
@@ -34,10 +40,22 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
      acceptedMinecraftVersions = "[1.7.10]",
      dependencies = "required-after:falsepatternlib@[0.11,);required-after:chunkapi@[0.2,)")
 public class LUMINA {
+    private static final AtomicBoolean hijacked = new AtomicBoolean(false);
+    private static final AtomicBoolean hijackLocked = new AtomicBoolean(false);
+    public static void hijack() {
+        if (hijackLocked.get()) {
+            throw new IllegalStateException("Hijacking the default lighting engine is only possible during preInit!");
+        }
+        hijacked.set(true);
+    }
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        ChunkDataRegistry.registerDataManager(new LightChecksBuiltin());
-        ChunkDataRegistry.registerDataManager(new LightChecksExtended());
+        hijackLocked.set(true);
+        if (!hijacked.get()) {
+            LumiWorldProviderRegistry.registerWorldProvider(world -> (ILumiWorld)world);
+            ChunkDataRegistry.registerDataManager(new LightChecksBuiltin());
+            ChunkDataRegistry.registerDataManager(new LightChecksExtended());
+        }
     }
 }

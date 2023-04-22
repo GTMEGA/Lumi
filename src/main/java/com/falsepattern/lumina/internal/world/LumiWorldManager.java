@@ -43,7 +43,7 @@ public class LumiWorldManager {
 
     //No bounds checking, because this is an internal method
     public static ILumiWorld getWorld(World world, int i) {
-        return i == 0 ? (ILumiWorld) world : providers[i - 1].getWorld(world);
+        return providers[i - 1].getWorld(world);
     }
 
     //Synchronized just in case, only called during init anyway

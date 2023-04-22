@@ -53,11 +53,15 @@ public abstract class MixinWorld {
      */
     @Inject(method = "updateLightByType", at = @At("HEAD"), cancellable = true)
     private void checkLightFor(EnumSkyBlock type, int x, int y, int z, CallbackInfoReturnable<Boolean> cir) {
+        doScheduleLightUpdate(type, x, y, z);
+
+        cir.setReturnValue(true);
+    }
+
+    private void doScheduleLightUpdate(EnumSkyBlock type, int x, int y, int z) {
         for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
             val lWorld = LumiWorldManager.getWorld((World) (Object)this, i);
             lWorld.getLightingEngine().scheduleLightUpdate(type, x, y, z);
         }
-
-        cir.setReturnValue(true);
     }
 }

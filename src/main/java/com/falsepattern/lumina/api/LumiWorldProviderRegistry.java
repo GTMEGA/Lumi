@@ -21,9 +21,14 @@
 
 package com.falsepattern.lumina.api;
 
+import com.falsepattern.lumina.internal.LUMINA;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 
 public class LumiWorldProviderRegistry {
+    public static void hijack() {
+        LUMINA.hijack();
+    }
+
     public static void registerWorldProvider(ILumiWorldProvider provider) {
         LumiWorldManager.addProvider(provider);
     }
