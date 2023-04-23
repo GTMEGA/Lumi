@@ -93,7 +93,7 @@ public class LightingHooks {
 
 
     private static int getBlockLightOpacity(ILumiChunk chunk, int x, int y, int z) {
-        return chunk.lumiWorld().getLightOpacity(chunk.root().getBlock(x, y, z), x, y, z);
+        return chunk.lumiWorld().getLightOpacity(chunk.root().getBlock(x, y, z), chunk.root().getBlockMetadata(x, y, z), x, y, z);
     }
 
     public static void relightBlock(ILumiChunk chunk, int x, int y, int z) {
@@ -653,9 +653,10 @@ public class LightingHooks {
                     for (int z = 0; z < 16; z++) {
                         for (int x = 0; x < 16; x++) {
                             Block block = storage.root().getBlockByExtId(x, y, z);
+                            int meta = storage.root().getExtBlockMetadata(x, y, z);
                             if(block != Blocks.air) {
                                 pos.setPos(xBase + x, yBase + y, zBase + z);
-                                int light = chunk.lumiWorld().getLightValueForState(block, pos.getX(), pos.getY(), pos.getZ());
+                                int light = chunk.lumiWorld().getLightValueForState(block, meta, pos.getX(), pos.getY(), pos.getZ());
 
                                 if (light > 0) {
                                     world.getLightingEngine().scheduleLightUpdate(EnumSkyBlock.Block, pos.getX(), pos.getY(), pos.getZ());
@@ -729,6 +730,6 @@ public class LightingHooks {
     public static int getLightOpacity(ILumiChunk chunk, int cx, int y, int cz) {
         int x = (chunk.x() << 4) + cx;
         int z = (chunk.z() << 4) + cz;
-        return chunk.lumiWorld().getLightOpacity(chunk.root().getBlock(cx, y, cz), x, y, z);
+        return chunk.lumiWorld().getLightOpacity(chunk.root().getBlock(cx, y, cz), chunk.root().getBlockMetadata(cx, y, cz), x, y, z);
     }
 }

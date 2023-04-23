@@ -25,5 +25,6 @@ import net.minecraft.block.Block;
 
 public interface ILumiEBSRoot {
     Block getBlockByExtId(int x, int y, int z);
+    int getExtBlockMetadata(int x, int y, int z);
     int getYLocation();
 }

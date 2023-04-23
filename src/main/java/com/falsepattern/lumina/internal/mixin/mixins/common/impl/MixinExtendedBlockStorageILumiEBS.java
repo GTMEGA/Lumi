@@ -56,5 +56,9 @@ public abstract class MixinExtendedBlockStorageILumiEBS implements ILumiEBS, ILu
 
     @Override
     @Shadow
+    public abstract int getExtBlockMetadata(int x, int y, int z);
+
+    @Override
+    @Shadow
     public abstract int getYLocation();
 }

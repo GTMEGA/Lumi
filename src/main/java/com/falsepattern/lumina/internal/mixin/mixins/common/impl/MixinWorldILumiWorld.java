@@ -60,13 +60,13 @@ public abstract class MixinWorldILumiWorld implements ILumiWorld, IBlockAccess, 
     }
 
     @Override
-    public int getLightValueForState(Block state, int x, int y, int z) {
-        return state.getLightValue(this, x, y, z);
+    public int getLightValueForState(Block block, int meta, int x, int y, int z) {
+        return block.getLightValue(this, x, y, z);
     }
 
     @Override
-    public int getLightOpacity(Block state, int x, int y, int z) {
-        return state.getLightOpacity(this, x, y, z);
+    public int getLightOpacity(Block block, int meta, int x, int y, int z) {
+        return block.getLightOpacity(this, x, y, z);
     }
 
     @Shadow @Final public Profiler theProfiler;

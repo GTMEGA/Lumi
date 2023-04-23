@@ -35,9 +35,9 @@ public interface ILumiWorld extends ILightingEngineProvider {
 
     void setLightingEngine(ILightingEngine engine);
 
-    int getLightValueForState(final Block state, final int x, final int y, final int z);
+    int getLightValueForState(final Block block, final int meta, final int x, final int y, final int z);
 
-    int getLightOpacity(Block state, int x, int y, int z);
+    int getLightOpacity(final Block block, final int meta, final int x, final int y, final int z);
 
     String id();
 

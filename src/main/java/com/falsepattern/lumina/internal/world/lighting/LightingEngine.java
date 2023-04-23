@@ -302,14 +302,15 @@ public class LightingEngine implements ILightingEngine {
                     continue;
                 }
 
-                final Block state = LightingEngineHelpers.posToState(this.curPos, this.curChunk);
-                final int luminosity = this.getCursorLuminosity(state, lightType);
+                final Block block = LightingEngineHelpers.posToBlock(this.curPos, this.curChunk);
+                final int meta = LightingEngineHelpers.posToMeta(this.curPos, this.curChunk);
+                final int luminosity = this.getCursorLuminosity(block, meta, lightType);
                 final int opacity; //if luminosity is high enough, opacity is irrelevant
 
                 if (luminosity >= MAX_LIGHT - 1) {
                     opacity = 1;
                 } else {
-                    opacity = this.getPosOpacity(this.curPos, state);
+                    opacity = this.getPosOpacity(this.curPos, block, meta);
                 }
 
                 //only darken neighbors if we indeed became darker
@@ -334,7 +335,7 @@ public class LightingEngine implements ILightingEngine {
 
                         final BlockPos.MutableBlockPos nPos = info.pos;
 
-                        if (curLight - this.getPosOpacity(nPos, LightingEngineHelpers.posToState(nPos, info.section)) >= nLight) //schedule neighbor for darkening if we possibly light it
+                        if (curLight - this.getPosOpacity(nPos, LightingEngineHelpers.posToBlock(nPos, info.section), LightingEngineHelpers.posToMeta(nPos, info.section)) >= nLight) //schedule neighbor for darkening if we possibly light it
                         {
                             this.enqueueDarkening(nPos, info.key, nLight, nChunk, lightType);
                         } else //only use for new light calculation if not
@@ -447,15 +448,16 @@ public class LightingEngine implements ILightingEngine {
 
 
     private int calculateNewLightFromCursor(final EnumSkyBlock lightType) {
-        final Block state = LightingEngineHelpers.posToState(this.curPos, this.curChunk);
+        final Block block = LightingEngineHelpers.posToBlock(this.curPos, this.curChunk);
+        final int meta = LightingEngineHelpers.posToMeta(this.curPos, this.curChunk);
 
-        final int luminosity = this.getCursorLuminosity(state, lightType);
+        final int luminosity = this.getCursorLuminosity(block, meta, lightType);
         final int opacity;
 
         if (luminosity >= MAX_LIGHT - 1) {
             opacity = 1;
         } else {
-            opacity = this.getPosOpacity(this.curPos, state);
+            opacity = this.getPosOpacity(this.curPos, block, meta);
         }
 
         return this.calculateNewLightFromCursor(luminosity, opacity, lightType);
@@ -493,7 +495,7 @@ public class LightingEngine implements ILightingEngine {
                 continue;
             }
 
-            final int newLight = curLight - this.getPosOpacity(info.pos, LightingEngineHelpers.posToState(info.pos, info.section));
+            final int newLight = curLight - this.getPosOpacity(info.pos, LightingEngineHelpers.posToBlock(info.pos, info.section), LightingEngineHelpers.posToMeta(info.pos, info.section));
 
             if (newLight > info.light) {
                 this.enqueueBrightening(info.pos, info.key, newLight, nChunk, lightType);
@@ -575,7 +577,7 @@ public class LightingEngine implements ILightingEngine {
     /**
      * Calculates the luminosity for <code>curPos</code>, taking into account <code>lightType</code>
      */
-    private int getCursorLuminosity(final Block state, final EnumSkyBlock lightType) {
+    private int getCursorLuminosity(final Block block, final int meta, final EnumSkyBlock lightType) {
         if (lightType == EnumSkyBlock.Sky) {
             if (LightingHooks.lumiCanBlockSeeTheSky(this.curChunk, this.curPos.getX() & 15, this.curPos.getY(), this.curPos.getZ() & 15)) {
                 return EnumSkyBlock.Sky.defaultLightValue;
@@ -585,11 +587,11 @@ public class LightingEngine implements ILightingEngine {
         }
 
         return MathHelper.clamp_int(
-                world.getLightValueForState(state, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ()), 0, MAX_LIGHT);
+                world.getLightValueForState(block, meta, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ()), 0, MAX_LIGHT);
     }
 
-    private int getPosOpacity(final BlockPos pos, final Block state) {
-        return MathHelper.clamp_int(world.getLightOpacity(state, pos.getX(), pos.getY(), pos.getZ()), 1, MAX_LIGHT);
+    private int getPosOpacity(final BlockPos pos, final Block block, final int meta) {
+        return MathHelper.clamp_int(world.getLightOpacity(block, meta, pos.getX(), pos.getY(), pos.getZ()), 1, MAX_LIGHT);
     }
 
     private ILumiChunk getChunk(final BlockPos pos) {

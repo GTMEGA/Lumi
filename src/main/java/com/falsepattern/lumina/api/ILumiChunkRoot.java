@@ -26,6 +26,7 @@ import net.minecraft.block.Block;
 public interface ILumiChunkRoot {
     void setChunkModified();
     Block getBlock(int x, int y, int z);
+    int getBlockMetadata(int x, int y, int z);
     void ensureEBSPresent(int y);
     void isGapLightingUpdated(boolean b);
     int getTopFilledSegment();

@@ -152,6 +152,10 @@ public abstract class MixinChunkILumiChunk implements ILumiChunk, ILumiChunkRoot
     @Override
     public abstract Block getBlock(int x, int y, int z);
 
+    @Shadow
+    @Override
+    public abstract int getBlockMetadata(int x, int y, int z);
+
     @Override
     public void isGapLightingUpdated(boolean b) {
         isGapLightingUpdated = b;
