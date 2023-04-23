@@ -586,8 +586,7 @@ public class LightingEngine implements ILightingEngine {
             }
         }
 
-        return MathHelper.clamp_int(
-                world.getLightValueForState(block, meta, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ()), 0, MAX_LIGHT);
+        return MathHelper.clamp_int(world.getLightValue(block, meta, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ()), 0, MAX_LIGHT);
     }
 
     private int getPosOpacity(final BlockPos pos, final Block block, final int meta) {

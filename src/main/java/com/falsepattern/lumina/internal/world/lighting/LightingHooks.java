@@ -656,7 +656,7 @@ public class LightingHooks {
                             int meta = storage.root().getExtBlockMetadata(x, y, z);
                             if(block != Blocks.air) {
                                 pos.setPos(xBase + x, yBase + y, zBase + z);
-                                int light = chunk.lumiWorld().getLightValueForState(block, meta, pos.getX(), pos.getY(), pos.getZ());
+                                int light = chunk.lumiWorld().getLightValue(block, meta, pos.getX(), pos.getY(), pos.getZ());
 
                                 if (light > 0) {
                                     world.getLightingEngine().scheduleLightUpdate(EnumSkyBlock.Block, pos.getX(), pos.getY(), pos.getZ());

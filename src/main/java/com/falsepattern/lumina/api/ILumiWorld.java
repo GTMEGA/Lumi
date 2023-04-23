@@ -22,10 +22,7 @@
 package com.falsepattern.lumina.api;
 
 import net.minecraft.block.Block;
-import net.minecraft.profiler.Profiler;
-import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 public interface ILumiWorld extends ILightingEngineProvider {
@@ -35,7 +32,7 @@ public interface ILumiWorld extends ILightingEngineProvider {
 
     void setLightingEngine(ILightingEngine engine);
 
-    int getLightValueForState(final Block block, final int meta, final int x, final int y, final int z);
+    int getLightValue(final Block block, final int meta, final int x, final int y, final int z);
 
     int getLightOpacity(final Block block, final int meta, final int x, final int y, final int z);
 

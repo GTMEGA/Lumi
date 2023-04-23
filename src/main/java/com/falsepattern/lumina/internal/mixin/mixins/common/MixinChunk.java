@@ -295,16 +295,21 @@ public abstract class MixinChunk {
                 if (storage == null && (y == 0 || y == 15 || x == 0 || x == 15 || z == 0 || z == 15)) {
                     performFullLightUpdate = true;
                 } else if (storage != null) {
-                    Block block = storage.getBlockByExtId(x, y, z);
-                    if (block.getLightOpacity(this.worldObj, bx, by, bz) >= 255 &&
-                        block.getLightValue(this.worldObj, bx, by, bz) <= 0) {
-                        int prevLight = storage.getExtBlocklightValue(x, y, z);
-                        if (prevLight != 0) {
-                            storage.setExtBlocklightValue(x, y, z, 0);
-                            this.worldObj.markBlockRangeForRenderUpdate(bx, by, bz, bx, by, bz);
+                    for (int k = 0; k < LumiWorldManager.lumiWorldCount(); i++) {
+                        val lumiWorld = LumiWorldManager.getWorld(worldObj, k);
+                        val lumiChunk = lumiWorld.wrap(storage);
+                        Block block = storage.getBlockByExtId(x, y, z);
+                        int meta = storage.getExtBlockMetadata(x, y, z);
+                        if (lumiWorld.getLightOpacity(block, meta, bx, by, bz) >= 255 &&
+                            lumiWorld.getLightValue(block, meta, bx, by, bz) <= 0) {
+                            int prevLight = lumiChunk.lumiBlocklightArray().get(x, y, z);
+                            if (prevLight != 0) {
+                                lumiChunk.lumiBlocklightArray().set(x, y, z, 0);
+                                this.worldObj.markBlockRangeForRenderUpdate(bx, by, bz, bx, by, bz);
+                            }
+                        } else {
+                            performFullLightUpdate = true;
                         }
-                    } else {
-                        performFullLightUpdate = true;
                     }
                 }
                 if (performFullLightUpdate) {
