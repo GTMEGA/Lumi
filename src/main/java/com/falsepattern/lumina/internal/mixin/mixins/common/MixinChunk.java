@@ -234,18 +234,13 @@ public abstract class MixinChunk {
                      shift = At.Shift.AFTER),
             locals = LocalCapture.CAPTURE_FAILHARD,
             require = 1)
-    private void doCustomRelightChecks(int cX, int cY, int cZ, Block block, int p_150807_5_, CallbackInfoReturnable<Boolean> cir, int i1, int height, Block block1, int k1, ExtendedBlockStorage extendedblockstorage, boolean flag, int l1, int i2, int k2) {
-        val meta = extendedblockstorage.getExtBlockMetadata(cX, cY % 15, cZ);
+    private void doCustomRelightChecks(int cX, int cY, int cZ, Block block, int p_150807_5_, CallbackInfoReturnable<Boolean> cir, int i1, int k, Block block1, int k1, ExtendedBlockStorage extendedblockstorage, boolean flag, int l1, int i2, int k2) {
         for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
             val lWorld = LumiWorldManager.getWorld(worldObj, i);
             val lChunk = lWorld.wrap((Chunk) (Object)this);
-            val opacity = lWorld.getLightOpacity(block, meta, l1, cY, i2);
-            if (opacity > 0) {
-                if (cY >= height) {
-                    LightingHooks.relightBlock(lChunk, cX, cY + 1, cZ);
-                }
-            } else if (cY == height - 1) {
-                LightingHooks.relightBlock(lChunk, cX, cY, cZ);
+            val height = lChunk.lumiHeightMap()[cZ << 4 | cX];
+            if (cY >= height - 1) {
+                LightingHooks.relightBlock(lChunk, cX, cY + 1, cZ);
             }
         }
     }
