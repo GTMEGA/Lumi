@@ -30,22 +30,22 @@ import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import net.minecraft.block.Block;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.EnumSkyBlock;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @Mixin(value = Chunk.class)
 public abstract class MixinChunk {
-    private static final String SET_BLOCK_STATE_VANILLA = "func_150807_a(IIILnet/minecraft/block/Block;I)Z";
-
     @Shadow
     public World worldObj;
     @Shadow
@@ -58,10 +58,6 @@ public abstract class MixinChunk {
     @Shadow @Final public int zPosition;
 
     @Shadow private ExtendedBlockStorage[] storageArrays;
-
-    @Shadow public abstract void setLightValue(EnumSkyBlock p_76633_1_, int p_76633_2_, int p_76633_3_, int p_76633_4_, int p_76633_5_);
-
-    @Shadow public abstract void setChunkModified();
 
     @Shadow public boolean isLightPopulated;
 
@@ -113,16 +109,11 @@ public abstract class MixinChunk {
     }
 
     /**
-     * @reason Overwrites relightBlock with a more efficient implementation.
-     * @author Angeline
+     * @author FalsePattern
+     * @reason Blanking, this is not called anymore
      */
     @Overwrite
     private void relightBlock(int x, int y, int z) {
-        for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
-            val world = LumiWorldManager.getWorld(worldObj, i);
-            val lChunk = world.wrap((Chunk) (Object)this);
-            LightingHooks.relightBlock(lChunk, x, y, z);
-        }
     }
 
 
@@ -140,8 +131,7 @@ public abstract class MixinChunk {
     }
 
     /**
-     * @reason Hook for calculating light updates only as needed. {@link MixinChunk#getCachedLightFor(EnumSkyBlock, int, int, int)} does not
-     * call this hook.
+     * @reason Hook for calculating light updates only as needed.
      * @author Angeline
      */
     @Overwrite
@@ -189,6 +179,77 @@ public abstract class MixinChunk {
         }
     }
 
+    @Redirect(method = "func_150807_a(IIILnet/minecraft/block/Block;I)Z",
+            at = @At(value = "INVOKE",
+                     target = "Lnet/minecraft/world/chunk/Chunk;relightBlock(III)V"),
+            require = 2)
+    private void disableRelight(Chunk instance, int x, int t, int z) {
+
+    }
+
+    @Redirect(method = "func_150807_a",
+              at = @At(value = "INVOKE",
+                       target = "Lnet/minecraft/world/chunk/Chunk;generateSkylightMap()V"),
+              require = 1)
+    private void disableGenSky(Chunk instance) {
+
+    }
+
+    /**
+     * Prevent propagateSkylightOcclusion from being called.
+     * @author embeddedt
+     */
+    @Redirect(method = "func_150807_a",
+              at = @At(value = "INVOKE",
+                       target = "Lnet/minecraft/world/chunk/Chunk;propagateSkylightOcclusion(II)V"),
+              require = 1)
+    private void disableSkyPropagate(Chunk chunk, int i1, int i2) {
+        /* No-op, we don't want skylight propagated */
+    }
+
+    /**
+     * Prevent getLightFor from being called.
+     * @author embeddedt
+     */
+    @Redirect(method = "func_150807_a(IIILnet/minecraft/block/Block;I)Z",
+              at = @At(value = "INVOKE",
+                       target = "Lnet/minecraft/world/chunk/Chunk;getSavedLightValue(Lnet/minecraft/world/EnumSkyBlock;III)I"),
+              require = 2)
+    private int disableGetSavedLightValue(Chunk chunk, EnumSkyBlock skyBlock, int x, int y, int z) {
+        return 0;
+    }
+
+    @Redirect(method = "func_150807_a",
+            at = @At(value = "INVOKE",
+                     target = "Lnet/minecraft/block/Block;getLightOpacity(Lnet/minecraft/world/IBlockAccess;III)I"),
+            require = 2)
+    private int disableGetLightOpacity(Block block, IBlockAccess world, int x, int y, int z) {
+        return 0;
+    }
+
+    @Inject(method = "func_150807_a",
+            at = @At(value = "INVOKE",
+                     target = "Lnet/minecraft/world/chunk/storage/ExtendedBlockStorage;setExtBlockMetadata(IIII)V",
+                     ordinal = 1,
+                     shift = At.Shift.AFTER),
+            locals = LocalCapture.CAPTURE_FAILHARD,
+            require = 1)
+    private void doCustomRelightChecks(int cX, int cY, int cZ, Block block, int p_150807_5_, CallbackInfoReturnable<Boolean> cir, int i1, int height, Block block1, int k1, ExtendedBlockStorage extendedblockstorage, boolean flag, int l1, int i2, int k2) {
+        val meta = extendedblockstorage.getExtBlockMetadata(cX, cY % 15, cZ);
+        for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
+            val lWorld = LumiWorldManager.getWorld(worldObj, i);
+            val lChunk = lWorld.wrap((Chunk) (Object)this);
+            val opacity = lWorld.getLightOpacity(block, meta, l1, cY, i2);
+            if (opacity > 0) {
+                if (cY >= height) {
+                    LightingHooks.relightBlock(lChunk, cX, cY + 1, cZ);
+                }
+            } else if (cY == height - 1) {
+                LightingHooks.relightBlock(lChunk, cX, cY, cZ);
+            }
+        }
+    }
+
 
     /**
      * Redirects the construction of the ExtendedBlockStorage in setBlockState(BlockPos, IBlockState). We need to initialize
@@ -196,7 +257,7 @@ public abstract class MixinChunk {
      *
      * @author Angeline
      */
-    @Redirect(method = SET_BLOCK_STATE_VANILLA,
+    @Redirect(method = "func_150807_a",
               at = @At(value = "NEW",
                        args = "class=net/minecraft/world/chunk/storage/ExtendedBlockStorage"
               ),
@@ -216,43 +277,6 @@ public abstract class MixinChunk {
         }
 
         return storage;
-    }
-
-    /**
-     * Modifies the flag variable of setBlockState(BlockPos, IBlockState) to always be false after it is set.
-     *
-     * @author Angeline
-     */
-    @ModifyVariable(
-            method = SET_BLOCK_STATE_VANILLA,
-            at = @At(
-                    value = "STORE",
-                    ordinal = 1
-            ),
-            name = "flag",
-            index = 11,
-            allow = 1
-    )
-    private boolean setBlockStateInjectGenerateSkylightMapVanilla(boolean generateSkylight) {
-        return false;
-    }
-
-    /**
-     * Prevent propagateSkylightOcclusion from being called.
-     * @author embeddedt
-     */
-    @Redirect(method = SET_BLOCK_STATE_VANILLA, at = @At(value = "INVOKE", target = "Lnet/minecraft/world/chunk/Chunk;propagateSkylightOcclusion(II)V"))
-    private void doPropagateSkylight(Chunk chunk, int i1, int i2) {
-        /* No-op, we don't want skylight propagated */
-    }
-
-    /**
-     * Prevent getLightFor from being called.
-     * @author embeddedt
-     */
-    @Redirect(method = SET_BLOCK_STATE_VANILLA, at = @At(value = "INVOKE", target = "Lnet/minecraft/world/chunk/Chunk;getSavedLightValue(Lnet/minecraft/world/EnumSkyBlock;III)I"))
-    private int getFakeLightFor(Chunk chunk, EnumSkyBlock skyBlock, int x, int y, int z) {
-        return 0;
     }
 
     //TODO port
