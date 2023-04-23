@@ -23,16 +23,15 @@ package com.falsepattern.lumina.internal;
 
 import com.falsepattern.chunk.api.ChunkDataRegistry;
 import com.falsepattern.lumina.api.ILumiWorld;
-import com.falsepattern.lumina.api.ILumiWorldProvider;
 import com.falsepattern.lumina.api.LumiWorldProviderRegistry;
 import com.falsepattern.lumina.internal.saving.LightChecksBuiltin;
 import com.falsepattern.lumina.internal.saving.LightChecksExtended;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 
-import net.minecraft.world.World;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -52,6 +51,11 @@ public class LUMINA {
     }
 
     @Mod.EventHandler
+    public void preInit(FMLPreInitializationEvent event) {
+        LumiWorldManager.startInit();
+    }
+
+    @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         hijackLocked.set(true);
         if (!hijacked.get()) {
@@ -63,6 +67,7 @@ public class LUMINA {
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
+        LumiWorldManager.finishInit();
         if (hijacked.get() && LumiWorldManager.lumiWorldCount() == 0) {
             throw new IllegalStateException("Lumina was hijacked but no default world manager was registered!");
         }

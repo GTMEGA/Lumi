@@ -28,6 +28,8 @@ import lombok.val;
 
 import net.minecraft.world.World;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 //HOLY COW I'M TOTALLY GOING SO FAST OH F***
 public class LumiWorldManager {
     //Not using a list because:
@@ -36,6 +38,8 @@ public class LumiWorldManager {
     //3. Bounds are known
     //Growth factor is 1, because the number of custom providers is expected to be very small
     private static ILumiWorldProvider[] providers = new ILumiWorldProvider[0];
+    private static final AtomicBoolean initStarted = new AtomicBoolean(false);
+    private static final AtomicBoolean locked = new AtomicBoolean(true);
 
     public static int lumiWorldCount() {
         return providers.length;
@@ -48,6 +52,9 @@ public class LumiWorldManager {
 
     //Synchronized just in case, only called during init anyway
     public static synchronized void addProvider(ILumiWorldProvider provider) {
+        if (locked.get()) {
+            throw new IllegalStateException("Providers can only be registered during init!");
+        }
         val oldProviders = providers;
         ILumiWorldProvider[] newProviders = new ILumiWorldProvider[oldProviders.length + 1];
         System.arraycopy(oldProviders, 0, newProviders, 0, oldProviders.length);
@@ -63,5 +70,20 @@ public class LumiWorldManager {
             val lWorld = provider.getWorld(world);
             lWorld.setLightingEngine(new LightingEngine(lWorld));
         }
+    }
+
+    public static void startInit() {
+        if (initStarted.get()) {
+            throw new IllegalStateException("Cannot start init twice!");
+        }
+        initStarted.set(true);
+        locked.set(false);
+    }
+
+    public static void finishInit() {
+        if (!initStarted.get()) {
+            throw new IllegalStateException("Cannot lock before starting init!");
+        }
+        locked.set(true);
     }
 }
