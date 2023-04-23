@@ -117,7 +117,7 @@ public abstract class MixinChunk {
      * @author Angeline
      */
     @Overwrite
-    public void relightBlock(int x, int y, int z) {
+    private void relightBlock(int x, int y, int z) {
         for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
             val world = LumiWorldManager.getWorld(worldObj, i);
             val lChunk = world.wrap((Chunk) (Object)this);
@@ -181,7 +181,7 @@ public abstract class MixinChunk {
      * @author Angeline
      */
     @Overwrite
-    public void recheckGaps(boolean onlyOne) {
+    private void recheckGaps(boolean onlyOne) {
         for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
             val world = LumiWorldManager.getWorld(worldObj, i);
             val chunk = world.wrap((Chunk) (Object) this);
