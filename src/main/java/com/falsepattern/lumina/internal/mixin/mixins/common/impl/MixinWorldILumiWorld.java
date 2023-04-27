@@ -50,22 +50,22 @@ public abstract class MixinWorldILumiWorld implements ILumiWorld, IBlockAccess, 
     private ILightingEngine lightingEngine;
 
     @Override
-    public ILumiChunk wrap(Chunk chunk) {
+    public ILumiChunk lumiWrap(Chunk chunk) {
         return (ILumiChunk) chunk;
     }
 
     @Override
-    public ILumiEBS wrap(ExtendedBlockStorage ebs) {
+    public ILumiEBS lumiWrap(ExtendedBlockStorage ebs) {
         return (ILumiEBS) ebs;
     }
 
     @Override
-    public int getLightValue(Block block, int meta, int x, int y, int z) {
+    public int lumiGetLightValue(Block block, int meta, int x, int y, int z) {
         return block.getLightValue(this, x, y, z);
     }
 
     @Override
-    public int getLightOpacity(Block block, int meta, int x, int y, int z) {
+    public int lumiGetLightOpacity(Block block, int meta, int x, int y, int z) {
         return block.getLightOpacity(this, x, y, z);
     }
 
@@ -85,40 +85,48 @@ public abstract class MixinWorldILumiWorld implements ILumiWorld, IBlockAccess, 
     }
 
     @Override
-    public Profiler theProfiler() {
+    public Profiler rootTheProfiler() {
         return theProfiler;
     }
 
     @Override
-    public boolean isRemote() {
+    public boolean rootIsRemote() {
         return isRemote;
     }
 
     @Override
-    public boolean hasNoSky() {
+    public boolean rootHasNoSky() {
         return provider.hasNoSky;
     }
 
     @Override
-    public void markBlockForRenderUpdate(int x, int y, int z) {
+    public void rootMarkBlockForRenderUpdate(int x, int y, int z) {
         func_147479_m(x, y, z);
     }
 
     @Override
-    public IChunkProvider provider() {
+    public IChunkProvider rootProvider() {
         return chunkProvider;
     }
 
     @Shadow
-    @Override
     public abstract boolean checkChunksExist(int minX, int minY, int minZ, int maxX, int maxY, int maxZ);
 
-    @Shadow
     @Override
+    public boolean rootCheckChunksExist(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+        return checkChunksExist(minX, minY, minZ, maxX, maxY, maxZ);
+    }
+
+    @Shadow
     public abstract boolean doChunksNearChunkExist(int x, int y, int z, int dist);
 
     @Override
-    public String id() {
+    public boolean rootDoChunksNearChunkExist(int x, int y, int z, int dist) {
+        return doChunksNearChunkExist(x, y, z, dist);
+    }
+
+    @Override
+    public String lumiId() {
         return Tags.MODID;
     }
 }

@@ -24,7 +24,7 @@ package com.falsepattern.lumina.api;
 import net.minecraft.block.Block;
 
 public interface ILumiEBSRoot {
-    Block getBlockByExtId(int x, int y, int z);
-    int getExtBlockMetadata(int x, int y, int z);
-    int getYLocation();
+    Block rootGetBlockByExtId(int x, int y, int z);
+    int rootGetExtBlockMetadata(int x, int y, int z);
+    int rootGetYLocation();
 }

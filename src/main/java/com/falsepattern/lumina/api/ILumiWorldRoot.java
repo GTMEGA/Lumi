@@ -25,12 +25,12 @@ import net.minecraft.profiler.Profiler;
 import net.minecraft.world.chunk.IChunkProvider;
 
 public interface ILumiWorldRoot {
-    Profiler theProfiler();
-    boolean isRemote();
+    Profiler rootTheProfiler();
+    boolean rootIsRemote();
     //.provider.hasNoSky
-    boolean hasNoSky();
-    void markBlockForRenderUpdate(int x, int y, int z);
-    IChunkProvider provider();
-    boolean checkChunksExist(int minX, int minY, int minZ, int maxX, int maxY, int maxZ);
-    boolean doChunksNearChunkExist(int x, int y, int z, int dist);
+    boolean rootHasNoSky();
+    void rootMarkBlockForRenderUpdate(int x, int y, int z);
+    IChunkProvider rootProvider();
+    boolean rootCheckChunksExist(int minX, int minY, int minZ, int maxX, int maxY, int maxZ);
+    boolean rootDoChunksNearChunkExist(int x, int y, int z, int dist);
 }

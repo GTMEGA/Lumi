@@ -35,7 +35,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 import net.minecraft.block.Block;
-import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
@@ -145,45 +144,61 @@ public abstract class MixinChunkILumiChunk implements ILumiChunk, ILumiChunkRoot
     }
 
     @Shadow
-    @Override
     public abstract void setChunkModified();
 
-    @Shadow
     @Override
-    public abstract Block getBlock(int x, int y, int z);
+    public void rootSetChunkModified() {
+        setChunkModified();
+    }
 
     @Shadow
+    public abstract Block getBlock(int x, int y, int z);
+
     @Override
+    public Block rootGetBlock(int x, int y, int z) {
+        return getBlock(x, y, z);
+    }
+
+    @Shadow
     public abstract int getBlockMetadata(int x, int y, int z);
 
     @Override
-    public void isGapLightingUpdated(boolean b) {
+    public int rootGetBlockMetadata(int x, int y, int z) {
+        return getBlockMetadata(x, y, z);
+    }
+
+    @Override
+    public void rootIsGapLightingUpdated(boolean b) {
         isGapLightingUpdated = b;
     }
 
     @Override
-    public void ensureEBSPresent(int y) {
+    public void rootEnsureEBSPresent(int y) {
         val ebs = storageArrays[y >> 4];
 
         if (ebs == null) {
             this.storageArrays[y >> 4] = new ExtendedBlockStorage(y >> 4 << 4, !this.worldObj.provider.hasNoSky);
             for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
                 val world = LumiWorldManager.getWorld(worldObj, i);
-                val lChunk = world.wrap((Chunk) (Object) this);
+                val lChunk = world.lumiWrap((Chunk) (Object) this);
                 LightingHooks.initSkylightForSection(world, lChunk, lChunk.lumiEBS(y >> 4));
             }
         }
-        setChunkModified();
+        rootSetChunkModified();
     }
 
     @Shadow
-    @Override
     public abstract int getTopFilledSegment();
+
+    @Override
+    public int rootGetTopFilledSegment() {
+        return getTopFilledSegment();
+    }
 
     @Shadow public int[] precipitationHeightMap;
 
     @Override
-    public int[] precipitationHeightMap() {
+    public int[] rootPrecipitationHeightMap() {
         return precipitationHeightMap;
     }
 }

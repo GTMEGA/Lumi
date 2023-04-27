@@ -50,15 +50,27 @@ public abstract class MixinExtendedBlockStorageILumiEBS implements ILumiEBS, ILu
         return this;
     }
 
-    @Override
     @Shadow
     public abstract Block getBlockByExtId(int x, int y, int z);
 
     @Override
+    public Block rootGetBlockByExtId(int x, int y, int z) {
+        return getBlockByExtId(x, y, z);
+    }
+
     @Shadow
     public abstract int getExtBlockMetadata(int x, int y, int z);
 
     @Override
+    public int rootGetExtBlockMetadata(int x, int y, int z) {
+        return getExtBlockMetadata(x, y, z);
+    }
+
     @Shadow
     public abstract int getYLocation();
+
+    @Override
+    public int rootGetYLocation() {
+        return getYLocation();
+    }
 }

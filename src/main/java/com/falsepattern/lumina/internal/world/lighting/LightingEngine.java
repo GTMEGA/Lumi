@@ -122,7 +122,7 @@ public class LightingEngine implements ILightingEngine {
 
     public LightingEngine(final ILumiWorld world) {
         this.world = world;
-        this.profiler = world.root().theProfiler();
+        this.profiler = world.root().rootTheProfiler();
         isDynamicLightsLoaded = Loader.isModLoaded("DynamicLights");
 
         PooledLongQueue.Pool pool = new PooledLongQueue.Pool();
@@ -193,7 +193,7 @@ public class LightingEngine implements ILightingEngine {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
-        if (this.world.root().isRemote() && !this.isCallingFromMainThread()) {
+        if (this.world.root().rootIsRemote() && !this.isCallingFromMainThread()) {
             return;
         }
 
@@ -383,7 +383,7 @@ public class LightingEngine implements ILightingEngine {
 
                 if (oldLight == curLight) //only process this if nothing else has happened at this position since scheduling
                 {
-                    this.world.root().markBlockForRenderUpdate(this.curPos.getX(), this.curPos.getY(), this.curPos.getZ());
+                    this.world.root().rootMarkBlockForRenderUpdate(this.curPos.getX(), this.curPos.getY(), this.curPos.getZ());
 
                     if (curLight > 1) {
                         this.spreadLightFromCursor(curLight, lightType);
@@ -453,7 +453,7 @@ public class LightingEngine implements ILightingEngine {
                 return 0;
             }
         } else if (type == EnumSkyBlock.Sky) {
-            if (chunk.lumiWorld().root().hasNoSky()) {
+            if (chunk.lumiWorld().root().rootHasNoSky()) {
                 return 0;
             } else {
                 return LightingHooks.lumiGetSkylight(storage, i, j & 15, k);
@@ -607,11 +607,11 @@ public class LightingEngine implements ILightingEngine {
             }
         }
 
-        return MathHelper.clamp_int(world.getLightValue(block, meta, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ()), 0, MAX_LIGHT);
+        return MathHelper.clamp_int(world.lumiGetLightValue(block, meta, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ()), 0, MAX_LIGHT);
     }
 
     private int getPosOpacity(final BlockPos pos, final Block block, final int meta) {
-        return MathHelper.clamp_int(world.getLightOpacity(block, meta, pos.getX(), pos.getY(), pos.getZ()), 1, MAX_LIGHT);
+        return MathHelper.clamp_int(world.lumiGetLightOpacity(block, meta, pos.getX(), pos.getY(), pos.getZ()), 1, MAX_LIGHT);
     }
 
     private ILumiChunk getChunk(final BlockPos pos) {

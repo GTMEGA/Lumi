@@ -68,7 +68,7 @@ public class LumiWorldManager {
         for (int i = 0, providersLength = providers.length; i < providersLength; i++) {
             ILumiWorldProvider provider = providers[i];
             val lWorld = provider.getWorld(world);
-            lWorld.setLightingEngine(new LightingEngine(lWorld));
+            lWorld.lumiSetLightingEngine(new LightingEngine(lWorld));
         }
     }
 

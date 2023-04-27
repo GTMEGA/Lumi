@@ -43,7 +43,7 @@ public abstract class MixinSPacketChunkData {
     private static void onCalculateChunkSize(Chunk chunkIn, boolean hasSkyLight, int changedSectionFilter, CallbackInfoReturnable<S21PacketChunkData.Extracted> cir) {
         for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
             val world = LumiWorldManager.getWorld(chunkIn.worldObj, i);
-            val lChunk = world.wrap(chunkIn);
+            val lChunk = world.lumiWrap(chunkIn);
             lChunk.getLightingEngine().processLightUpdates();
         }
     }

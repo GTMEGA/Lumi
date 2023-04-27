@@ -46,7 +46,7 @@ public abstract class MixinChunk {
     public void generateHeightMap() {
         for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
             val world = LumiWorldManager.getWorld(worldObj, i);
-            val chunk = world.wrap((Chunk) (Object) this);
+            val chunk = world.lumiWrap((Chunk) (Object) this);
             LightingHooks.generateHeightMap(chunk);
         }
     }

@@ -45,7 +45,7 @@ public class LightingEngineHelpers {
 
         if (section != null)
         {
-            return section.root().getBlockByExtId(x & 15, y & 15, z & 15);
+            return section.root().rootGetBlockByExtId(x & 15, y & 15, z & 15);
         }
 
         return DEFAULT_BLOCK;
@@ -63,7 +63,7 @@ public class LightingEngineHelpers {
 
         if (section != null)
         {
-            return section.root().getExtBlockMetadata(x & 15, y & 15, z & 15);
+            return section.root().rootGetExtBlockMetadata(x & 15, y & 15, z & 15);
         }
 
         return DEFAULT_METADATA;
@@ -71,9 +71,9 @@ public class LightingEngineHelpers {
 
 
     public static ILumiChunk getLoadedChunk(ILumiWorld world, int chunkX, int chunkZ) {
-        val provider = world.root().provider();
+        val provider = world.root().rootProvider();
         if(!provider.chunkExists(chunkX, chunkZ))
             return null;
-        return world.wrap(provider.provideChunk(chunkX, chunkZ));
+        return world.lumiWrap(provider.provideChunk(chunkX, chunkZ));
     }
 }

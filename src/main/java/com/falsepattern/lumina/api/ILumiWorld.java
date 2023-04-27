@@ -26,17 +26,17 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 public interface ILumiWorld extends ILightingEngineProvider {
-    ILumiChunk wrap(Chunk chunk);
+    ILumiChunk lumiWrap(Chunk chunk);
 
-    ILumiEBS wrap(ExtendedBlockStorage ebs);
+    ILumiEBS lumiWrap(ExtendedBlockStorage ebs);
 
-    void setLightingEngine(ILightingEngine engine);
+    void lumiSetLightingEngine(ILightingEngine engine);
 
-    int getLightValue(final Block block, final int meta, final int x, final int y, final int z);
+    int lumiGetLightValue(final Block block, final int meta, final int x, final int y, final int z);
 
-    int getLightOpacity(final Block block, final int meta, final int x, final int y, final int z);
+    int lumiGetLightOpacity(final Block block, final int meta, final int x, final int y, final int z);
 
-    String id();
+    String lumiId();
 
     //Proxy this to carrier
     ILumiWorldRoot root();
