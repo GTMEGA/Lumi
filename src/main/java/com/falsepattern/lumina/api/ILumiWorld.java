@@ -30,7 +30,7 @@ public interface ILumiWorld extends ILightingEngineProvider {
 
     ILumiEBS lumiWrap(ExtendedBlockStorage ebs);
 
-    void lumiSetLightingEngine(ILightingEngine engine);
+    void setLightingEngine(ILightingEngine engine);
 
     int lumiGetLightValue(final Block block, final int meta, final int x, final int y, final int z);
 

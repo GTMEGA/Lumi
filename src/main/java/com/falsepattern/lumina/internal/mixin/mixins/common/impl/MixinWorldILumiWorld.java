@@ -35,7 +35,6 @@ import org.spongepowered.asm.mixin.Shadow;
 
 import net.minecraft.block.Block;
 import net.minecraft.profiler.Profiler;
-import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
