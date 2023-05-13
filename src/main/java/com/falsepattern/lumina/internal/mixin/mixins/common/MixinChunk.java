@@ -273,28 +273,28 @@ public abstract class MixinChunk {
         return storage;
     }
 
-    //TODO port
     /**
-     * @author FalsePattern
-     * @reason Fix whatever was breaking there by removing "smart" optimization
+     * @author embeddedt
+     * @reason optimize random light checks so they complete faster
      */
     @Overwrite
-    public void enqueueRelightChecks() {
+    public void enqueueRelightChecks()
+    {
         /* Skip object allocation if we weren't going to run checks anyway */
-        if (this.queuedLightChecks >= 4096) {
+        if (this.queuedLightChecks >= 4096)
             return;
-        }
         boolean isActiveChunk = worldObj.activeChunkSet.contains(new ChunkCoordIntPair(this.xPosition, this.zPosition));
         int lightRecheckSpeed;
-        if (worldObj.isRemote && isActiveChunk) {
+        if(worldObj.isRemote && isActiveChunk) {
             lightRecheckSpeed = 256;
-        } else if (worldObj.isRemote) {
+        } else if(worldObj.isRemote)
             lightRecheckSpeed = 64;
-        } else {
+        else
             lightRecheckSpeed = 32;
-        }
-        for (int i = 0; i < lightRecheckSpeed; ++i) {
-            if (this.queuedLightChecks >= 4096) {
+        for (int i = 0; i < lightRecheckSpeed; ++i)
+        {
+            if (this.queuedLightChecks >= 4096)
+            {
                 return;
             }
 
@@ -305,9 +305,37 @@ public abstract class MixinChunk {
             int bx = (this.xPosition << 4) + x;
             int bz = (this.zPosition << 4) + z;
 
+            val lumiCount = LumiWorldManager.lumiWorldCount();
             for (int y = 0; y < 16; ++y) {
                 int by = (section << 4) + y;
-                this.worldObj.func_147451_t(bx, by, bz);
+                ExtendedBlockStorage vanillaStorage = this.storageArrays[section];
+
+                boolean performFullLightUpdate = false;
+                if (vanillaStorage == null && (y == 0 || y == 15 || x == 0 || x == 15 || z == 0 || z == 15))
+                    performFullLightUpdate = true;
+                else if (vanillaStorage != null) {
+                    Block block = vanillaStorage.getBlockByExtId(x, y, z);
+                    val meta = vanillaStorage.getExtBlockMetadata(x, y, z);
+                    for (int l = 0; l < lumiCount; l++) {
+                        val lumiWorld = LumiWorldManager.getWorld(worldObj, l);
+                        val lumiStorage = lumiWorld.lumiWrap(vanillaStorage);
+                        if (lumiWorld.lumiGetLightOpacity(block, meta, bx, by, bz) >= 255 &&
+                            lumiWorld.lumiGetLightValue(block, meta, bx, by, bz) <= 0) {
+                            val bla = lumiStorage.lumiBlocklightArray();
+                            int prevLight = bla.get(x, y, z);
+                            if (prevLight != 0) {
+                                bla.set(x, y, z, 0);
+                                this.worldObj.markBlockRangeForRenderUpdate(bx, by, bz, bx, by, bz);
+                            }
+                        } else {
+                            performFullLightUpdate = true;
+                            break;
+                        }
+                    }
+                }
+                if (performFullLightUpdate) {
+                    this.worldObj.func_147451_t(bx, by, bz);
+                }
             }
         }
     }
