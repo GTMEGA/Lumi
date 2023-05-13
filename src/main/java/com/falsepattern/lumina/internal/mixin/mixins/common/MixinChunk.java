@@ -275,8 +275,8 @@ public abstract class MixinChunk {
 
     //TODO port
     /**
-     * @author embeddedt
-     * @reason optimize random light checks so they complete faster
+     * @author FalsePattern
+     * @reason Fix whatever was breaking there by removing "smart" optimization
      */
     @Overwrite
     public void enqueueRelightChecks() {
@@ -307,32 +307,7 @@ public abstract class MixinChunk {
 
             for (int y = 0; y < 16; ++y) {
                 int by = (section << 4) + y;
-                ExtendedBlockStorage storage = this.storageArrays[section];
-
-                boolean performFullLightUpdate = false;
-                if (storage == null && (y == 0 || y == 15 || x == 0 || x == 15 || z == 0 || z == 15)) {
-                    performFullLightUpdate = true;
-                } else if (storage != null) {
-                    for (int k = 0; k < LumiWorldManager.lumiWorldCount(); i++) {
-                        val lumiWorld = LumiWorldManager.getWorld(worldObj, k);
-                        val lumiChunk = lumiWorld.lumiWrap(storage);
-                        Block block = storage.getBlockByExtId(x, y, z);
-                        int meta = storage.getExtBlockMetadata(x, y, z);
-                        if (lumiWorld.lumiGetLightOpacity(block, meta, bx, by, bz) >= 255 &&
-                            lumiWorld.lumiGetLightValue(block, meta, bx, by, bz) <= 0) {
-                            int prevLight = lumiChunk.lumiBlocklightArray().get(x, y, z);
-                            if (prevLight != 0) {
-                                lumiChunk.lumiBlocklightArray().set(x, y, z, 0);
-                                this.worldObj.markBlockRangeForRenderUpdate(bx, by, bz, bx, by, bz);
-                            }
-                        } else {
-                            performFullLightUpdate = true;
-                        }
-                    }
-                }
-                if (performFullLightUpdate) {
-                    this.worldObj.func_147451_t(bx, by, bz);
-                }
+                this.worldObj.func_147451_t(bx, by, bz);
             }
         }
     }
