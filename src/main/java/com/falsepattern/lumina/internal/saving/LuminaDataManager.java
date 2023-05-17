@@ -30,28 +30,35 @@ import lombok.val;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.Chunk;
 
-public class LightChecksExtended implements ChunkDataManager.ChunkNBTDataManager{
+import java.nio.ByteBuffer;
+
+public class LuminaDataManager implements ChunkDataManager.ChunkNBTDataManager, ChunkDataManager.PacketDataManager{
     @Override
     public void writeChunkToNBT(Chunk chunk, NBTTagCompound nbt) {
-        for (int i = 1; i < LumiWorldManager.lumiWorldCount(); i++) {
+        for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
             val lWorld = LumiWorldManager.getWorld(chunk.worldObj, i);
             val lChunk = lWorld.lumiWrap(chunk);
             val subTag = new NBTTagCompound();
             LightingHooks.writeNeighborLightChecksToNBT(lChunk, subTag);
 
             subTag.setBoolean("LightPopulated", lChunk.lumiIsLightInitialized());
+            subTag.setIntArray("HeightMap", lChunk.lumiHeightMap());
             nbt.setTag(lWorld.lumiId(), subTag);
         }
     }
 
     @Override
     public void readChunkFromNBT(Chunk chunk, NBTTagCompound nbt) {
-        for (int i = 1; i < LumiWorldManager.lumiWorldCount(); i++) {
+        for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
             val lWorld = LumiWorldManager.getWorld(chunk.worldObj, i);
             val lChunk = lWorld.lumiWrap(chunk);
             val subTag = nbt.getCompoundTag(lWorld.lumiId());
             LightingHooks.readNeighborLightChecksFromNBT(lChunk, subTag);
             lChunk.lumiIsLightInitialized(subTag.getBoolean("LightPopulated"));
+            val heightMap = subTag.getIntArray("HeightMap");
+            if (heightMap != null && heightMap.length == 256) {
+                System.arraycopy(heightMap, 0, lChunk.lumiHeightMap(), 0, 256);
+            }
         }
     }
 
@@ -63,5 +70,22 @@ public class LightChecksExtended implements ChunkDataManager.ChunkNBTDataManager
     @Override
     public String id() {
         return "extended";
+    }
+
+    @Override
+    public int maxPacketSize() {
+        return 0;
+    }
+
+    @Override
+    public void writeToBuffer(Chunk chunk, int ebsMask, boolean forceUpdate, ByteBuffer data) {
+
+    }
+
+    @Override
+    public void readFromBuffer(Chunk chunk, int ebsMask, boolean forceUpdate, ByteBuffer buffer) {
+        for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
+            LumiWorldManager.getWorld(chunk.worldObj, i).lumiWrap(chunk).lumiIsLightInitialized(true);
+        }
     }
 }

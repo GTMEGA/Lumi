@@ -24,8 +24,7 @@ package com.falsepattern.lumina.internal;
 import com.falsepattern.chunk.api.ChunkDataRegistry;
 import com.falsepattern.lumina.api.ILumiWorld;
 import com.falsepattern.lumina.api.LumiWorldProviderRegistry;
-import com.falsepattern.lumina.internal.saving.LightChecksBuiltin;
-import com.falsepattern.lumina.internal.saving.LightChecksExtended;
+import com.falsepattern.lumina.internal.saving.LuminaDataManager;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 
 import cpw.mods.fml.common.Mod;
@@ -61,8 +60,7 @@ public class LUMINA {
         if (!hijacked.get()) {
             LumiWorldProviderRegistry.registerWorldProvider(world -> (ILumiWorld)world);
         }
-        ChunkDataRegistry.registerDataManager(new LightChecksBuiltin());
-        ChunkDataRegistry.registerDataManager(new LightChecksExtended());
+        ChunkDataRegistry.registerDataManager(new LuminaDataManager());
     }
 
     @Mod.EventHandler
@@ -71,5 +69,6 @@ public class LUMINA {
         if (hijacked.get() && LumiWorldManager.lumiWorldCount() == 0) {
             throw new IllegalStateException("Lumina was hijacked but no default world manager was registered!");
         }
+        ChunkDataRegistry.disableDataManager("minecraft", "lighting");
     }
 }
