@@ -35,6 +35,7 @@ import java.nio.ByteBuffer;
 public class LuminaDataManager implements ChunkDataManager.ChunkNBTDataManager, ChunkDataManager.PacketDataManager{
     @Override
     public void writeChunkToNBT(Chunk chunk, NBTTagCompound nbt) {
+        nbt.setString(Tags.MODID + "_version", Tags.VERSION);
         for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
             val lWorld = LumiWorldManager.getWorld(chunk.worldObj, i);
             val lChunk = lWorld.lumiWrap(chunk);
@@ -49,15 +50,24 @@ public class LuminaDataManager implements ChunkDataManager.ChunkNBTDataManager, 
 
     @Override
     public void readChunkFromNBT(Chunk chunk, NBTTagCompound nbt) {
+        val version = nbt.getString(Tags.MODID + "_version");
+        val forceRelight = !Tags.VERSION.equals(version);
         for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
             val lWorld = LumiWorldManager.getWorld(chunk.worldObj, i);
             val lChunk = lWorld.lumiWrap(chunk);
             val subTag = nbt.getCompoundTag(lWorld.lumiId());
             LightingHooks.readNeighborLightChecksFromNBT(lChunk, subTag);
-            lChunk.lumiIsLightInitialized(subTag.getBoolean("LightPopulated"));
-            val heightMap = subTag.getIntArray("HeightMap");
-            if (heightMap != null && heightMap.length == 256) {
-                System.arraycopy(heightMap, 0, lChunk.lumiHeightMap(), 0, 256);
+            boolean lightPop = !forceRelight && subTag.getBoolean("LightPopulated");
+            lChunk.lumiIsLightInitialized(lightPop);
+            if (!lightPop) {
+                LightingHooks.generateSkylightMap(lChunk);
+            } else {
+                val heightMap = subTag.getIntArray("HeightMap");
+                if (heightMap != null && heightMap.length == 256) {
+                    System.arraycopy(heightMap, 0, lChunk.lumiHeightMap(), 0, 256);
+                } else {
+                    LightingHooks.generateSkylightMap(lChunk);
+                }
             }
         }
     }
