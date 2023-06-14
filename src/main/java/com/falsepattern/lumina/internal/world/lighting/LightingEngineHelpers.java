@@ -21,6 +21,7 @@
 
 package com.falsepattern.lumina.internal.world.lighting;
 
+import com.falsepattern.lib.compat.BlockPos;
 import com.falsepattern.lumina.api.ILumiWorld;
 import com.falsepattern.lumina.api.ILumiChunk;
 import com.falsepattern.lumina.api.ILumiEBS;
