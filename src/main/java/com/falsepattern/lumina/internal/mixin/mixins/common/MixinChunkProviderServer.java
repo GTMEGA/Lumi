@@ -23,6 +23,7 @@ package com.falsepattern.lumina.internal.mixin.mixins.common;
 
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import lombok.val;
+import lombok.var;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -37,20 +38,24 @@ import java.util.Set;
 
 @Mixin(ChunkProviderServer.class)
 public abstract class MixinChunkProviderServer {
-    @Shadow private Set chunksToUnload;
-
-    @Shadow public WorldServer worldObj;
+    @Shadow
+    private Set chunksToUnload;
+    @Shadow
+    public WorldServer worldObj;
 
     /**
      * Injects a callback into the start of saveChunks(boolean) to force all light updates to be processed before saving.
      *
      * @author Angeline
      */
-    @Inject(method = "saveChunks", at = @At("HEAD"))
+    @Inject(method = "saveChunks",
+            at = @At("HEAD"),
+            require = 1)
     private void onSaveChunks(boolean all, IProgressUpdate update, CallbackInfoReturnable<Boolean> cir) {
-        for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
-            val world = LumiWorldManager.getWorld(worldObj, i);
-            world.getLightingEngine().processLightUpdates();
+        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
+        for (var i = 0; i < lumiWorldCount; i++) {
+            val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
+            lumiWorld.getLightingEngine().processLightUpdates();
         }
     }
 
@@ -60,15 +65,19 @@ public abstract class MixinChunkProviderServer {
      *
      * @author Angeline
      */
-    @Inject(method = "unloadQueuedChunks", at = @At("HEAD"))
+    @Inject(method = "unloadQueuedChunks",
+            at = @At("HEAD"),
+            require = 1)
     private void onTick(CallbackInfoReturnable<Boolean> cir) {
-        if (!this.worldObj.levelSaving) {
-            if (!this.chunksToUnload.isEmpty()) {
-                for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
-                    val world = LumiWorldManager.getWorld(worldObj, i);
-                    world.getLightingEngine().processLightUpdates();
-                }
-            }
+        if (worldObj.levelSaving)
+            return;
+        if (chunksToUnload.isEmpty())
+            return;
+
+        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
+        for (var i = 0; i < lumiWorldCount; i++) {
+            val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
+            lumiWorld.getLightingEngine().processLightUpdates();
         }
     }
 }

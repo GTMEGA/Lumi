@@ -21,6 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
+import lombok.val;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 
@@ -28,12 +29,16 @@ import net.minecraft.util.LongHashMap;
 
 @Mixin(LongHashMap.class)
 public abstract class MixinLongHashMap {
+    private static final int HASH_PRIME = 92821;
+
     /**
      * @author FalsePattern
      * @reason Small perf snippet, ported from ArchaicFix, LGPLv3.
      */
     @Overwrite
-    private static int getHashedKey(long pos) {
-        return (int)pos + (int)(pos >>> 32) * 92821;
+    private static int getHashedKey(long key) {
+        val a = (int) key;
+        val b = (int) (key >>> 32);
+        return (a + b) * HASH_PRIME;
     }
 }

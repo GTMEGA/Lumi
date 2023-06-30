@@ -44,6 +44,26 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @Mixin(World.class)
 public abstract class MixinWorldILumiWorld implements ILumiWorld, IBlockAccess, ILumiWorldRoot {
+    @Shadow
+    @Final
+    public Profiler theProfiler;
+    @Shadow
+    public boolean isRemote;
+    @Shadow
+    @Final
+    public WorldProvider provider;
+    @Shadow
+    protected IChunkProvider chunkProvider;
+
+    @Shadow
+    public abstract void func_147479_m(int p_147479_1_, int p_147479_2_, int p_147479_3_);
+
+    @Shadow
+    public abstract boolean checkChunksExist(int minX, int minY, int minZ, int maxX, int maxY, int maxZ);
+
+    @Shadow
+    public abstract boolean doChunksNearChunkExist(int x, int y, int z, int dist);
+
     @Getter
     @Setter
     private ILightingEngine lightingEngine;
@@ -59,24 +79,14 @@ public abstract class MixinWorldILumiWorld implements ILumiWorld, IBlockAccess, 
     }
 
     @Override
-    public int lumiGetLightValue(Block block, int meta, int x, int y, int z) {
-        return block.getLightValue(this, x, y, z);
+    public int lumiGetLightValue(Block block, int blockMeta, int posX, int posY, int posZ) {
+        return block.getLightValue(this, posX, posY, posZ);
     }
 
     @Override
-    public int lumiGetLightOpacity(Block block, int meta, int x, int y, int z) {
-        return block.getLightOpacity(this, x, y, z);
+    public int lumiGetLightOpacity(Block block, int blockMeta, int posX, int posY, int posZ) {
+        return block.getLightOpacity(this, posX, posY, posZ);
     }
-
-    @Shadow @Final public Profiler theProfiler;
-
-    @Shadow public boolean isRemote;
-
-    @Shadow @Final public WorldProvider provider;
-
-    @Shadow public abstract void func_147479_m(int p_147479_1_, int p_147479_2_, int p_147479_3_);
-
-    @Shadow protected IChunkProvider chunkProvider;
 
     @Override
     public ILumiWorldRoot root() {
@@ -99,8 +109,8 @@ public abstract class MixinWorldILumiWorld implements ILumiWorld, IBlockAccess, 
     }
 
     @Override
-    public void rootMarkBlockForRenderUpdate(int x, int y, int z) {
-        func_147479_m(x, y, z);
+    public void rootMarkBlockForRenderUpdate(int posX, int posY, int posZ) {
+        func_147479_m(posX, posY, posZ);
     }
 
     @Override
@@ -108,16 +118,10 @@ public abstract class MixinWorldILumiWorld implements ILumiWorld, IBlockAccess, 
         return chunkProvider;
     }
 
-    @Shadow
-    public abstract boolean checkChunksExist(int minX, int minY, int minZ, int maxX, int maxY, int maxZ);
-
     @Override
     public boolean rootCheckChunksExist(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         return checkChunksExist(minX, minY, minZ, maxX, maxY, maxZ);
     }
-
-    @Shadow
-    public abstract boolean doChunksNearChunkExist(int x, int y, int z, int dist);
 
     @Override
     public boolean rootDoChunksNearChunkExist(int x, int y, int z, int dist) {

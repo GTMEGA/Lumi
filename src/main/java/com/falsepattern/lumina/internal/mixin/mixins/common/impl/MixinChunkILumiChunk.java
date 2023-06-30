@@ -39,7 +39,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
-@Mixin(value = Chunk.class)
+@Mixin(Chunk.class)
 public abstract class MixinChunkILumiChunk implements ILumiChunk, ILumiChunkRoot {
     @Shadow
     @Final
@@ -49,7 +49,6 @@ public abstract class MixinChunkILumiChunk implements ILumiChunk, ILumiChunkRoot
     public int zPosition;
     @Shadow
     public World worldObj;
-
     @Shadow
     private ExtendedBlockStorage[] storageArrays;
     @Shadow
@@ -60,6 +59,21 @@ public abstract class MixinChunkILumiChunk implements ILumiChunk, ILumiChunkRoot
     private boolean isGapLightingUpdated;
     @Shadow
     public int heightMapMinimum;
+    @Shadow
+    public int[] precipitationHeightMap;
+
+    @Shadow
+    public abstract void setChunkModified();
+
+    @Shadow
+    public abstract int getTopFilledSegment();
+
+    @Shadow
+    public abstract Block getBlock(int x, int y, int z);
+
+    @Shadow
+    public abstract int getBlockMetadata(int x, int y, int z);
+
     private ILightingEngine lightingEngine;
     private short[] neighborLightChecks;
     private boolean isLightInitialized;
@@ -77,7 +91,7 @@ public abstract class MixinChunkILumiChunk implements ILumiChunk, ILumiChunkRoot
 
     @Override
     public short[] lumiGetNeighborLightChecks() {
-        return this.neighborLightChecks;
+        return neighborLightChecks;
     }
 
     @Override
@@ -87,7 +101,7 @@ public abstract class MixinChunkILumiChunk implements ILumiChunk, ILumiChunkRoot
 
     @Override
     public boolean lumiIsLightInitialized() {
-        return this.isLightInitialized;
+        return isLightInitialized;
     }
 
     @Override
@@ -102,13 +116,13 @@ public abstract class MixinChunkILumiChunk implements ILumiChunk, ILumiChunkRoot
 
     @Override
     public ILightingEngine getLightingEngine() {
-        if (this.lightingEngine == null) {
-            this.lightingEngine = ((ILightingEngineProvider) this.worldObj).getLightingEngine();
-            if (this.lightingEngine == null) {
+        if (lightingEngine == null) {
+            lightingEngine = ((ILightingEngineProvider) worldObj).getLightingEngine();
+            if (lightingEngine == null) {
                 throw new IllegalStateException();
             }
         }
-        return this.lightingEngine;
+        return lightingEngine;
     }
 
     @Override
@@ -143,24 +157,15 @@ public abstract class MixinChunkILumiChunk implements ILumiChunk, ILumiChunkRoot
         return zPosition;
     }
 
-    @Shadow
-    public abstract void setChunkModified();
-
     @Override
     public void rootSetChunkModified() {
         setChunkModified();
     }
 
-    @Shadow
-    public abstract Block getBlock(int x, int y, int z);
-
     @Override
     public Block rootGetBlock(int x, int y, int z) {
         return getBlock(x, y, z);
     }
-
-    @Shadow
-    public abstract int getBlockMetadata(int x, int y, int z);
 
     @Override
     public int rootGetBlockMetadata(int x, int y, int z) {
@@ -177,7 +182,7 @@ public abstract class MixinChunkILumiChunk implements ILumiChunk, ILumiChunkRoot
         val ebs = storageArrays[y >> 4];
 
         if (ebs == null) {
-            this.storageArrays[y >> 4] = new ExtendedBlockStorage(y >> 4 << 4, !this.worldObj.provider.hasNoSky);
+            storageArrays[y >> 4] = new ExtendedBlockStorage(y >> 4 << 4, !worldObj.provider.hasNoSky);
             for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
                 val world = LumiWorldManager.getWorld(worldObj, i);
                 val lChunk = world.lumiWrap((Chunk) (Object) this);
@@ -187,15 +192,11 @@ public abstract class MixinChunkILumiChunk implements ILumiChunk, ILumiChunkRoot
         rootSetChunkModified();
     }
 
-    @Shadow
-    public abstract int getTopFilledSegment();
 
     @Override
     public int rootGetTopFilledSegment() {
         return getTopFilledSegment();
     }
-
-    @Shadow public int[] precipitationHeightMap;
 
     @Override
     public int[] rootPrecipitationHeightMap() {

@@ -32,8 +32,19 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @Mixin(ExtendedBlockStorage.class)
 public abstract class MixinExtendedBlockStorageILumiEBS implements ILumiEBS, ILumiEBSRoot {
-    @Shadow private NibbleArray blocklightArray;
-    @Shadow private NibbleArray skylightArray;
+    @Shadow
+    private NibbleArray blocklightArray;
+    @Shadow
+    private NibbleArray skylightArray;
+
+    @Shadow
+    public abstract Block getBlockByExtId(int posX, int posY, int posZ);
+
+    @Shadow
+    public abstract int getExtBlockMetadata(int posX, int posY, int posZ);
+
+    @Shadow
+    public abstract int getYLocation();
 
     @Override
     public NibbleArray lumiSkylightArray() {
@@ -50,24 +61,15 @@ public abstract class MixinExtendedBlockStorageILumiEBS implements ILumiEBS, ILu
         return this;
     }
 
-    @Shadow
-    public abstract Block getBlockByExtId(int x, int y, int z);
-
     @Override
-    public Block rootGetBlockByExtId(int x, int y, int z) {
-        return getBlockByExtId(x, y, z);
+    public Block rootGetBlockByExtId(int posX, int posY, int posZ) {
+        return getBlockByExtId(posX, posY, posZ);
     }
 
-    @Shadow
-    public abstract int getExtBlockMetadata(int x, int y, int z);
-
     @Override
-    public int rootGetExtBlockMetadata(int x, int y, int z) {
-        return getExtBlockMetadata(x, y, z);
+    public int rootGetExtBlockMetadata(int posX, int posY, int posZ) {
+        return getExtBlockMetadata(posX, posY, posZ);
     }
-
-    @Shadow
-    public abstract int getYLocation();
 
     @Override
     public int rootGetYLocation() {

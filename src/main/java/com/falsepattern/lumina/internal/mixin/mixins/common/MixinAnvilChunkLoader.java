@@ -31,18 +31,22 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.AnvilChunkLoader;
-@Mixin(value = AnvilChunkLoader.class)
+
+@Mixin(AnvilChunkLoader.class)
 public abstract class MixinAnvilChunkLoader {
     /**
      * Injects into the head of saveChunk() to forcefully process all pending light updates. Fail-safe.
      *
      * @author Angeline
      */
-    @Inject(method = "saveChunk", at = @At("HEAD"))
-    private void onConstructed(World world, Chunk chunkIn, CallbackInfo callbackInfo) {
-        for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
-            val lWorld = LumiWorldManager.getWorld(world, i);
-            lWorld.getLightingEngine().processLightUpdates();
+    @Inject(method = "saveChunk",
+            at = @At("HEAD"),
+            require = 1)
+    private void onSaveChunk(World world, Chunk chunk, CallbackInfo callbackInfo) {
+        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
+        for (int i = 0; i < lumiWorldCount; i++) {
+            val lumiWorld = LumiWorldManager.getWorld(world, i);
+            lumiWorld.getLightingEngine().processLightUpdates();
         }
     }
 }

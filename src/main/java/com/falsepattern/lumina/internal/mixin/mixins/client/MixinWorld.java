@@ -23,6 +23,7 @@ package com.falsepattern.lumina.internal.mixin.mixins.client;
 
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
+import net.minecraft.world.IBlockAccess;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -33,17 +34,26 @@ import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 @Mixin(World.class)
-public abstract class MixinWorld {
-    @Inject(method = "finishSetup", at = @At("RETURN"), remap = false)
+public abstract class MixinWorld implements IBlockAccess {
+    @Inject(method = "finishSetup",
+            at = @At("RETURN"),
+            remap = false,
+            require = 1)
     private void onConstructed(CallbackInfo ci) {
-        LumiWorldManager.initialize((World) (Object) this);
+        LumiWorldManager.initialize(thiz());
     }
 
-    @Redirect(method = { "getSkyBlockTypeBrightness", "getSavedLightValue" }, at = @At(value = "INVOKE", target = "Lnet/minecraft/world/chunk/Chunk;getSavedLightValue(Lnet/minecraft/world/EnumSkyBlock;III)I"))
-    private int useBlockIntrinsicBrightness(Chunk instance, EnumSkyBlock type, int x, int y, int z) {
-        if(type == EnumSkyBlock.Block)
-            return LightingHooks.getIntrinsicOrSavedBlockLightValue(instance, x, y, z);
-        else
-            return instance.getSavedLightValue(type, x, y, z);
+    @Redirect(method = { "getSkyBlockTypeBrightness", "getSavedLightValue" },
+              at = @At(value = "INVOKE",
+                       target = "Lnet/minecraft/world/chunk/Chunk;getSavedLightValue(Lnet/minecraft/world/EnumSkyBlock;III)I"),
+              require = 1)
+    private int useBlockIntrinsicBrightness(Chunk chunk, EnumSkyBlock lightType, int posX, int posY, int posZ) {
+        if (lightType == EnumSkyBlock.Sky)
+            return chunk.getSavedLightValue(EnumSkyBlock.Sky, posX, posY, posZ);
+        return LightingHooks.getIntrinsicOrSavedBlockLightValue(chunk, posX, posY, posZ);
+    }
+
+    private World thiz() {
+        return (World) (Object) this;
     }
 }

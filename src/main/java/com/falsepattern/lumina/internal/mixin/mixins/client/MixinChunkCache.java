@@ -22,6 +22,7 @@
 package com.falsepattern.lumina.internal.mixin.mixins.client;
 
 import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
+import net.minecraft.world.IBlockAccess;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -31,13 +32,15 @@ import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.chunk.Chunk;
 
 @Mixin(ChunkCache.class)
-public class MixinChunkCache {
-    @Redirect(method = "getSpecialBlockBrightness", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/chunk/Chunk;getSavedLightValue(Lnet/minecraft/world/EnumSkyBlock;III)I"))
-    private int getIntrinsicValue(Chunk instance, EnumSkyBlock type, int posX, int posY, int posZ) {
-
-        return type == EnumSkyBlock.Sky ?
-               instance.getSavedLightValue(type, posX, posY, posZ) :
-               //Optimization: bypass LumiWorldManager for world index 0 (the "vanilla" lighting)
-               LightingHooks.getIntrinsicOrSavedBlockLightValue(instance, posX, posY, posZ);
+public abstract class MixinChunkCache implements IBlockAccess {
+    @Redirect(method = "getSpecialBlockBrightness",
+              at = @At(value = "INVOKE",
+                       target = "Lnet/minecraft/world/chunk/Chunk;getSavedLightValue(Lnet/minecraft/world/EnumSkyBlock;III)I"),
+              require = 1)
+    private int getIntrinsicValue(Chunk chunk, EnumSkyBlock lightType, int posX, int posY, int posZ) {
+        if (lightType == EnumSkyBlock.Sky)
+            return chunk.getSavedLightValue(EnumSkyBlock.Sky, posX, posY, posZ);
+        // Optimization: bypass LumiWorldManager for world index 0 (the "vanilla" lighting)
+        return LightingHooks.getIntrinsicOrSavedBlockLightValue(chunk, posX, posY, posZ);
     }
 }
