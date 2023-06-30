@@ -23,6 +23,7 @@ package com.falsepattern.lumina.internal.mixin.mixins.common;
 
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import lombok.val;
+import lombok.var;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -39,12 +40,18 @@ public abstract class MixinSPacketChunkData {
      * processed before creating the client payload. We use this method rather than the constructor as it is not valid
      * to inject elsewhere other than the RETURN of a ctor, which is too late for our needs.
      */
-    @Inject(method = "func_149269_a", at = @At("HEAD"))
-    private static void onCalculateChunkSize(Chunk chunkIn, boolean hasSkyLight, int changedSectionFilter, CallbackInfoReturnable<S21PacketChunkData.Extracted> cir) {
-        for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
-            val world = LumiWorldManager.getWorld(chunkIn.worldObj, i);
-            val lChunk = world.lumiWrap(chunkIn);
-            lChunk.getLightingEngine().processLightUpdates();
+    @Inject(method = "func_149269_a",
+            at = @At("HEAD"),
+            require = 1)
+    private static void onCalculateChunkSize(Chunk chunk,
+                                             boolean hasSkyLight,
+                                             int changedSectionFilter,
+                                             CallbackInfoReturnable<S21PacketChunkData.Extracted> cir) {
+        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
+        for (var i = 0; i < lumiWorldCount; i++) {
+            val lumiWorld = LumiWorldManager.getWorld(chunk.worldObj, i);
+            val lumiChunk = lumiWorld.lumiWrap(chunk);
+            lumiChunk.getLightingEngine().processLightUpdates();
         }
     }
 }

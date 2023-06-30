@@ -45,9 +45,9 @@ public abstract class MixinExtendedBlockStorage {
      * @reason Reset lightRefCount on call
      */
     @Overwrite
-    public void setExtSkylightValue(int x, int y, int z, int value) {
-        this.skylightArray.set(x, y, z, value);
-        this.lightRefCount = -1;
+    public void setExtSkylightValue(int posX, int posY, int posZ, int lightValue) {
+        skylightArray.set(posX, posY, posZ, lightValue);
+        lightRefCount = -1;
     }
 
     /**
@@ -55,9 +55,9 @@ public abstract class MixinExtendedBlockStorage {
      * @reason Reset lightRefCount on call
      */
     @Overwrite
-    public void setExtBlocklightValue(int x, int y, int z, int value) {
-        this.blocklightArray.set(x, y, z, value);
-        this.lightRefCount = -1;
+    public void setExtBlocklightValue(int posX, int posY, int posZ, int lightValue) {
+        blocklightArray.set(posX, posY, posZ, lightValue);
+        lightRefCount = -1;
     }
 
     /**
@@ -66,8 +66,8 @@ public abstract class MixinExtendedBlockStorage {
      */
     @Overwrite
     public void setBlocklightArray(NibbleArray array) {
-        this.blocklightArray = array;
-        this.lightRefCount = -1;
+        blocklightArray = array;
+        lightRefCount = -1;
     }
 
     /**
@@ -87,27 +87,25 @@ public abstract class MixinExtendedBlockStorage {
      */
     @Overwrite
     public boolean isEmpty() {
-        if (this.blockRefCount != 0) {
+        if (blockRefCount != 0)
             return false;
-        }
 
         // -1 indicates the lightRefCount needs to be re-calculated
-        if (this.lightRefCount == -1) {
-            if (this.checkLightArrayEqual(this.skylightArray, (byte) 0xFF)
-                    && this.checkLightArrayEqual(this.blocklightArray, (byte) 0x00)) {
-                this.lightRefCount = 0; // Lighting is trivial, don't send to clients
+        if (lightRefCount == -1) {
+            if (checkLightArrayEqual(skylightArray, (byte) 0xFF)
+                && checkLightArrayEqual(blocklightArray, (byte) 0x00)) {
+                lightRefCount = 0; // Lighting is trivial, don't send to clients
             } else {
-                this.lightRefCount = 1; // Lighting is not trivial, send to clients
+                lightRefCount = 1; // Lighting is not trivial, send to clients
             }
         }
 
-        return this.lightRefCount == 0;
+        return lightRefCount == 0;
     }
 
     private boolean checkLightArrayEqual(NibbleArray storage, byte val) {
-        if (storage == null) {
+        if (storage == null)
             return true;
-        }
 
         byte[] arr = storage.data;
 
