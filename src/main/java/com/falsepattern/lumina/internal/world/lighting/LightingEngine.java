@@ -23,7 +23,7 @@ package com.falsepattern.lumina.internal.world.lighting;
 
 import com.falsepattern.lib.compat.BlockPos;
 import com.falsepattern.lib.internal.Share;
-import com.falsepattern.lumina.api.chunk.LumiEBS;
+import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.engine.LumiLightingEngine;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.world.LumiWorld;
@@ -123,7 +123,7 @@ public class LightingEngine implements LumiLightingEngine {
 
     public LightingEngine(final LumiWorld world) {
         this.world = world;
-        this.profiler = world.root().rootTheProfiler();
+        this.profiler = world.worldRoot().profiler();
         isDynamicLightsLoaded = Loader.isModLoaded("DynamicLights");
 
         PooledLongQueue.Pool pool = new PooledLongQueue.Pool();
@@ -152,11 +152,11 @@ public class LightingEngine implements LumiLightingEngine {
      * Schedules a light update for the specified light type and position to be processed later by {@link LumiLightingEngine#processLightUpdatesForType(EnumSkyBlock)}
      */
     @Override
-    public void scheduleLightUpdate(final EnumSkyBlock lightType, final int xIn, final int yIn, final int zIn) {
+    public void scheduleLightUpdate(final EnumSkyBlock lightType, final int posX, final int posY, final int posZ) {
         this.acquireLock();
 
         try {
-            this.scheduleLightUpdate(lightType, encodeWorldCoord(xIn, yIn, zIn));
+            this.scheduleLightUpdate(lightType, encodeWorldCoord(posX, posY, posZ));
         } finally {
             this.releaseLock();
         }
@@ -194,7 +194,7 @@ public class LightingEngine implements LumiLightingEngine {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
-        if (this.world.root().rootIsRemote() && !this.isCallingFromMainThread()) {
+        if (this.world.worldRoot().isClientSide() && !this.isCallingFromMainThread()) {
             return;
         }
 
@@ -384,7 +384,7 @@ public class LightingEngine implements LumiLightingEngine {
 
                 if (oldLight == curLight) //only process this if nothing else has happened at this position since scheduling
                 {
-                    this.world.root().rootMarkBlockForRenderUpdate(this.curPos.getX(), this.curPos.getY(), this.curPos.getZ());
+                    this.world.worldRoot().markBlockForRenderUpdate(this.curPos.getX(), this.curPos.getY(), this.curPos.getZ());
 
                     if (curLight > 1) {
                         this.spreadLightFromCursor(curLight, lightType);
@@ -433,7 +433,7 @@ public class LightingEngine implements LumiLightingEngine {
             }
 
             if (nChunk != null) {
-                LumiEBS nSection = nChunk.lumiEBS(nPos.getY() >> 4);
+                LumiSubChunk nSection = nChunk.subChunk(nPos.getY() >> 4);
 
                 info.light = getCachedLightFor(nChunk, nSection, nPos, lightType);
                 info.section = nSection;
@@ -442,7 +442,7 @@ public class LightingEngine implements LumiLightingEngine {
     }
 
 
-    private static int getCachedLightFor(LumiChunk chunk, LumiEBS storage, BlockPos pos, EnumSkyBlock type) {
+    private static int getCachedLightFor(LumiChunk chunk, LumiSubChunk storage, BlockPos pos, EnumSkyBlock type) {
         int i = pos.getX() & 15;
         int j = pos.getY();
         int k = pos.getZ() & 15;
@@ -454,7 +454,7 @@ public class LightingEngine implements LumiLightingEngine {
                 return 0;
             }
         } else if (type == EnumSkyBlock.Sky) {
-            if (chunk.lumiWorld().root().rootHasNoSky()) {
+            if (!chunk.lumiWorld().worldRoot().hasSkyLight()) {
                 return 0;
             } else {
                 return LightingHooks.lumiGetSkylight(storage, i, j & 15, k);
@@ -623,7 +623,7 @@ public class LightingEngine implements LumiLightingEngine {
 
     private static class NeighborInfo {
         LumiChunk chunk;
-        LumiEBS section;
+        LumiSubChunk section;
 
         int light;
 

@@ -73,7 +73,7 @@ public abstract class MixinChunk {
     private void onGetLightSubtracted(int x, int y, int z, int amount, CallbackInfoReturnable<Integer> cir) {
         val lumiWorldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < lumiWorldCount; i++)
-            LumiWorldManager.getWorld(worldObj, i).getLightingEngine().processLightUpdates();
+            LumiWorldManager.getWorld(worldObj, i).lightingEngine().processLightUpdates();
     }
 
     /**
@@ -87,7 +87,7 @@ public abstract class MixinChunk {
         val lumiWorldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < lumiWorldCount; i++) {
             val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
-            val lumiChunk = lumiWorld.lumiWrap(thiz());
+            val lumiChunk = lumiWorld.toLumiChunk(thiz());
             LightingHooks.scheduleRelightChecksForChunkBoundaries(lumiWorld, lumiChunk);
         }
     }
@@ -107,8 +107,8 @@ public abstract class MixinChunk {
         val lumiWorldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < lumiWorldCount; i++) {
             val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
-            val lumiChunk = lumiWorld.lumiWrap(chunk);
-            LightingHooks.initSkylightForSection(lumiWorld, lumiChunk, lumiChunk.lumiEBS(y >> 4));
+            val lumiChunk = lumiWorld.toLumiChunk(chunk);
+            LightingHooks.initSkylightForSection(lumiWorld, lumiChunk, lumiChunk.subChunk(y >> 4));
         }
     }
 
@@ -129,7 +129,7 @@ public abstract class MixinChunk {
         val lumiWorldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < lumiWorldCount; i++) {
             val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
-            val lumiChunk = lumiWorld.lumiWrap((Chunk) (Object) this);
+            val lumiChunk = lumiWorld.toLumiChunk((Chunk) (Object) this);
             LightingHooks.generateSkylightMap(lumiChunk);
         }
     }
@@ -145,8 +145,8 @@ public abstract class MixinChunk {
         val lumiWorldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < lumiWorldCount; i++) {
             val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
-            val lumiChunk = lumiWorld.lumiWrap(thiz());
-            lumiChunk.getLightingEngine().processLightUpdatesForType(type);
+            val lumiChunk = lumiWorld.toLumiChunk(thiz());
+            lumiChunk.lightingEngine().processLightUpdatesForType(type);
             if (i == 0)
                 lightValue = LightingHooks.getCachedLightFor(lumiChunk, type, x, y, z);
         }
@@ -166,7 +166,7 @@ public abstract class MixinChunk {
         val lumiWorldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < lumiWorldCount; i++) {
             val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
-            val lumiChunk = lumiWorld.lumiWrap((Chunk) (Object) this);
+            val lumiChunk = lumiWorld.toLumiChunk((Chunk) (Object) this);
             doLightPop &= LightingHooks.checkChunkLighting(lumiChunk, lumiWorld);
         }
 
@@ -183,7 +183,7 @@ public abstract class MixinChunk {
         val lumiWorldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < lumiWorldCount; i++) {
             val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
-            val lumiChunk = lumiWorld.lumiWrap(thiz());
+            val lumiChunk = lumiWorld.toLumiChunk(thiz());
             LightingHooks.doRecheckGaps(lumiChunk, onlyOne);
         }
     }
@@ -246,8 +246,8 @@ public abstract class MixinChunk {
     private void doCustomRelightChecks(int cX, int cY, int cZ, Block block, int p_150807_5_, CallbackInfoReturnable<Boolean> cir, int i1, int k, Block block1, int k1, ExtendedBlockStorage extendedblockstorage, boolean flag, int l1, int i2, int k2) {
         for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
             val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
-            val lumiChunk = lumiWorld.lumiWrap(thiz());
-            val height = lumiChunk.lumiHeightMap()[cZ << 4 | cX];
+            val lumiChunk = lumiWorld.toLumiChunk(thiz());
+            val height = lumiChunk.skylightColumnHeightArray()[cZ << 4 | cX];
             if (cY >= height - 1) {
                 LightingHooks.relightBlock(lumiChunk, cX, cY + 1, cZ);
             }
@@ -274,8 +274,8 @@ public abstract class MixinChunk {
         val storage = new ExtendedBlockStorage(y, storeSkylight);
         for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
             val world = LumiWorldManager.getWorld(worldObj, i);
-            val chunk = world.lumiWrap((Chunk) (Object) this);
-            val ebs = world.lumiWrap(storage);
+            val chunk = world.toLumiChunk((Chunk) (Object) this);
+            val ebs = world.toLumiSubChunk(storage);
             LightingHooks.initSkylightForSection(world, chunk, ebs);
         }
 
@@ -324,10 +324,10 @@ public abstract class MixinChunk {
                     val meta = vanillaStorage.getExtBlockMetadata(x, y, z);
                     for (int l = 0; l < lumiCount; l++) {
                         val lumiWorld = LumiWorldManager.getWorld(worldObj, l);
-                        val lumiStorage = lumiWorld.lumiWrap(vanillaStorage);
+                        val lumiStorage = lumiWorld.toLumiSubChunk(vanillaStorage);
                         if (lumiWorld.lumiGetLightOpacity(block, meta, bx, by, bz) >= 255 &&
                             lumiWorld.lumiGetLightValue(block, meta, bx, by, bz) <= 0) {
-                            val bla = lumiStorage.lumiBlocklightArray();
+                            val bla = lumiStorage.blockLight();
                             final int prevLight = bla.get(x, y, z);
                             if (prevLight != 0) {
                                 bla.set(x, y, z, 0);

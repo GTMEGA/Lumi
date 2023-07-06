@@ -21,8 +21,6 @@
 
 package com.falsepattern.lumina.api.engine;
 
-import com.falsepattern.lumina.api.engine.LumiLightingEngine;
-
 public interface LumiLightingEngineProvider {
-    LumiLightingEngine getLightingEngine();
+    LumiLightingEngine lightingEngine();
 }

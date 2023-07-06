@@ -21,13 +21,12 @@
 
 package com.falsepattern.lumina.api.chunk;
 
-import net.minecraft.world.chunk.NibbleArray;
+import net.minecraft.block.Block;
 
-public interface LumiEBS {
-    NibbleArray lumiSkylightArray();
-    NibbleArray lumiBlocklightArray();
+public interface LumiSubChunkRoot {
+    Block getBlock(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 
+    int getBlockMeta(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 
-    //Proxy this to carrier
-    LumiEBSRoot root();
+    int posY();
 }

@@ -21,34 +21,34 @@
 
 package com.falsepattern.lumina.api.chunk;
 
-import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.engine.LumiLightingEngineProvider;
+import com.falsepattern.lumina.api.world.LumiWorld;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * Chunk placeholder for implementation.
- */
 public interface LumiChunk extends LumiLightingEngineProvider {
-    //Implement these
-    LumiEBS lumiEBS(int arrayIndex);
+    int chunkPosX();
+
+    int chunkPosZ();
+
+    @Nullable LumiSubChunk subChunk(int index);
+
     LumiWorld lumiWorld();
 
-    int[] lumiHeightMap();
+    void minSkylightColumnHeight(int minSkylightColumnHeight);
 
-    short[] lumiGetNeighborLightChecks();
-    void lumiGetNeighborLightChecks(short[] data);
+    int minSkylightColumnHeight();
 
-    boolean lumiIsLightInitialized();
-    void lumiIsLightInitialized(boolean val);
+    int[] skylightColumnHeightArray();
 
-    boolean[] lumiUpdateSkylightColumns();
+    void neighborLightChecks(short[] neighborLightChecks);
 
-    int lumiHeightMapMinimum();
-    void lumiHeightMapMinimum(int min);
+    short @Nullable [] neighborLightChecks();
 
-    //Proxy this to carrier
-    LumiChunkRoot root();
+    void lightInitialized(boolean lightInitialized);
 
-    //Keeping this here for now
-    int x();
-    int z();
+    boolean lightInitialized();
+
+    boolean[] outdatedSkylightColumns();
+
+    LumiChunkRoot chunkRoot();
 }

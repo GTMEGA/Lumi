@@ -50,8 +50,8 @@ public abstract class MixinSPacketChunkData {
         val lumiWorldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < lumiWorldCount; i++) {
             val lumiWorld = LumiWorldManager.getWorld(chunk.worldObj, i);
-            val lumiChunk = lumiWorld.lumiWrap(chunk);
-            lumiChunk.getLightingEngine().processLightUpdates();
+            val lumiChunk = lumiWorld.toLumiChunk(chunk);
+            lumiChunk.lightingEngine().processLightUpdates();
         }
     }
 }

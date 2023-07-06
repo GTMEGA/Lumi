@@ -21,18 +21,15 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.impl;
 
-import com.falsepattern.lumina.api.engine.LumiLightingEngine;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
-import com.falsepattern.lumina.api.chunk.LumiEBS;
+import com.falsepattern.lumina.api.chunk.LumiSubChunk;
+import com.falsepattern.lumina.api.engine.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import com.falsepattern.lumina.internal.Tags;
 import lombok.Getter;
 import lombok.Setter;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-
+import lombok.experimental.Accessors;
 import net.minecraft.block.Block;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.world.IBlockAccess;
@@ -41,9 +38,13 @@ import net.minecraft.world.WorldProvider;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(World.class)
-public abstract class MixinWorldILumiWorld implements LumiWorld, IBlockAccess, LumiWorldRoot {
+@Accessors(fluent = true, chain = false)
+public abstract class MixinWorldILumiWorld implements IBlockAccess, LumiWorld, LumiWorldRoot {
     @Shadow
     @Final
     public Profiler theProfiler;
@@ -64,18 +65,23 @@ public abstract class MixinWorldILumiWorld implements LumiWorld, IBlockAccess, L
     @Shadow
     public abstract boolean doChunksNearChunkExist(int x, int y, int z, int dist);
 
-    @Getter
     @Setter
+    @Getter
     private LumiLightingEngine lightingEngine;
 
     @Override
-    public LumiChunk lumiWrap(Chunk chunk) {
+    public World world() {
+        return (World) (Object) this;
+    }
+
+    @Override
+    public LumiChunk toLumiChunk(Chunk chunk) {
         return (LumiChunk) chunk;
     }
 
     @Override
-    public LumiEBS lumiWrap(ExtendedBlockStorage ebs) {
-        return (LumiEBS) ebs;
+    public LumiSubChunk toLumiSubChunk(ExtendedBlockStorage subChunk) {
+        return (LumiSubChunk) subChunk;
     }
 
     @Override
@@ -89,47 +95,47 @@ public abstract class MixinWorldILumiWorld implements LumiWorld, IBlockAccess, L
     }
 
     @Override
-    public LumiWorldRoot root() {
+    public LumiWorldRoot worldRoot() {
         return this;
     }
 
     @Override
-    public Profiler rootTheProfiler() {
+    public Profiler profiler() {
         return theProfiler;
     }
 
     @Override
-    public boolean rootIsRemote() {
+    public boolean isClientSide() {
         return isRemote;
     }
 
     @Override
-    public boolean rootHasNoSky() {
-        return provider.hasNoSky;
+    public boolean hasSkyLight() {
+        return !provider.hasNoSky;
     }
 
     @Override
-    public void rootMarkBlockForRenderUpdate(int posX, int posY, int posZ) {
+    public void markBlockForRenderUpdate(int posX, int posY, int posZ) {
         func_147479_m(posX, posY, posZ);
     }
 
     @Override
-    public IChunkProvider rootProvider() {
+    public IChunkProvider chunkProvider() {
         return chunkProvider;
     }
 
     @Override
-    public boolean rootCheckChunksExist(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
-        return checkChunksExist(minX, minY, minZ, maxX, maxY, maxZ);
+    public boolean doesChunkCuboidExist(int minPosX, int minPosY, int minPosZ, int maxPosX, int maxPosY, int maxPosZ) {
+        return checkChunksExist(minPosX, minPosY, minPosZ, maxPosX, maxPosY, maxPosZ);
     }
 
     @Override
-    public boolean rootDoChunksNearChunkExist(int x, int y, int z, int dist) {
-        return doChunksNearChunkExist(x, y, z, dist);
+    public boolean doesChunkCubeExist(int centerPosX, int centerPosY, int centerPosZ, int blockRange) {
+        return doChunksNearChunkExist(centerPosX, centerPosY, centerPosZ, blockRange);
     }
 
     @Override
-    public String lumiId() {
+    public String luminaWorldID() {
         return Tags.MODID;
     }
 }

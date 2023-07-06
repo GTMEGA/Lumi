@@ -22,7 +22,6 @@
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
-import com.falsepattern.lumina.internal.world.lighting.LightingEngine;
 import lombok.val;
 import lombok.var;
 import net.minecraft.world.IBlockAccess;
@@ -70,7 +69,7 @@ public abstract class MixinWorld implements IBlockAccess {
         val lumiWorldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < lumiWorldCount; i++) {
             val lumiWorld = LumiWorldManager.getWorld(thiz(), i);
-            lumiWorld.getLightingEngine().scheduleLightUpdate(lightType, posX, posY, posZ);
+            lumiWorld.lightingEngine().scheduleLightUpdate(lightType, posX, posY, posZ);
         }
     }
 

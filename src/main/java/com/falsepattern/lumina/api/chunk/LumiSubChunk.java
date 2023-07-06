@@ -21,10 +21,13 @@
 
 package com.falsepattern.lumina.api.chunk;
 
-import net.minecraft.block.Block;
+import net.minecraft.world.chunk.NibbleArray;
+import org.jetbrains.annotations.Nullable;
 
-public interface LumiEBSRoot {
-    Block rootGetBlockByExtId(int x, int y, int z);
-    int rootGetExtBlockMetadata(int x, int y, int z);
-    int rootGetYLocation();
+public interface LumiSubChunk {
+    NibbleArray blockLight();
+
+    @Nullable NibbleArray skyLight();
+
+    LumiSubChunkRoot subChunkRoot();
 }

@@ -23,7 +23,7 @@ package com.falsepattern.lumina.internal.mixin.mixins.common.impl;
 
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
-import com.falsepattern.lumina.api.chunk.LumiEBS;
+import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.engine.LumiLightingEngine;
 import com.falsepattern.lumina.api.engine.LumiLightingEngineProvider;
@@ -68,8 +68,9 @@ public abstract class MixinChunkILumiChunk implements LumiChunk, LumiChunkRoot {
     @Shadow
     public abstract int getTopFilledSegment();
 
+    @Override
     @Shadow
-    public abstract Block getBlock(int x, int y, int z);
+    public abstract Block getBlock(int subChunkPosX, int posY, int subChunkPosZ);
 
     @Shadow
     public abstract int getBlockMetadata(int x, int y, int z);
@@ -84,40 +85,40 @@ public abstract class MixinChunkILumiChunk implements LumiChunk, LumiChunkRoot {
     }
 
     @Override
-    public LumiEBS lumiEBS(int arrayIndex) {
-        val ebs = storageArrays[arrayIndex];
-        return ebs == null ? null : (LumiEBS) ebs;
+    public LumiSubChunk subChunk(int index) {
+        val ebs = storageArrays[index];
+        return ebs == null ? null : (LumiSubChunk) ebs;
     }
 
     @Override
-    public short[] lumiGetNeighborLightChecks() {
+    public short[] neighborLightChecks() {
         return neighborLightChecks;
     }
 
     @Override
-    public void lumiGetNeighborLightChecks(short[] data) {
-        this.neighborLightChecks = data;
+    public void neighborLightChecks(short[] neighborLightChecks) {
+        this.neighborLightChecks = neighborLightChecks;
     }
 
     @Override
-    public boolean lumiIsLightInitialized() {
+    public boolean lightInitialized() {
         return isLightInitialized;
     }
 
     @Override
-    public void lumiIsLightInitialized(boolean lightInitialized) {
+    public void lightInitialized(boolean lightInitialized) {
         this.isLightInitialized = lightInitialized;
     }
 
     @Override
-    public int[] lumiHeightMap() {
+    public int[] skylightColumnHeightArray() {
         return heightMap;
     }
 
     @Override
-    public LumiLightingEngine getLightingEngine() {
+    public LumiLightingEngine lightingEngine() {
         if (lightingEngine == null) {
-            lightingEngine = ((LumiLightingEngineProvider) worldObj).getLightingEngine();
+            lightingEngine = ((LumiLightingEngineProvider) worldObj).lightingEngine();
             if (lightingEngine == null) {
                 throw new IllegalStateException();
             }
@@ -126,50 +127,43 @@ public abstract class MixinChunkILumiChunk implements LumiChunk, LumiChunkRoot {
     }
 
     @Override
-    public int lumiHeightMapMinimum() {
+    public int minSkylightColumnHeight() {
         return heightMapMinimum;
     }
 
     @Override
-    public void lumiHeightMapMinimum(int min) {
-        heightMapMinimum = min;
+    public void minSkylightColumnHeight(int minSkylightColumnHeight) {
+        heightMapMinimum = minSkylightColumnHeight;
     }
 
     @Override
-    public boolean[] lumiUpdateSkylightColumns() {
+    public boolean[] outdatedSkylightColumns() {
         return updateSkylightColumns;
     }
 
     @Override
-    public LumiChunkRoot root() {
+    public LumiChunkRoot chunkRoot() {
         return this;
     }
 
-    //Root
-
     @Override
-    public int x() {
+    public int chunkPosX() {
         return xPosition;
     }
 
     @Override
-    public int z() {
+    public int chunkPosZ() {
         return zPosition;
     }
 
     @Override
-    public void rootSetChunkModified() {
+    public void markDirty() {
         setChunkModified();
     }
 
     @Override
-    public Block rootGetBlock(int x, int y, int z) {
-        return getBlock(x, y, z);
-    }
-
-    @Override
-    public int rootGetBlockMetadata(int x, int y, int z) {
-        return getBlockMetadata(x, y, z);
+    public int getBlockMeta(int subChunkPosX, int posY, int subChunkPosZ) {
+        return getBlockMetadata(subChunkPosX, posY, subChunkPosZ);
     }
 
     @Override
@@ -178,28 +172,27 @@ public abstract class MixinChunkILumiChunk implements LumiChunk, LumiChunkRoot {
     }
 
     @Override
-    public void rootEnsureEBSPresent(int y) {
-        val ebs = storageArrays[y >> 4];
+    public void prepareSubChunk(int posY) {
+        val ebs = storageArrays[posY >> 4];
 
         if (ebs == null) {
-            storageArrays[y >> 4] = new ExtendedBlockStorage(y >> 4 << 4, !worldObj.provider.hasNoSky);
+            storageArrays[posY >> 4] = new ExtendedBlockStorage(posY >> 4 << 4, !worldObj.provider.hasNoSky);
             for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
                 val world = LumiWorldManager.getWorld(worldObj, i);
-                val lChunk = world.lumiWrap((Chunk) (Object) this);
-                LightingHooks.initSkylightForSection(world, lChunk, lChunk.lumiEBS(y >> 4));
+                val lChunk = world.toLumiChunk((Chunk) (Object) this);
+                LightingHooks.initSkylightForSection(world, lChunk, lChunk.subChunk(posY >> 4));
             }
         }
-        rootSetChunkModified();
+        markDirty();
     }
 
-
     @Override
-    public int rootGetTopFilledSegment() {
+    public int topExistingSubChunkIndex() {
         return getTopFilledSegment();
     }
 
     @Override
-    public int[] rootPrecipitationHeightMap() {
+    public int[] precipitationHeightArray() {
         return precipitationHeightMap;
     }
 }

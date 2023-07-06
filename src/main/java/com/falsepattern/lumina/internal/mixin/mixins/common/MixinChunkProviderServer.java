@@ -55,7 +55,7 @@ public abstract class MixinChunkProviderServer {
         val lumiWorldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < lumiWorldCount; i++) {
             val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
-            lumiWorld.getLightingEngine().processLightUpdates();
+            lumiWorld.lightingEngine().processLightUpdates();
         }
     }
 
@@ -77,7 +77,7 @@ public abstract class MixinChunkProviderServer {
         val lumiWorldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < lumiWorldCount; i++) {
             val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
-            lumiWorld.getLightingEngine().processLightUpdates();
+            lumiWorld.lightingEngine().processLightUpdates();
         }
     }
 }

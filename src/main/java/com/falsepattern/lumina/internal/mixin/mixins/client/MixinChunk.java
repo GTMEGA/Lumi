@@ -49,7 +49,7 @@ public abstract class MixinChunk {
         val lumiWorldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < lumiWorldCount; i++) {
             val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
-            val lumiChunk = lumiWorld.lumiWrap(thiz());
+            val lumiChunk = lumiWorld.toLumiChunk(thiz());
             LightingHooks.generateHeightMap(lumiChunk);
         }
     }

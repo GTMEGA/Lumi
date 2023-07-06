@@ -21,8 +21,8 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.impl;
 
-import com.falsepattern.lumina.api.chunk.LumiEBS;
-import com.falsepattern.lumina.api.chunk.LumiEBSRoot;
+import com.falsepattern.lumina.api.chunk.LumiSubChunk;
+import com.falsepattern.lumina.api.chunk.LumiSubChunkRoot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
@@ -31,7 +31,7 @@ import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @Mixin(ExtendedBlockStorage.class)
-public abstract class MixinExtendedBlockStorageILumiEBS implements LumiEBS, LumiEBSRoot {
+public abstract class MixinExtendedBlockStorageILumiEBS implements LumiSubChunk, LumiSubChunkRoot {
     @Shadow
     private NibbleArray blocklightArray;
     @Shadow
@@ -47,32 +47,32 @@ public abstract class MixinExtendedBlockStorageILumiEBS implements LumiEBS, Lumi
     public abstract int getYLocation();
 
     @Override
-    public NibbleArray lumiSkylightArray() {
+    public NibbleArray skyLight() {
         return skylightArray;
     }
 
     @Override
-    public NibbleArray lumiBlocklightArray() {
+    public NibbleArray blockLight() {
         return blocklightArray;
     }
 
     @Override
-    public LumiEBSRoot root() {
+    public LumiSubChunkRoot subChunkRoot() {
         return this;
     }
 
     @Override
-    public Block rootGetBlockByExtId(int posX, int posY, int posZ) {
-        return getBlockByExtId(posX, posY, posZ);
+    public Block getBlock(int subChunkPosX, int subChunkPosY, int subChunkPosZ) {
+        return getBlockByExtId(subChunkPosX, subChunkPosY, subChunkPosZ);
     }
 
     @Override
-    public int rootGetExtBlockMetadata(int posX, int posY, int posZ) {
-        return getExtBlockMetadata(posX, posY, posZ);
+    public int getBlockMeta(int subChunkPosX, int subChunkPosY, int subChunkPosZ) {
+        return getExtBlockMetadata(subChunkPosX, subChunkPosY, subChunkPosZ);
     }
 
     @Override
-    public int rootGetYLocation() {
+    public int posY() {
         return getYLocation();
     }
 }

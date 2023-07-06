@@ -47,7 +47,7 @@ public class LumiWorldManager {
 
     //No bounds checking, because this is an internal method
     public static LumiWorld getWorld(World world, int i) {
-        return providers[i].getWorld(world);
+        return providers[i].toLumiWorld(world);
     }
 
     //Synchronized just in case, only called during init anyway
@@ -67,8 +67,8 @@ public class LumiWorldManager {
         val providers = LumiWorldManager.providers;
         for (int i = 0, providersLength = providers.length; i < providersLength; i++) {
             LumiWorldProvider provider = providers[i];
-            val lWorld = provider.getWorld(world);
-            lWorld.setLightingEngine(new LightingEngine(lWorld));
+            val lWorld = provider.toLumiWorld(world);
+            lWorld.lightingEngine(new LightingEngine(lWorld));
         }
     }
 

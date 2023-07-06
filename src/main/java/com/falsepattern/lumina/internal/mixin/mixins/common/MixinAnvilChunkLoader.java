@@ -46,7 +46,7 @@ public abstract class MixinAnvilChunkLoader {
         val lumiWorldCount = LumiWorldManager.lumiWorldCount();
         for (int i = 0; i < lumiWorldCount; i++) {
             val lumiWorld = LumiWorldManager.getWorld(world, i);
-            lumiWorld.getLightingEngine().processLightUpdates();
+            lumiWorld.lightingEngine().processLightUpdates();
         }
     }
 }

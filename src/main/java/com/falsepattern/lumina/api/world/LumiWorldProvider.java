@@ -24,5 +24,5 @@ package com.falsepattern.lumina.api.world;
 import net.minecraft.world.World;
 
 public interface LumiWorldProvider {
-    LumiWorld getWorld(World world);
+    LumiWorld toLumiWorld(World world);
 }

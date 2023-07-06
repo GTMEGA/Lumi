@@ -22,15 +22,23 @@
 package com.falsepattern.lumina.api.world;
 
 import net.minecraft.profiler.Profiler;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.IChunkProvider;
 
 public interface LumiWorldRoot {
-    Profiler rootTheProfiler();
-    boolean rootIsRemote();
-    //.provider.hasNoSky
-    boolean rootHasNoSky();
-    void rootMarkBlockForRenderUpdate(int x, int y, int z);
-    IChunkProvider rootProvider();
-    boolean rootCheckChunksExist(int minX, int minY, int minZ, int maxX, int maxY, int maxZ);
-    boolean rootDoChunksNearChunkExist(int x, int y, int z, int dist);
+    World world();
+
+    Profiler profiler();
+
+    boolean isClientSide();
+
+    boolean hasSkyLight();
+
+    void markBlockForRenderUpdate(int posX, int posY, int posZ);
+
+    IChunkProvider chunkProvider();
+
+    boolean doesChunkCuboidExist(int minPosX, int minPosY, int minPosZ, int maxPosX, int maxPosY, int maxPosZ);
+
+    boolean doesChunkCubeExist(int centerPosX, int centerPosY, int centerPosZ, int blockRange);
 }

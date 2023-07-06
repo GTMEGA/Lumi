@@ -22,27 +22,25 @@
 package com.falsepattern.lumina.api.world;
 
 import com.falsepattern.lumina.api.chunk.LumiChunk;
-import com.falsepattern.lumina.api.chunk.LumiEBS;
+import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.engine.LumiLightingEngine;
 import com.falsepattern.lumina.api.engine.LumiLightingEngineProvider;
-import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import net.minecraft.block.Block;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 public interface LumiWorld extends LumiLightingEngineProvider {
-    LumiChunk lumiWrap(Chunk chunk);
+    LumiChunk toLumiChunk(Chunk chunk);
 
-    LumiEBS lumiWrap(ExtendedBlockStorage ebs);
+    LumiSubChunk toLumiSubChunk(ExtendedBlockStorage subChunk);
 
-    void setLightingEngine(LumiLightingEngine engine);
+    void lightingEngine(LumiLightingEngine lightingEngine);
 
-    int lumiGetLightValue(final Block block, final int meta, final int x, final int y, final int z);
+    int lumiGetLightValue(Block block, int blockMeta, int posX, int posY, int posZ);
 
-    int lumiGetLightOpacity(final Block block, final int meta, final int x, final int y, final int z);
+    int lumiGetLightOpacity(Block block, int blockMeta, int posX, int posY, int posZ);
 
-    String lumiId();
+    String luminaWorldID();
 
-    //Proxy this to carrier
-    LumiWorldRoot root();
+    LumiWorldRoot worldRoot();
 }

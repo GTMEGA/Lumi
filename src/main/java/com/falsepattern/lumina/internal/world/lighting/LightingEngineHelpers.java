@@ -24,7 +24,7 @@ package com.falsepattern.lumina.internal.world.lighting;
 import com.falsepattern.lib.compat.BlockPos;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
-import com.falsepattern.lumina.api.chunk.LumiEBS;
+import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import lombok.val;
 
 import net.minecraft.block.Block;
@@ -36,17 +36,17 @@ public class LightingEngineHelpers {
 
     // Avoids some additional logic in Chunk#getBlockState... 0 is always air
     static Block posToBlock(final BlockPos pos, final LumiChunk chunk) {
-        return posToBlock(pos, chunk.lumiEBS(pos.getY() >> 4));
+        return posToBlock(pos, chunk.subChunk(pos.getY() >> 4));
     }
 
-    static Block posToBlock(final BlockPos pos, final LumiEBS section) {
+    static Block posToBlock(final BlockPos pos, final LumiSubChunk section) {
         final int x = pos.getX();
         final int y = pos.getY();
         final int z = pos.getZ();
 
         if (section != null)
         {
-            return section.root().rootGetBlockByExtId(x & 15, y & 15, z & 15);
+            return section.subChunkRoot().getBlock(x & 15, y & 15, z & 15);
         }
 
         return DEFAULT_BLOCK;
@@ -54,17 +54,17 @@ public class LightingEngineHelpers {
 
     // Avoids some additional logic in Chunk#getBlockState... 0 is always air
     static int posToMeta(final BlockPos pos, final LumiChunk chunk) {
-        return posToMeta(pos, chunk.lumiEBS(pos.getY() >> 4));
+        return posToMeta(pos, chunk.subChunk(pos.getY() >> 4));
     }
 
-    static int posToMeta(final BlockPos pos, final LumiEBS section) {
+    static int posToMeta(final BlockPos pos, final LumiSubChunk section) {
         final int x = pos.getX();
         final int y = pos.getY();
         final int z = pos.getZ();
 
         if (section != null)
         {
-            return section.root().rootGetExtBlockMetadata(x & 15, y & 15, z & 15);
+            return section.subChunkRoot().getBlockMeta(x & 15, y & 15, z & 15);
         }
 
         return DEFAULT_METADATA;
@@ -72,9 +72,9 @@ public class LightingEngineHelpers {
 
 
     public static LumiChunk getLoadedChunk(LumiWorld world, int chunkX, int chunkZ) {
-        val provider = world.root().rootProvider();
+        val provider = world.worldRoot().chunkProvider();
         if(!provider.chunkExists(chunkX, chunkZ))
             return null;
-        return world.lumiWrap(provider.provideChunk(chunkX, chunkZ));
+        return world.toLumiChunk(provider.provideChunk(chunkX, chunkZ));
     }
 }
