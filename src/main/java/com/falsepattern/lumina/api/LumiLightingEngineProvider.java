@@ -21,16 +21,6 @@
 
 package com.falsepattern.lumina.api;
 
-import net.minecraft.profiler.Profiler;
-import net.minecraft.world.chunk.IChunkProvider;
-
-public interface ILumiWorldRoot {
-    Profiler rootTheProfiler();
-    boolean rootIsRemote();
-    //.provider.hasNoSky
-    boolean rootHasNoSky();
-    void rootMarkBlockForRenderUpdate(int x, int y, int z);
-    IChunkProvider rootProvider();
-    boolean rootCheckChunksExist(int minX, int minY, int minZ, int maxX, int maxY, int maxZ);
-    boolean rootDoChunksNearChunkExist(int x, int y, int z, int dist);
+public interface LumiLightingEngineProvider {
+    LumiLightingEngine getLightingEngine();
 }

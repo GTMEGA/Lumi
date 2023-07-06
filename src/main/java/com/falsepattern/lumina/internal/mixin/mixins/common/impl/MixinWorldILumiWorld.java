@@ -21,11 +21,11 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.impl;
 
-import com.falsepattern.lumina.api.ILightingEngine;
-import com.falsepattern.lumina.api.ILumiChunk;
-import com.falsepattern.lumina.api.ILumiEBS;
-import com.falsepattern.lumina.api.ILumiWorld;
-import com.falsepattern.lumina.api.ILumiWorldRoot;
+import com.falsepattern.lumina.api.LumiLightingEngine;
+import com.falsepattern.lumina.api.LumiChunk;
+import com.falsepattern.lumina.api.LumiEBS;
+import com.falsepattern.lumina.api.LumiWorld;
+import com.falsepattern.lumina.api.LumiWorldRoot;
 import com.falsepattern.lumina.internal.Tags;
 import lombok.Getter;
 import lombok.Setter;
@@ -43,7 +43,7 @@ import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @Mixin(World.class)
-public abstract class MixinWorldILumiWorld implements ILumiWorld, IBlockAccess, ILumiWorldRoot {
+public abstract class MixinWorldILumiWorld implements LumiWorld, IBlockAccess, LumiWorldRoot {
     @Shadow
     @Final
     public Profiler theProfiler;
@@ -66,16 +66,16 @@ public abstract class MixinWorldILumiWorld implements ILumiWorld, IBlockAccess, 
 
     @Getter
     @Setter
-    private ILightingEngine lightingEngine;
+    private LumiLightingEngine lightingEngine;
 
     @Override
-    public ILumiChunk lumiWrap(Chunk chunk) {
-        return (ILumiChunk) chunk;
+    public LumiChunk lumiWrap(Chunk chunk) {
+        return (LumiChunk) chunk;
     }
 
     @Override
-    public ILumiEBS lumiWrap(ExtendedBlockStorage ebs) {
-        return (ILumiEBS) ebs;
+    public LumiEBS lumiWrap(ExtendedBlockStorage ebs) {
+        return (LumiEBS) ebs;
     }
 
     @Override
@@ -89,7 +89,7 @@ public abstract class MixinWorldILumiWorld implements ILumiWorld, IBlockAccess, 
     }
 
     @Override
-    public ILumiWorldRoot root() {
+    public LumiWorldRoot root() {
         return this;
     }
 

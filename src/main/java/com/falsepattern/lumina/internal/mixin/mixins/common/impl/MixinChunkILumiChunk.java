@@ -21,12 +21,12 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.impl;
 
-import com.falsepattern.lumina.api.ILumiChunk;
-import com.falsepattern.lumina.api.ILumiChunkRoot;
-import com.falsepattern.lumina.api.ILumiEBS;
-import com.falsepattern.lumina.api.ILumiWorld;
-import com.falsepattern.lumina.api.ILightingEngine;
-import com.falsepattern.lumina.api.ILightingEngineProvider;
+import com.falsepattern.lumina.api.LumiChunk;
+import com.falsepattern.lumina.api.LumiChunkRoot;
+import com.falsepattern.lumina.api.LumiEBS;
+import com.falsepattern.lumina.api.LumiWorld;
+import com.falsepattern.lumina.api.LumiLightingEngine;
+import com.falsepattern.lumina.api.LumiLightingEngineProvider;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
 import lombok.val;
@@ -40,7 +40,7 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @Mixin(Chunk.class)
-public abstract class MixinChunkILumiChunk implements ILumiChunk, ILumiChunkRoot {
+public abstract class MixinChunkILumiChunk implements LumiChunk, LumiChunkRoot {
     @Shadow
     @Final
     public int xPosition;
@@ -74,19 +74,19 @@ public abstract class MixinChunkILumiChunk implements ILumiChunk, ILumiChunkRoot
     @Shadow
     public abstract int getBlockMetadata(int x, int y, int z);
 
-    private ILightingEngine lightingEngine;
+    private LumiLightingEngine lightingEngine;
     private short[] neighborLightChecks;
     private boolean isLightInitialized;
 
     @Override
-    public ILumiWorld lumiWorld() {
-        return (ILumiWorld) worldObj;
+    public LumiWorld lumiWorld() {
+        return (LumiWorld) worldObj;
     }
 
     @Override
-    public ILumiEBS lumiEBS(int arrayIndex) {
+    public LumiEBS lumiEBS(int arrayIndex) {
         val ebs = storageArrays[arrayIndex];
-        return ebs == null ? null : (ILumiEBS) ebs;
+        return ebs == null ? null : (LumiEBS) ebs;
     }
 
     @Override
@@ -115,9 +115,9 @@ public abstract class MixinChunkILumiChunk implements ILumiChunk, ILumiChunkRoot
     }
 
     @Override
-    public ILightingEngine getLightingEngine() {
+    public LumiLightingEngine getLightingEngine() {
         if (lightingEngine == null) {
-            lightingEngine = ((ILightingEngineProvider) worldObj).getLightingEngine();
+            lightingEngine = ((LumiLightingEngineProvider) worldObj).getLightingEngine();
             if (lightingEngine == null) {
                 throw new IllegalStateException();
             }
@@ -141,7 +141,7 @@ public abstract class MixinChunkILumiChunk implements ILumiChunk, ILumiChunkRoot
     }
 
     @Override
-    public ILumiChunkRoot root() {
+    public LumiChunkRoot root() {
         return this;
     }
 

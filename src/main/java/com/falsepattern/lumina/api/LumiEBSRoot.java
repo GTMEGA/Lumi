@@ -23,13 +23,8 @@ package com.falsepattern.lumina.api;
 
 import net.minecraft.block.Block;
 
-public interface ILumiChunkRoot {
-    void rootSetChunkModified();
-    Block rootGetBlock(int x, int y, int z);
-    int rootGetBlockMetadata(int x, int y, int z);
-    void rootEnsureEBSPresent(int y);
-    void rootIsGapLightingUpdated(boolean b);
-    int rootGetTopFilledSegment();
-
-    int[] rootPrecipitationHeightMap();
+public interface LumiEBSRoot {
+    Block rootGetBlockByExtId(int x, int y, int z);
+    int rootGetExtBlockMetadata(int x, int y, int z);
+    int rootGetYLocation();
 }

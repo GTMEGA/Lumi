@@ -21,7 +21,6 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
-import com.falsepattern.lumina.api.ILumiEBS;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;

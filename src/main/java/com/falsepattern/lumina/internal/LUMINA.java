@@ -22,7 +22,7 @@
 package com.falsepattern.lumina.internal;
 
 import com.falsepattern.chunk.api.ChunkDataRegistry;
-import com.falsepattern.lumina.api.ILumiWorld;
+import com.falsepattern.lumina.api.LumiWorld;
 import com.falsepattern.lumina.api.LumiWorldProviderRegistry;
 import com.falsepattern.lumina.internal.saving.LuminaDataManager;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
@@ -58,7 +58,7 @@ public class LUMINA {
     public void init(FMLInitializationEvent event) {
         hijackLocked.set(true);
         if (!hijacked.get()) {
-            LumiWorldProviderRegistry.registerWorldProvider(world -> (ILumiWorld)world);
+            LumiWorldProviderRegistry.registerWorldProvider(world -> (LumiWorld)world);
         }
         ChunkDataRegistry.registerDataManager(new LuminaDataManager());
     }

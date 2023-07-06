@@ -21,8 +21,8 @@
 
 package com.falsepattern.lumina.internal.world;
 
-import com.falsepattern.lumina.api.ILumiWorld;
-import com.falsepattern.lumina.api.ILumiWorldProvider;
+import com.falsepattern.lumina.api.LumiWorld;
+import com.falsepattern.lumina.api.LumiWorldProvider;
 import com.falsepattern.lumina.internal.world.lighting.LightingEngine;
 import lombok.val;
 
@@ -37,7 +37,7 @@ public class LumiWorldManager {
     //2. Elements are never removed
     //3. Bounds are known
     //Growth factor is 1, because the number of custom providers is expected to be very small
-    private static ILumiWorldProvider[] providers = new ILumiWorldProvider[0];
+    private static LumiWorldProvider[] providers = new LumiWorldProvider[0];
     private static final AtomicBoolean initStarted = new AtomicBoolean(false);
     private static final AtomicBoolean locked = new AtomicBoolean(true);
 
@@ -46,17 +46,17 @@ public class LumiWorldManager {
     }
 
     //No bounds checking, because this is an internal method
-    public static ILumiWorld getWorld(World world, int i) {
+    public static LumiWorld getWorld(World world, int i) {
         return providers[i].getWorld(world);
     }
 
     //Synchronized just in case, only called during init anyway
-    public static synchronized void addProvider(ILumiWorldProvider provider) {
+    public static synchronized void addProvider(LumiWorldProvider provider) {
         if (locked.get()) {
             throw new IllegalStateException("Providers can only be registered during init!");
         }
         val oldProviders = providers;
-        ILumiWorldProvider[] newProviders = new ILumiWorldProvider[oldProviders.length + 1];
+        LumiWorldProvider[] newProviders = new LumiWorldProvider[oldProviders.length + 1];
         System.arraycopy(oldProviders, 0, newProviders, 0, oldProviders.length);
         newProviders[newProviders.length - 1] = provider;
         providers = newProviders;
@@ -66,7 +66,7 @@ public class LumiWorldManager {
     public static void initialize(World world) {
         val providers = LumiWorldManager.providers;
         for (int i = 0, providersLength = providers.length; i < providersLength; i++) {
-            ILumiWorldProvider provider = providers[i];
+            LumiWorldProvider provider = providers[i];
             val lWorld = provider.getWorld(world);
             lWorld.setLightingEngine(new LightingEngine(lWorld));
         }

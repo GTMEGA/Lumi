@@ -23,7 +23,7 @@ package com.falsepattern.lumina.api;
 
 import net.minecraft.world.EnumSkyBlock;
 
-public interface ILightingEngine {
+public interface LumiLightingEngine {
     void scheduleLightUpdate(EnumSkyBlock lightType, int xIn, int yIn, int zIn);
 
     void processLightUpdates();

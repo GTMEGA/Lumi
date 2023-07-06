@@ -21,6 +21,31 @@
 
 package com.falsepattern.lumina.api;
 
-public interface ILightingEngineProvider {
-    ILightingEngine getLightingEngine();
+/**
+ * Chunk placeholder for implementation.
+ */
+public interface LumiChunk extends LumiLightingEngineProvider {
+    //Implement these
+    LumiEBS lumiEBS(int arrayIndex);
+    LumiWorld lumiWorld();
+
+    int[] lumiHeightMap();
+
+    short[] lumiGetNeighborLightChecks();
+    void lumiGetNeighborLightChecks(short[] data);
+
+    boolean lumiIsLightInitialized();
+    void lumiIsLightInitialized(boolean val);
+
+    boolean[] lumiUpdateSkylightColumns();
+
+    int lumiHeightMapMinimum();
+    void lumiHeightMapMinimum(int min);
+
+    //Proxy this to carrier
+    LumiChunkRoot root();
+
+    //Keeping this here for now
+    int x();
+    int z();
 }

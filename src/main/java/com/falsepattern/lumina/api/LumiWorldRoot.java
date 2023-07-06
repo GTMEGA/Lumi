@@ -21,23 +21,16 @@
 
 package com.falsepattern.lumina.api;
 
-import net.minecraft.block.Block;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import net.minecraft.profiler.Profiler;
+import net.minecraft.world.chunk.IChunkProvider;
 
-public interface ILumiWorld extends ILightingEngineProvider {
-    ILumiChunk lumiWrap(Chunk chunk);
-
-    ILumiEBS lumiWrap(ExtendedBlockStorage ebs);
-
-    void setLightingEngine(ILightingEngine engine);
-
-    int lumiGetLightValue(final Block block, final int meta, final int x, final int y, final int z);
-
-    int lumiGetLightOpacity(final Block block, final int meta, final int x, final int y, final int z);
-
-    String lumiId();
-
-    //Proxy this to carrier
-    ILumiWorldRoot root();
+public interface LumiWorldRoot {
+    Profiler rootTheProfiler();
+    boolean rootIsRemote();
+    //.provider.hasNoSky
+    boolean rootHasNoSky();
+    void rootMarkBlockForRenderUpdate(int x, int y, int z);
+    IChunkProvider rootProvider();
+    boolean rootCheckChunksExist(int minX, int minY, int minZ, int maxX, int maxY, int maxZ);
+    boolean rootDoChunksNearChunkExist(int x, int y, int z, int dist);
 }

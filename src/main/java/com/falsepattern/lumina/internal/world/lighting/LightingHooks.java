@@ -23,9 +23,9 @@ package com.falsepattern.lumina.internal.world.lighting;
 
 import com.falsepattern.lib.compat.BlockPos;
 import com.falsepattern.lib.internal.Share;
-import com.falsepattern.lumina.api.ILumiChunk;
-import com.falsepattern.lumina.api.ILumiEBS;
-import com.falsepattern.lumina.api.ILumiWorld;
+import com.falsepattern.lumina.api.LumiChunk;
+import com.falsepattern.lumina.api.LumiEBS;
+import com.falsepattern.lumina.api.LumiWorld;
 import com.falsepattern.lumina.internal.world.WorldChunkSlice;
 import lombok.val;
 
@@ -54,7 +54,7 @@ public class LightingHooks {
 
     private static final int FLAG_COUNT = 32; //2 light types * 4 directions * 2 halves * (inwards + outwards)
 
-    public static void relightSkylightColumn(final ILumiWorld world, final ILumiChunk chunk, final int x, final int z, final int height1, final int height2) {
+    public static void relightSkylightColumn(final LumiWorld world, final LumiChunk chunk, final int x, final int z, final int height1, final int height2) {
         final int yMin = Math.min(height1, height2);
         final int yMax = Math.max(height1, height2) - 1;
 
@@ -98,7 +98,7 @@ public class LightingHooks {
         }
     }
 
-    public static void scheduleRelightChecksForArea(final ILumiWorld world, final EnumSkyBlock lightType, final int xMin, final int yMin, final int zMin,
+    public static void scheduleRelightChecksForArea(final LumiWorld world, final EnumSkyBlock lightType, final int xMin, final int yMin, final int zMin,
                                                     final int xMax, final int yMax, final int zMax) {
         for (int x = xMin; x <= xMax; ++x) {
             for (int z = zMin; z <= zMax; ++z) {
@@ -107,18 +107,18 @@ public class LightingHooks {
         }
     }
 
-    private static void scheduleRelightChecksForColumn(final ILumiWorld world, final EnumSkyBlock lightType, final int x, final int z, final int yMin, final int yMax) {
+    private static void scheduleRelightChecksForColumn(final LumiWorld world, final EnumSkyBlock lightType, final int x, final int z, final int yMin, final int yMax) {
         for (int y = yMin; y <= yMax; ++y) {
             world.getLightingEngine().scheduleLightUpdate(lightType, x, y, z);
         }
     }
 
 
-    private static int getBlockLightOpacity(ILumiChunk chunk, int x, int y, int z) {
+    private static int getBlockLightOpacity(LumiChunk chunk, int x, int y, int z) {
         return chunk.lumiWorld().lumiGetLightOpacity(chunk.root().rootGetBlock(x, y, z), chunk.root().rootGetBlockMetadata(x, y, z), x, y, z);
     }
 
-    public static void relightBlock(ILumiChunk chunk, int x, int y, int z) {
+    public static void relightBlock(LumiChunk chunk, int x, int y, int z) {
         int i = lumiGetHeightValue(chunk, x, z) & 255;
         int j = i;
 
@@ -145,7 +145,7 @@ public class LightingHooks {
         }
     }
 
-    public static void doRecheckGaps(ILumiChunk chunk, boolean onlyOne) {
+    public static void doRecheckGaps(LumiChunk chunk, boolean onlyOne) {
         val worldRoot = chunk.lumiWorld().root();
         val prof = worldRoot.rootTheProfiler();
         prof.startSection("recheckGaps");
@@ -170,7 +170,7 @@ public class LightingHooks {
         prof.endSection();
     }
 
-    private static boolean recheckGapsForColumn(ILumiChunk chunk, WorldChunkSlice slice, int x, int z) {
+    private static boolean recheckGapsForColumn(LumiChunk chunk, WorldChunkSlice slice, int x, int z) {
         int i = x + z * 16;
 
         if (chunk.lumiUpdateSkylightColumns()[i]) {
@@ -204,7 +204,7 @@ public class LightingHooks {
         return max;
     }
 
-    private static void recheckGapsSkylightNeighborHeight(ILumiChunk chunk, WorldChunkSlice slice, int x, int z, int height, int max) {
+    private static void recheckGapsSkylightNeighborHeight(LumiChunk chunk, WorldChunkSlice slice, int x, int z, int height, int max) {
         checkSkylightNeighborHeight(chunk, slice, x, z, max);
 
         for (EnumFacing facing : HORIZONTAL) {
@@ -215,7 +215,7 @@ public class LightingHooks {
         }
     }
 
-    private static void checkSkylightNeighborHeight(ILumiChunk chunk, WorldChunkSlice slice, int x, int z, int maxValue) {
+    private static void checkSkylightNeighborHeight(LumiChunk chunk, WorldChunkSlice slice, int x, int z, int maxValue) {
         int i = lumiGetHeightValue(slice.getChunkFromWorldCoords(x, z), x & 15, z & 15);
 
         if (i > maxValue) {
@@ -225,7 +225,7 @@ public class LightingHooks {
         }
     }
 
-    private static void updateSkylightNeighborHeight(ILumiChunk chunk, WorldChunkSlice slice, int x, int z, int startY, int endY) {
+    private static void updateSkylightNeighborHeight(LumiChunk chunk, WorldChunkSlice slice, int x, int z, int startY, int endY) {
         if (endY > startY) {
             if (!slice.isLoaded(x, z, 16)) {
                 return;
@@ -239,28 +239,28 @@ public class LightingHooks {
         }
     }
 
-    public static boolean lumiCanBlockSeeTheSky(ILumiChunk iLumiChunk, int x, int y, int z) {
+    public static boolean lumiCanBlockSeeTheSky(LumiChunk iLumiChunk, int x, int y, int z) {
         return y >= iLumiChunk.lumiHeightMap()[z << 4 | x];
     }
 
-    public static void lumiSetSkylightUpdatedPublic(ILumiChunk iLumiChunk) {
+    public static void lumiSetSkylightUpdatedPublic(LumiChunk iLumiChunk) {
         Arrays.fill(iLumiChunk.lumiUpdateSkylightColumns(), true);
     }
 
-    public static void lumiSetHeightValue(ILumiChunk iLumiChunk, int x, int z, int val) {
+    public static void lumiSetHeightValue(LumiChunk iLumiChunk, int x, int z, int val) {
         iLumiChunk.lumiHeightMap()[z << 4 | x] = val;
     }
 
-    public static int lumiGetHeightValue(ILumiChunk iLumiChunk, int x, int z) {
+    public static int lumiGetHeightValue(LumiChunk iLumiChunk, int x, int z) {
         return iLumiChunk.lumiHeightMap()[z << 4 | x];
     }
 
-    public static int getCachedLightFor(ILumiChunk iLumiChunk, EnumSkyBlock type, int xIn, int yIn, int zIn) {
+    public static int getCachedLightFor(LumiChunk iLumiChunk, EnumSkyBlock type, int xIn, int yIn, int zIn) {
         int i = xIn & 15;
         int j = yIn;
         int k = zIn & 15;
 
-        ILumiEBS extendedblockstorage = iLumiChunk.lumiEBS(j >> 4);
+        LumiEBS extendedblockstorage = iLumiChunk.lumiEBS(j >> 4);
 
         if (extendedblockstorage == null) {
             if (lumiCanBlockSeeTheSky(iLumiChunk, i, j, k)) {
@@ -283,7 +283,7 @@ public class LightingHooks {
         }
     }
 
-    public static void lumiSetLightValue(ILumiChunk iLumiChunk, EnumSkyBlock enumSkyBlock, int x, int y, int z, int lightValue) {
+    public static void lumiSetLightValue(LumiChunk iLumiChunk, EnumSkyBlock enumSkyBlock, int x, int y, int z, int lightValue) {
         iLumiChunk.root().rootEnsureEBSPresent(y);
         val ebs = iLumiChunk.lumiEBS(y >>> 4);
 
@@ -299,29 +299,29 @@ public class LightingHooks {
     /**
      * The custom skylight data
      */
-    public static int lumiGetSkylight(ILumiEBS iLumiEBS, int x, int y, int z) {
+    public static int lumiGetSkylight(LumiEBS iLumiEBS, int x, int y, int z) {
         return iLumiEBS.lumiSkylightArray().get(x, y, z);
     }
 
-    public static void lumiSetSkylight(ILumiEBS iLumiEBS, int x, int y, int z, int defaultLightValue) {
+    public static void lumiSetSkylight(LumiEBS iLumiEBS, int x, int y, int z, int defaultLightValue) {
         iLumiEBS.lumiSkylightArray().set(x, y, z, defaultLightValue);
     }
 
     /**
      * The custom blocklight data
      */
-    public static int lumiGetBlocklight(ILumiEBS iLumiEBS, int x, int y, int z) {
+    public static int lumiGetBlocklight(LumiEBS iLumiEBS, int x, int y, int z) {
         return iLumiEBS.lumiBlocklightArray().get(x, y, z);
     }
 
-    public static void lumiSetBlocklight(ILumiEBS iLumiEBS, int x, int y, int z, int defaultLightValue) {
+    public static void lumiSetBlocklight(LumiEBS iLumiEBS, int x, int y, int z, int defaultLightValue) {
         iLumiEBS.lumiBlocklightArray().set(x, y, z, defaultLightValue);
     }
 
     /**
      * Generates the initial skylight map for the chunk upon generation or load.
      */
-    public static void generateSkylightMap(ILumiChunk chunk) {
+    public static void generateSkylightMap(LumiChunk chunk) {
         val root = chunk.root();
         int topSegment = root.rootGetTopFilledSegment();
         chunk.lumiHeightMapMinimum(Integer.MAX_VALUE);
@@ -389,7 +389,7 @@ public class LightingHooks {
      * @param chunk
      */
     @SideOnly(Side.CLIENT)
-    public static void generateHeightMap(ILumiChunk chunk) {
+    public static void generateHeightMap(LumiChunk chunk) {
         int i = chunk.root().rootGetTopFilledSegment();
         int heightMapMinimum = Integer.MAX_VALUE;
         val heightMap = chunk.lumiHeightMap();
@@ -433,12 +433,12 @@ public class LightingHooks {
         }
     }
 
-    public static void flagSecBoundaryForUpdate(final ILumiChunk chunk, final BlockPos pos, final EnumSkyBlock lightType, final EnumFacing dir,
+    public static void flagSecBoundaryForUpdate(final LumiChunk chunk, final BlockPos pos, final EnumSkyBlock lightType, final EnumFacing dir,
                                                 final EnumBoundaryFacing boundaryFacing) {
         flagChunkBoundaryForUpdate(chunk, (short) (1 << (pos.getY() >> 4)), lightType, dir, getAxisDirection(dir, pos.getX(), pos.getZ()), boundaryFacing);
     }
 
-    public static void flagChunkBoundaryForUpdate(final ILumiChunk chunk, final short sectionMask, final EnumSkyBlock lightType, final EnumFacing dir,
+    public static void flagChunkBoundaryForUpdate(final LumiChunk chunk, final short sectionMask, final EnumSkyBlock lightType, final EnumFacing dir,
                                                   final AxisDirection axisDirection, final EnumBoundaryFacing boundaryFacing) {
         initNeighborLightChecks(chunk);
         chunk.lumiGetNeighborLightChecks()[getFlagIndex(lightType, dir, axisDirection, boundaryFacing)] |= sectionMask;
@@ -490,12 +490,12 @@ public class LightingHooks {
         }
     }
 
-    public static void scheduleRelightChecksForChunkBoundaries(final ILumiWorld world, final ILumiChunk chunk) {
+    public static void scheduleRelightChecksForChunkBoundaries(final LumiWorld world, final LumiChunk chunk) {
         for (final EnumFacing dir : HORIZONTAL_FACINGS) {
             final int xOffset = dir.getFrontOffsetX();
             final int zOffset = dir.getFrontOffsetZ();
 
-            final ILumiChunk nChunk = LightingEngineHelpers.getLoadedChunk(chunk.lumiWorld(), chunk.x() + xOffset, chunk.z() + zOffset);
+            final LumiChunk nChunk = LightingEngineHelpers.getLoadedChunk(chunk.lumiWorld(), chunk.x() + xOffset, chunk.z() + zOffset);
 
             if(nChunk == null)
                 continue;
@@ -521,7 +521,7 @@ public class LightingHooks {
         }
     }
 
-    private static void mergeFlags(final EnumSkyBlock lightType, final ILumiChunk inChunk, final ILumiChunk outChunk, final EnumFacing dir,
+    private static void mergeFlags(final EnumSkyBlock lightType, final LumiChunk inChunk, final LumiChunk outChunk, final EnumFacing dir,
                                    final AxisDirection axisDir) {
         if (outChunk.lumiGetNeighborLightChecks() == null) {
             return;
@@ -536,7 +536,7 @@ public class LightingHooks {
         //no need to call Chunk.setModified() since checks are not deleted from outChunk
     }
 
-    private static void scheduleRelightChecksForBoundary(final ILumiWorld world, final ILumiChunk chunk, ILumiChunk nChunk, ILumiChunk sChunk, final EnumSkyBlock lightType,
+    private static void scheduleRelightChecksForBoundary(final LumiWorld world, final LumiChunk chunk, LumiChunk nChunk, LumiChunk sChunk, final EnumSkyBlock lightType,
                                                          final int xOffset, final int zOffset, final AxisDirection axisDir) {
         if (chunk.lumiGetNeighborLightChecks() == null) {
             return;
@@ -604,7 +604,7 @@ public class LightingHooks {
         }
     }
 
-    public static void initNeighborLightChecks(final ILumiChunk chunk) {
+    public static void initNeighborLightChecks(final LumiChunk chunk) {
         if (chunk.lumiGetNeighborLightChecks() == null) {
             chunk.lumiGetNeighborLightChecks(new short[FLAG_COUNT]);
         }
@@ -612,7 +612,7 @@ public class LightingHooks {
 
     public static final String neighborLightChecksKey = "NeighborLightChecks";
 
-    public static void writeNeighborLightChecksToNBT(final ILumiChunk chunk, final NBTTagCompound nbt) {
+    public static void writeNeighborLightChecksToNBT(final LumiChunk chunk, final NBTTagCompound nbt) {
         short[] neighborLightChecks = chunk.lumiGetNeighborLightChecks();
 
         if (neighborLightChecks == null) {
@@ -636,7 +636,7 @@ public class LightingHooks {
         }
     }
 
-    public static void readNeighborLightChecksFromNBT(final ILumiChunk chunk, final NBTTagCompound nbt) {
+    public static void readNeighborLightChecksFromNBT(final LumiChunk chunk, final NBTTagCompound nbt) {
         if (nbt.hasKey(neighborLightChecksKey, 9)) {
             final NBTTagList list = nbt.getTagList(neighborLightChecksKey, 2);
 
@@ -654,7 +654,7 @@ public class LightingHooks {
         }
     }
 
-    public static void initChunkLighting(final ILumiChunk chunk, final ILumiWorld world) {
+    public static void initChunkLighting(final LumiChunk chunk, final LumiWorld world) {
         final int xBase = chunk.x() << 4;
         final int zBase = chunk.z() << 4;
 
@@ -663,7 +663,7 @@ public class LightingHooks {
         if (world.root().rootCheckChunksExist(xBase - 16, 0, zBase - 16, xBase + 31, 255, zBase + 31)) {
 
             for (int j = 0; j < 16; ++j) {
-                final ILumiEBS storage = chunk.lumiEBS(j);
+                final LumiEBS storage = chunk.lumiEBS(j);
 
                 if (storage == null) {
                     continue;
@@ -698,7 +698,7 @@ public class LightingHooks {
         }
     }
 
-    public static boolean checkChunkLighting(final ILumiChunk chunk, final ILumiWorld world) {
+    public static boolean checkChunkLighting(final LumiChunk chunk, final LumiWorld world) {
         if (!chunk.lumiIsLightInitialized()) {
             initChunkLighting(chunk, world);
         }
@@ -706,7 +706,7 @@ public class LightingHooks {
         for (int x = -1; x <= 1; ++x) {
             for (int z = -1; z <= 1; ++z) {
                 if (x != 0 || z != 0) {
-                    ILumiChunk nChunk = LightingEngineHelpers.getLoadedChunk(world, chunk.x() + x, chunk.z() + z);
+                    LumiChunk nChunk = LightingEngineHelpers.getLoadedChunk(world, chunk.x() + x, chunk.z() + z);
 
                     if (nChunk == null || !nChunk.lumiIsLightInitialized()) {
                         return false;
@@ -718,7 +718,7 @@ public class LightingHooks {
         return true;
     }
 
-    public static void initSkylightForSection(final ILumiWorld world, final ILumiChunk chunk, final ILumiEBS section) {
+    public static void initSkylightForSection(final LumiWorld world, final LumiChunk chunk, final LumiEBS section) {
         if (!world.root().rootHasNoSky()) {
             for (int x = 0; x < 16; ++x) {
                 for (int z = 0; z < 16; ++z) {
@@ -749,7 +749,7 @@ public class LightingHooks {
         return Math.max(savedLightValue, lightValue);
     }
 
-    public static int getLightOpacity(ILumiChunk chunk, int cx, int y, int cz) {
+    public static int getLightOpacity(LumiChunk chunk, int cx, int y, int cz) {
         int x = (chunk.x() << 4) + cx;
         int z = (chunk.z() << 4) + cz;
         return chunk.lumiWorld().lumiGetLightOpacity(chunk.root().rootGetBlock(cx, y, cz), chunk.root().rootGetBlockMetadata(cx, y, cz), x, y, z);

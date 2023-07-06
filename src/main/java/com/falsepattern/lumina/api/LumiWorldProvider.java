@@ -21,10 +21,8 @@
 
 package com.falsepattern.lumina.api;
 
-import net.minecraft.block.Block;
+import net.minecraft.world.World;
 
-public interface ILumiEBSRoot {
-    Block rootGetBlockByExtId(int x, int y, int z);
-    int rootGetExtBlockMetadata(int x, int y, int z);
-    int rootGetYLocation();
+public interface LumiWorldProvider {
+    LumiWorld getWorld(World world);
 }

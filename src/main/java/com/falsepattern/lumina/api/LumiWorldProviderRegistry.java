@@ -29,7 +29,7 @@ public class LumiWorldProviderRegistry {
         LUMINA.hijack();
     }
 
-    public static void registerWorldProvider(ILumiWorldProvider provider) {
+    public static void registerWorldProvider(LumiWorldProvider provider) {
         LumiWorldManager.addProvider(provider);
     }
 }

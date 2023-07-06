@@ -22,32 +22,22 @@
 package com.falsepattern.lumina.api;
 
 import net.minecraft.block.Block;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
-/**
- * Chunk placeholder for implementation.
- */
-public interface ILumiChunk extends ILightingEngineProvider {
-    //Implement these
-    ILumiEBS lumiEBS(int arrayIndex);
-    ILumiWorld lumiWorld();
+public interface LumiWorld extends LumiLightingEngineProvider {
+    LumiChunk lumiWrap(Chunk chunk);
 
-    int[] lumiHeightMap();
+    LumiEBS lumiWrap(ExtendedBlockStorage ebs);
 
-    short[] lumiGetNeighborLightChecks();
-    void lumiGetNeighborLightChecks(short[] data);
+    void setLightingEngine(LumiLightingEngine engine);
 
-    boolean lumiIsLightInitialized();
-    void lumiIsLightInitialized(boolean val);
+    int lumiGetLightValue(final Block block, final int meta, final int x, final int y, final int z);
 
-    boolean[] lumiUpdateSkylightColumns();
+    int lumiGetLightOpacity(final Block block, final int meta, final int x, final int y, final int z);
 
-    int lumiHeightMapMinimum();
-    void lumiHeightMapMinimum(int min);
+    String lumiId();
 
     //Proxy this to carrier
-    ILumiChunkRoot root();
-
-    //Keeping this here for now
-    int x();
-    int z();
+    LumiWorldRoot root();
 }

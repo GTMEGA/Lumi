@@ -21,13 +21,15 @@
 
 package com.falsepattern.lumina.api;
 
-import net.minecraft.world.chunk.NibbleArray;
+import net.minecraft.block.Block;
 
-public interface ILumiEBS {
-    NibbleArray lumiSkylightArray();
-    NibbleArray lumiBlocklightArray();
+public interface LumiChunkRoot {
+    void rootSetChunkModified();
+    Block rootGetBlock(int x, int y, int z);
+    int rootGetBlockMetadata(int x, int y, int z);
+    void rootEnsureEBSPresent(int y);
+    void rootIsGapLightingUpdated(boolean b);
+    int rootGetTopFilledSegment();
 
-
-    //Proxy this to carrier
-    ILumiEBSRoot root();
+    int[] rootPrecipitationHeightMap();
 }

@@ -21,8 +21,8 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.impl;
 
-import com.falsepattern.lumina.api.ILumiEBS;
-import com.falsepattern.lumina.api.ILumiEBSRoot;
+import com.falsepattern.lumina.api.LumiEBS;
+import com.falsepattern.lumina.api.LumiEBSRoot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
@@ -31,7 +31,7 @@ import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @Mixin(ExtendedBlockStorage.class)
-public abstract class MixinExtendedBlockStorageILumiEBS implements ILumiEBS, ILumiEBSRoot {
+public abstract class MixinExtendedBlockStorageILumiEBS implements LumiEBS, LumiEBSRoot {
     @Shadow
     private NibbleArray blocklightArray;
     @Shadow
@@ -57,7 +57,7 @@ public abstract class MixinExtendedBlockStorageILumiEBS implements ILumiEBS, ILu
     }
 
     @Override
-    public ILumiEBSRoot root() {
+    public LumiEBSRoot root() {
         return this;
     }
 

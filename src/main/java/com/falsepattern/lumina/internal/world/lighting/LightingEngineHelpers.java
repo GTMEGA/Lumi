@@ -22,9 +22,9 @@
 package com.falsepattern.lumina.internal.world.lighting;
 
 import com.falsepattern.lib.compat.BlockPos;
-import com.falsepattern.lumina.api.ILumiWorld;
-import com.falsepattern.lumina.api.ILumiChunk;
-import com.falsepattern.lumina.api.ILumiEBS;
+import com.falsepattern.lumina.api.LumiWorld;
+import com.falsepattern.lumina.api.LumiChunk;
+import com.falsepattern.lumina.api.LumiEBS;
 import lombok.val;
 
 import net.minecraft.block.Block;
@@ -35,11 +35,11 @@ public class LightingEngineHelpers {
     private static final int DEFAULT_METADATA = 0;
 
     // Avoids some additional logic in Chunk#getBlockState... 0 is always air
-    static Block posToBlock(final BlockPos pos, final ILumiChunk chunk) {
+    static Block posToBlock(final BlockPos pos, final LumiChunk chunk) {
         return posToBlock(pos, chunk.lumiEBS(pos.getY() >> 4));
     }
 
-    static Block posToBlock(final BlockPos pos, final ILumiEBS section) {
+    static Block posToBlock(final BlockPos pos, final LumiEBS section) {
         final int x = pos.getX();
         final int y = pos.getY();
         final int z = pos.getZ();
@@ -53,11 +53,11 @@ public class LightingEngineHelpers {
     }
 
     // Avoids some additional logic in Chunk#getBlockState... 0 is always air
-    static int posToMeta(final BlockPos pos, final ILumiChunk chunk) {
+    static int posToMeta(final BlockPos pos, final LumiChunk chunk) {
         return posToMeta(pos, chunk.lumiEBS(pos.getY() >> 4));
     }
 
-    static int posToMeta(final BlockPos pos, final ILumiEBS section) {
+    static int posToMeta(final BlockPos pos, final LumiEBS section) {
         final int x = pos.getX();
         final int y = pos.getY();
         final int z = pos.getZ();
@@ -71,7 +71,7 @@ public class LightingEngineHelpers {
     }
 
 
-    public static ILumiChunk getLoadedChunk(ILumiWorld world, int chunkX, int chunkZ) {
+    public static LumiChunk getLoadedChunk(LumiWorld world, int chunkX, int chunkZ) {
         val provider = world.root().rootProvider();
         if(!provider.chunkExists(chunkX, chunkZ))
             return null;

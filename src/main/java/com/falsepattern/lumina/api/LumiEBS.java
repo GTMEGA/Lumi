@@ -21,8 +21,13 @@
 
 package com.falsepattern.lumina.api;
 
-import net.minecraft.world.World;
+import net.minecraft.world.chunk.NibbleArray;
 
-public interface ILumiWorldProvider {
-    ILumiWorld getWorld(World world);
+public interface LumiEBS {
+    NibbleArray lumiSkylightArray();
+    NibbleArray lumiBlocklightArray();
+
+
+    //Proxy this to carrier
+    LumiEBSRoot root();
 }
