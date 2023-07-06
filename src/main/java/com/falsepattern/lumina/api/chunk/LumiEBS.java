@@ -19,14 +19,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api;
+package com.falsepattern.lumina.api.chunk;
 
-import net.minecraft.world.EnumSkyBlock;
+import net.minecraft.world.chunk.NibbleArray;
 
-public interface LumiLightingEngine {
-    void scheduleLightUpdate(EnumSkyBlock lightType, int xIn, int yIn, int zIn);
+public interface LumiEBS {
+    NibbleArray lumiSkylightArray();
+    NibbleArray lumiBlocklightArray();
 
-    void processLightUpdates();
 
-    void processLightUpdatesForType(EnumSkyBlock lightType);
+    //Proxy this to carrier
+    LumiEBSRoot root();
 }

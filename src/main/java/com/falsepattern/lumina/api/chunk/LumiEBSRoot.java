@@ -19,10 +19,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api;
+package com.falsepattern.lumina.api.chunk;
 
-import net.minecraft.world.World;
+import net.minecraft.block.Block;
 
-public interface LumiWorldProvider {
-    LumiWorld getWorld(World world);
+public interface LumiEBSRoot {
+    Block rootGetBlockByExtId(int x, int y, int z);
+    int rootGetExtBlockMetadata(int x, int y, int z);
+    int rootGetYLocation();
 }

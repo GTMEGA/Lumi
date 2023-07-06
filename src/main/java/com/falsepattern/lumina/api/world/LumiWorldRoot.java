@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api;
+package com.falsepattern.lumina.api.world;
 
 import net.minecraft.profiler.Profiler;
 import net.minecraft.world.chunk.IChunkProvider;

@@ -21,6 +21,7 @@
 
 package com.falsepattern.lumina.api;
 
+import com.falsepattern.lumina.api.world.LumiWorldProvider;
 import com.falsepattern.lumina.internal.LUMINA;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 

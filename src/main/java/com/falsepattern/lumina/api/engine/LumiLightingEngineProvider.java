@@ -19,15 +19,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api;
+package com.falsepattern.lumina.api.engine;
 
-import net.minecraft.world.chunk.NibbleArray;
+import com.falsepattern.lumina.api.engine.LumiLightingEngine;
 
-public interface LumiEBS {
-    NibbleArray lumiSkylightArray();
-    NibbleArray lumiBlocklightArray();
-
-
-    //Proxy this to carrier
-    LumiEBSRoot root();
+public interface LumiLightingEngineProvider {
+    LumiLightingEngine getLightingEngine();
 }

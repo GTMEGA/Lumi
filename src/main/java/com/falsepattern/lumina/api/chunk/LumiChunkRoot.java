@@ -19,12 +19,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api;
+package com.falsepattern.lumina.api.chunk;
 
 import net.minecraft.block.Block;
 
-public interface LumiEBSRoot {
-    Block rootGetBlockByExtId(int x, int y, int z);
-    int rootGetExtBlockMetadata(int x, int y, int z);
-    int rootGetYLocation();
+public interface LumiChunkRoot {
+    void rootSetChunkModified();
+    Block rootGetBlock(int x, int y, int z);
+    int rootGetBlockMetadata(int x, int y, int z);
+    void rootEnsureEBSPresent(int y);
+    void rootIsGapLightingUpdated(boolean b);
+    int rootGetTopFilledSegment();
+
+    int[] rootPrecipitationHeightMap();
 }

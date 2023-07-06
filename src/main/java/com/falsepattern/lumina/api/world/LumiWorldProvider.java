@@ -19,8 +19,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api;
+package com.falsepattern.lumina.api.world;
 
-public interface LumiLightingEngineProvider {
-    LumiLightingEngine getLightingEngine();
+import net.minecraft.world.World;
+
+public interface LumiWorldProvider {
+    LumiWorld getWorld(World world);
 }

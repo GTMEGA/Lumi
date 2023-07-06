@@ -21,8 +21,8 @@
 
 package com.falsepattern.lumina.internal.world;
 
-import com.falsepattern.lumina.api.LumiWorld;
-import com.falsepattern.lumina.api.LumiWorldProvider;
+import com.falsepattern.lumina.api.world.LumiWorld;
+import com.falsepattern.lumina.api.world.LumiWorldProvider;
 import com.falsepattern.lumina.internal.world.lighting.LightingEngine;
 import lombok.val;
 

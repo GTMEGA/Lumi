@@ -23,9 +23,9 @@ package com.falsepattern.lumina.internal.world.lighting;
 
 import com.falsepattern.lib.compat.BlockPos;
 import com.falsepattern.lib.internal.Share;
-import com.falsepattern.lumina.api.LumiChunk;
-import com.falsepattern.lumina.api.LumiEBS;
-import com.falsepattern.lumina.api.LumiWorld;
+import com.falsepattern.lumina.api.chunk.LumiChunk;
+import com.falsepattern.lumina.api.chunk.LumiEBS;
+import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.internal.world.WorldChunkSlice;
 import lombok.val;
 

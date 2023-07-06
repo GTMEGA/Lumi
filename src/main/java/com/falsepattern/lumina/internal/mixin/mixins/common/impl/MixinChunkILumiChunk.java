@@ -21,12 +21,12 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.impl;
 
-import com.falsepattern.lumina.api.LumiChunk;
-import com.falsepattern.lumina.api.LumiChunkRoot;
-import com.falsepattern.lumina.api.LumiEBS;
-import com.falsepattern.lumina.api.LumiWorld;
-import com.falsepattern.lumina.api.LumiLightingEngine;
-import com.falsepattern.lumina.api.LumiLightingEngineProvider;
+import com.falsepattern.lumina.api.chunk.LumiChunk;
+import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
+import com.falsepattern.lumina.api.chunk.LumiEBS;
+import com.falsepattern.lumina.api.world.LumiWorld;
+import com.falsepattern.lumina.api.engine.LumiLightingEngine;
+import com.falsepattern.lumina.api.engine.LumiLightingEngineProvider;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
 import lombok.val;

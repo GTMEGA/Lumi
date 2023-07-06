@@ -19,8 +19,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api;
+package com.falsepattern.lumina.api.world;
 
+import com.falsepattern.lumina.api.chunk.LumiChunk;
+import com.falsepattern.lumina.api.chunk.LumiEBS;
+import com.falsepattern.lumina.api.engine.LumiLightingEngine;
+import com.falsepattern.lumina.api.engine.LumiLightingEngineProvider;
+import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import net.minecraft.block.Block;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;

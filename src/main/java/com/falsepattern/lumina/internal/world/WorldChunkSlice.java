@@ -21,8 +21,8 @@
 
 package com.falsepattern.lumina.internal.world;
 
-import com.falsepattern.lumina.api.LumiWorld;
-import com.falsepattern.lumina.api.LumiChunk;
+import com.falsepattern.lumina.api.world.LumiWorld;
+import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.internal.world.lighting.LightingEngineHelpers;
 
 public class WorldChunkSlice {

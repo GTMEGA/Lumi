@@ -19,7 +19,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api;
+package com.falsepattern.lumina.api.chunk;
+
+import com.falsepattern.lumina.api.world.LumiWorld;
+import com.falsepattern.lumina.api.engine.LumiLightingEngineProvider;
 
 /**
  * Chunk placeholder for implementation.

@@ -19,17 +19,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api;
+package com.falsepattern.lumina.api.engine;
 
-import net.minecraft.block.Block;
+import net.minecraft.world.EnumSkyBlock;
 
-public interface LumiChunkRoot {
-    void rootSetChunkModified();
-    Block rootGetBlock(int x, int y, int z);
-    int rootGetBlockMetadata(int x, int y, int z);
-    void rootEnsureEBSPresent(int y);
-    void rootIsGapLightingUpdated(boolean b);
-    int rootGetTopFilledSegment();
+public interface LumiLightingEngine {
+    void scheduleLightUpdate(EnumSkyBlock lightType, int xIn, int yIn, int zIn);
 
-    int[] rootPrecipitationHeightMap();
+    void processLightUpdates();
+
+    void processLightUpdatesForType(EnumSkyBlock lightType);
 }
