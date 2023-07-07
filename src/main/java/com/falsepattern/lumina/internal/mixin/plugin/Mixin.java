@@ -31,26 +31,30 @@ import java.util.function.Predicate;
 
 import static com.falsepattern.lib.mixin.IMixin.PredicateHelpers.always;
 import static com.falsepattern.lib.mixin.IMixin.PredicateHelpers.avoid;
-import static com.falsepattern.lib.mixin.IMixin.Side.*;
+import static com.falsepattern.lib.mixin.IMixin.Side.CLIENT;
+import static com.falsepattern.lib.mixin.IMixin.Side.COMMON;
 import static com.falsepattern.lumina.internal.mixin.plugin.TargetedMod.ARCHAICFIX;
 
 @RequiredArgsConstructor
 public enum Mixin implements IMixin {
-    common_MixinAnvilChunkLoader(COMMON, always(), "AnvilChunkLoaderMixin"),
-    common_MixinChunk(COMMON, always(), "ChunkMixin"),
-    common_MixinChunkProviderServer(COMMON, always(), "ChunkProviderServerMixin"),
-    common_MixinExtendedBlockStorage(COMMON, always(), "ExtendedBlockStorageMixin"),
-    common_MixinSPacketChunkData(COMMON, always(), "S21PacketChunkDataMixin"),
-    common_MixinWorld(COMMON, always(), "WorldMixin"),
+    common_AnvilChunkLoaderMixin(COMMON, always(), "AnvilChunkLoaderMixin"),
+    common_ChunkMixin(COMMON, always(), "ChunkMixin"),
+    common_ChunkProviderServerMixin(COMMON, always(), "ChunkProviderServerMixin"),
+    common_ExtendedBlockStorageMixin(COMMON, always(), "ExtendedBlockStorageMixin"),
+    common_S21PacketChunkDataMixin(COMMON, always(), "S21PacketChunkDataMixin"),
+    common_WorldMixin(COMMON, always(), "WorldMixin"),
 
-    client_MixinMinecraft(CLIENT, always(), "MinecraftMixin"),
-    client_MixinChunk(CLIENT, always(), "ChunkMixin"),
-    client_MixinChunkCache(CLIENT, always(), "ChunkCacheMixin"),
-    client_MixinWorld(CLIENT, always(), "WorldMixin"),
+    client_MinecraftMixin(CLIENT, always(), "MinecraftMixin"),
+    client_ChunkMixin(CLIENT, always(), "ChunkMixin"),
+    client_ChunkCacheMixin(CLIENT, always(), "ChunkCacheMixin"),
+    client_WorldMixin(CLIENT, always(), "WorldMixin"),
 
-    common_impl_MixinChunkILumiChunk(COMMON, always(), "impl.ChunkILumiChunkMixin"),
-    common_impl_MixinExtendedBlockStorageILumiEBS(COMMON, always(), "impl.ExtendedBlockStorageILumiEBSMixin"),
-    common_impl_MixinWorldILumiWorld(COMMON, always(), "impl.WorldILumiWorldMixin"),
+    common_lumi_LumiWorldImplMixin(COMMON, always(), "lumi.LumiWorldImplMixin"),
+    common_lumi_LumiWorldRootImplMixin(COMMON, always(), "lumi.LumiWorldRootImplMixin"),
+    common_lumi_LumiChunkImplMixin(COMMON, always(), "lumi.LumiChunkImplMixin"),
+    common_lumi_LumiChunkRootImplMixin(COMMON, always(), "lumi.LumiChunkRootImplMixin"),
+    common_lumi_LumiSubChunkImplMixin(COMMON, always(), "lumi.LumiSubChunkImplMixin"),
+    common_lumi_LumiSubChunkRootImplMixin(COMMON, always(), "lumi.LumiSubChunkRootImplMixin"),
 
     common_MixinLongHashMap(COMMON, avoid(ARCHAICFIX), "LongHashMapMixin"),
     ;

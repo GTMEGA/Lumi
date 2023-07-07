@@ -19,51 +19,45 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.mixin.mixins.common.impl;
+package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
-import com.falsepattern.lumina.api.chunk.LumiChunk;
-import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.engine.LumiLightingEngine;
-import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
-import com.falsepattern.lumina.internal.Tags;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.minecraft.block.Block;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
-import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkProvider;
-import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(World.class)
 @Accessors(fluent = true, chain = false)
-public abstract class WorldILumiWorldMixin implements IBlockAccess, LumiWorld, LumiWorldRoot {
-    @Shadow
+public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldRoot {
     @Final
-    public Profiler theProfiler;
     @Shadow
-    public boolean isRemote;
-    @Shadow
-    @Final
     public WorldProvider provider;
+    @Final
+    @Shadow
+    public Profiler theProfiler;
+
     @Shadow
     protected IChunkProvider chunkProvider;
+    @Shadow
+    public boolean isRemote;
 
     @Shadow
-    public abstract void func_147479_m(int p_147479_1_, int p_147479_2_, int p_147479_3_);
+    public abstract boolean doChunksNearChunkExist(int centerPosX, int centerPosY, int centerPosZ, int blockRange);
 
     @Shadow
-    public abstract boolean checkChunksExist(int minX, int minY, int minZ, int maxX, int maxY, int maxZ);
+    public abstract boolean checkChunksExist(int minPosX, int minPosY, int minPosZ, int maxPosX, int maxPosY, int maxPosZ);
 
     @Shadow
-    public abstract boolean doChunksNearChunkExist(int x, int y, int z, int dist);
+    public abstract void func_147479_m(int posX, int posY, int posZ);
 
     @Setter
     @Getter
@@ -71,32 +65,7 @@ public abstract class WorldILumiWorldMixin implements IBlockAccess, LumiWorld, L
 
     @Override
     public World world() {
-        return (World) (Object) this;
-    }
-
-    @Override
-    public LumiChunk toLumiChunk(Chunk chunk) {
-        return (LumiChunk) chunk;
-    }
-
-    @Override
-    public LumiSubChunk toLumiSubChunk(ExtendedBlockStorage subChunk) {
-        return (LumiSubChunk) subChunk;
-    }
-
-    @Override
-    public int lumiGetLightValue(Block block, int blockMeta, int posX, int posY, int posZ) {
-        return block.getLightValue(this, posX, posY, posZ);
-    }
-
-    @Override
-    public int lumiGetLightOpacity(Block block, int blockMeta, int posX, int posY, int posZ) {
-        return block.getLightOpacity(this, posX, posY, posZ);
-    }
-
-    @Override
-    public LumiWorldRoot worldRoot() {
-        return this;
+        return thiz();
     }
 
     @Override
@@ -115,11 +84,6 @@ public abstract class WorldILumiWorldMixin implements IBlockAccess, LumiWorld, L
     }
 
     @Override
-    public void markBlockForRenderUpdate(int posX, int posY, int posZ) {
-        func_147479_m(posX, posY, posZ);
-    }
-
-    @Override
     public IChunkProvider chunkProvider() {
         return chunkProvider;
     }
@@ -135,7 +99,11 @@ public abstract class WorldILumiWorldMixin implements IBlockAccess, LumiWorld, L
     }
 
     @Override
-    public String luminaWorldID() {
-        return Tags.MODID;
+    public void markBlockForRenderUpdate(int posX, int posY, int posZ) {
+        func_147479_m(posX, posY, posZ);
+    }
+
+    private World thiz() {
+        return (World) (Object) this;
     }
 }

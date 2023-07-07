@@ -19,47 +19,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.mixin.mixins.common.impl;
+package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
-import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunkRoot;
+import net.minecraft.block.Block;
+import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-import net.minecraft.block.Block;
-import net.minecraft.world.chunk.NibbleArray;
-import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
-
 @Mixin(ExtendedBlockStorage.class)
-public abstract class ExtendedBlockStorageILumiEBSMixin implements LumiSubChunk, LumiSubChunkRoot {
+public abstract class LumiSubChunkRootImplMixin implements LumiSubChunkRoot {
     @Shadow
-    private NibbleArray blocklightArray;
-    @Shadow
-    private NibbleArray skylightArray;
+    private int yBase;
 
     @Shadow
-    public abstract Block getBlockByExtId(int posX, int posY, int posZ);
+    public abstract Block getBlockByExtId(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 
     @Shadow
-    public abstract int getExtBlockMetadata(int posX, int posY, int posZ);
-
-    @Shadow
-    public abstract int getYLocation();
-
-    @Override
-    public NibbleArray skyLight() {
-        return skylightArray;
-    }
-
-    @Override
-    public NibbleArray blockLight() {
-        return blocklightArray;
-    }
-
-    @Override
-    public LumiSubChunkRoot subChunkRoot() {
-        return this;
-    }
+    public abstract int getExtBlockMetadata(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 
     @Override
     public Block getBlock(int subChunkPosX, int subChunkPosY, int subChunkPosZ) {
@@ -73,6 +50,6 @@ public abstract class ExtendedBlockStorageILumiEBSMixin implements LumiSubChunk,
 
     @Override
     public int posY() {
-        return getYLocation();
+        return yBase;
     }
 }
