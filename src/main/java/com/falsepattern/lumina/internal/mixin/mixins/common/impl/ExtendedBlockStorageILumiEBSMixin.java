@@ -31,7 +31,7 @@ import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @Mixin(ExtendedBlockStorage.class)
-public abstract class MixinExtendedBlockStorageILumiEBS implements LumiSubChunk, LumiSubChunkRoot {
+public abstract class ExtendedBlockStorageILumiEBSMixin implements LumiSubChunk, LumiSubChunkRoot {
     @Shadow
     private NibbleArray blocklightArray;
     @Shadow

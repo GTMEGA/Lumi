@@ -34,7 +34,7 @@ import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 @Mixin(World.class)
-public abstract class MixinWorld implements IBlockAccess {
+public abstract class WorldMixin implements IBlockAccess {
     @Inject(method = "finishSetup",
             at = @At("RETURN"),
             remap = false,

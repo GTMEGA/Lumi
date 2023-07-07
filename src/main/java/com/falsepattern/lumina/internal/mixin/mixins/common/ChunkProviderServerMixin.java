@@ -37,7 +37,7 @@ import net.minecraft.world.gen.ChunkProviderServer;
 import java.util.Set;
 
 @Mixin(ChunkProviderServer.class)
-public abstract class MixinChunkProviderServer {
+public abstract class ChunkProviderServerMixin {
     @Shadow
     private Set chunksToUnload;
     @Shadow

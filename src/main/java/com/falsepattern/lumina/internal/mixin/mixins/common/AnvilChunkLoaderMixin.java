@@ -19,43 +19,33 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.mixin.mixins.client;
+package com.falsepattern.lumina.internal.mixin.mixins.common;
 
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import lombok.val;
-import lombok.var;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.WorldClient;
-import net.minecraft.profiler.Profiler;
+import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.storage.AnvilChunkLoader;
 
-@Mixin(Minecraft.class)
-public abstract class MixinMinecraft {
-    @Shadow
-    @Final
-    public Profiler mcProfiler;
-
-    @Shadow
-    public WorldClient theWorld;
-
+@Mixin(AnvilChunkLoader.class)
+public abstract class AnvilChunkLoaderMixin {
     /**
+     * Injects into the head of saveChunk() to forcefully process all pending light updates. Fail-safe.
+     *
      * @author Angeline
-     * Forces the client to process light updates before rendering the world. We inject before the call to the profiler
-     * which designates the start of world rendering. This is a rather injection site.
      */
-    @Inject(method = "runTick", at = @At(value = "CONSTANT", args = "stringValue=levelRenderer", shift = At.Shift.BY, by = -3))
-    private void onRunTick(CallbackInfo ci) {
-        mcProfiler.endStartSection("lighting");
-
+    @Inject(method = "saveChunk",
+            at = @At("HEAD"),
+            require = 1)
+    private void onSaveChunk(World world, Chunk chunk, CallbackInfo callbackInfo) {
         val lumiWorldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < lumiWorldCount; i++) {
-            val lumiWorld = LumiWorldManager.getWorld(theWorld, i);
+        for (int i = 0; i < lumiWorldCount; i++) {
+            val lumiWorld = LumiWorldManager.getWorld(world, i);
             lumiWorld.lightingEngine().processLightUpdates();
         }
     }

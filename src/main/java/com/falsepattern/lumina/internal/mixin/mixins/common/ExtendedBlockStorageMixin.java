@@ -29,7 +29,7 @@ import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @Mixin(ExtendedBlockStorage.class)
-public abstract class MixinExtendedBlockStorage {
+public abstract class ExtendedBlockStorageMixin {
     @Shadow
     private int blockRefCount;
     @Shadow

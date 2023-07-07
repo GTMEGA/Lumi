@@ -33,7 +33,7 @@ import net.minecraft.network.play.server.S21PacketChunkData;
 import net.minecraft.world.chunk.Chunk;
 @Mixin(value = S21PacketChunkData.class,
        priority = 1001)
-public abstract class MixinSPacketChunkData {
+public abstract class S21PacketChunkDataMixin {
     /**
      * @author Angeline
      * Injects a callback into SPacketChunkData#calculateChunkSize(Chunk, booolean, int) to force light updates to be

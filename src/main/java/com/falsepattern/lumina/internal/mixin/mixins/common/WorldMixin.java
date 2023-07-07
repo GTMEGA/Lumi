@@ -37,7 +37,7 @@ import net.minecraft.world.storage.ISaveHandler;
 import net.minecraft.world.storage.WorldInfo;
 
 @Mixin(World.class)
-public abstract class MixinWorld implements IBlockAccess {
+public abstract class WorldMixin implements IBlockAccess {
     /**
      * @author Angeline
      * Initialize the lighting engine on world construction.

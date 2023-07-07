@@ -44,7 +44,7 @@ import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(World.class)
 @Accessors(fluent = true, chain = false)
-public abstract class MixinWorldILumiWorld implements IBlockAccess, LumiWorld, LumiWorldRoot {
+public abstract class WorldILumiWorldMixin implements IBlockAccess, LumiWorld, LumiWorldRoot {
     @Shadow
     @Final
     public Profiler theProfiler;

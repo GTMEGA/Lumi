@@ -45,7 +45,7 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @Mixin(Chunk.class)
-public abstract class MixinChunk {
+public abstract class ChunkMixin {
     @Shadow
     public World worldObj;
     @Shadow

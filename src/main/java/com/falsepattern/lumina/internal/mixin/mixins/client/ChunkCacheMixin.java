@@ -21,40 +21,26 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.client;
 
-import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
-import lombok.val;
-import lombok.var;
+import net.minecraft.world.IBlockAccess;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
-import net.minecraft.world.World;
+import net.minecraft.world.ChunkCache;
+import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.chunk.Chunk;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
-@Mixin(Chunk.class)
-public abstract class MixinChunk {
-    @Shadow
-    public World worldObj;
-
-    /**
-     * @author FalsePattern
-     * @reason Fix
-     */
-    @Overwrite
-    @SideOnly(Side.CLIENT)
-    public void generateHeightMap() {
-        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < lumiWorldCount; i++) {
-            val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
-            val lumiChunk = lumiWorld.toLumiChunk(thiz());
-            LightingHooks.generateHeightMap(lumiChunk);
-        }
-    }
-
-    private Chunk thiz() {
-        return (Chunk) (Object) this;
+@Mixin(ChunkCache.class)
+public abstract class ChunkCacheMixin implements IBlockAccess {
+    @Redirect(method = "getSpecialBlockBrightness",
+              at = @At(value = "INVOKE",
+                       target = "Lnet/minecraft/world/chunk/Chunk;getSavedLightValue(Lnet/minecraft/world/EnumSkyBlock;III)I"),
+              require = 1)
+    private int getIntrinsicValue(Chunk chunk, EnumSkyBlock lightType, int posX, int posY, int posZ) {
+        if (lightType == EnumSkyBlock.Sky)
+            return chunk.getSavedLightValue(EnumSkyBlock.Sky, posX, posY, posZ);
+        // Optimization: bypass LumiWorldManager for world index 0 (the "vanilla" lighting)
+        return LightingHooks.getIntrinsicOrSavedBlockLightValue(chunk, posX, posY, posZ);
     }
 }

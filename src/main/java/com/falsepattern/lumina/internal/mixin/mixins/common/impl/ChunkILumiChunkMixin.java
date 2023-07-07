@@ -40,7 +40,7 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @Mixin(Chunk.class)
-public abstract class MixinChunkILumiChunk implements LumiChunk, LumiChunkRoot {
+public abstract class ChunkILumiChunkMixin implements LumiChunk, LumiChunkRoot {
     @Shadow
     @Final
     public int xPosition;

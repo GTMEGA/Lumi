@@ -19,26 +19,42 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.mixin.mixins.common;
+package com.falsepattern.lumina.internal.mixin.mixins.client;
 
+import com.falsepattern.lumina.internal.world.LumiWorldManager;
+import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
 import lombok.val;
+import lombok.var;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Shadow;
 
-import net.minecraft.util.LongHashMap;
+import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
-@Mixin(LongHashMap.class)
-public abstract class MixinLongHashMap {
-    private static final int HASH_PRIME = 92821;
+@Mixin(Chunk.class)
+public abstract class ChunkMixin {
+    @Shadow
+    public World worldObj;
 
     /**
      * @author FalsePattern
-     * @reason Small perf snippet, ported from ArchaicFix, LGPLv3.
+     * @reason Fix
      */
     @Overwrite
-    private static int getHashedKey(long key) {
-        val a = (int) key;
-        val b = (int) (key >>> 32);
-        return (a + b) * HASH_PRIME;
+    @SideOnly(Side.CLIENT)
+    public void generateHeightMap() {
+        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
+        for (var i = 0; i < lumiWorldCount; i++) {
+            val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
+            val lumiChunk = lumiWorld.toLumiChunk(thiz());
+            LightingHooks.generateHeightMap(lumiChunk);
+        }
+    }
+
+    private Chunk thiz() {
+        return (Chunk) (Object) this;
     }
 }
