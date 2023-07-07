@@ -23,21 +23,20 @@ package com.falsepattern.lumina.internal.world.lighting;
 
 import com.falsepattern.lib.compat.BlockPos;
 import com.falsepattern.lib.internal.Share;
+import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.engine.LumiLightingEngine;
-import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.internal.collections.PooledLongQueue;
-
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.EnumSkyBlock;
-import cpw.mods.fml.common.Loader;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -123,7 +122,7 @@ public class LightingEngine implements LumiLightingEngine {
 
     public LightingEngine(final LumiWorld world) {
         this.world = world;
-        this.profiler = world.worldRoot().profiler();
+        this.profiler = world.rootWorld().profiler();
         isDynamicLightsLoaded = Loader.isModLoaded("DynamicLights");
 
         PooledLongQueue.Pool pool = new PooledLongQueue.Pool();
@@ -194,7 +193,7 @@ public class LightingEngine implements LumiLightingEngine {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
-        if (this.world.worldRoot().isClientSide() && !this.isCallingFromMainThread()) {
+        if (this.world.rootWorld().isClientSide() && !this.isCallingFromMainThread()) {
             return;
         }
 
@@ -384,7 +383,7 @@ public class LightingEngine implements LumiLightingEngine {
 
                 if (oldLight == curLight) //only process this if nothing else has happened at this position since scheduling
                 {
-                    this.world.worldRoot().markBlockForRenderUpdate(this.curPos.getX(), this.curPos.getY(), this.curPos.getZ());
+                    this.world.rootWorld().markBlockForRenderUpdate(this.curPos.getX(), this.curPos.getY(), this.curPos.getZ());
 
                     if (curLight > 1) {
                         this.spreadLightFromCursor(curLight, lightType);
@@ -454,7 +453,7 @@ public class LightingEngine implements LumiLightingEngine {
                 return 0;
             }
         } else if (type == EnumSkyBlock.Sky) {
-            if (!chunk.lumiWorld().worldRoot().hasSkyLight()) {
+            if (!chunk.lumiWorld().rootWorld().hasSkyLight()) {
                 return 0;
             } else {
                 return LightingHooks.lumiGetSkylight(storage, i, j & 15, k);
@@ -608,11 +607,11 @@ public class LightingEngine implements LumiLightingEngine {
             }
         }
 
-        return MathHelper.clamp_int(world.lumiGetLightValue(block, meta, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ()), 0, MAX_LIGHT);
+        return MathHelper.clamp_int(world.getLumiLightValue(block, meta, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ()), 0, MAX_LIGHT);
     }
 
     private int getPosOpacity(final BlockPos pos, final Block block, final int meta) {
-        return MathHelper.clamp_int(world.lumiGetLightOpacity(block, meta, pos.getX(), pos.getY(), pos.getZ()), 1, MAX_LIGHT);
+        return MathHelper.clamp_int(world.getLumiLightOpacity(block, meta, pos.getX(), pos.getY(), pos.getZ()), 1, MAX_LIGHT);
     }
 
     private LumiChunk getChunk(final BlockPos pos) {

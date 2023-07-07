@@ -64,7 +64,7 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     private LumiLightingEngine lightingEngine;
 
     @Override
-    public World world() {
+    public World vanillaWorld() {
         return thiz();
     }
 

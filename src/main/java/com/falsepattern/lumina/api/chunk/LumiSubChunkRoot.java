@@ -22,11 +22,14 @@
 package com.falsepattern.lumina.api.chunk;
 
 import net.minecraft.block.Block;
+import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 public interface LumiSubChunkRoot {
-    Block getBlock(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
-
-    int getBlockMeta(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
+    ExtendedBlockStorage vanillaSubChunk();
 
     int posY();
+
+    Block getBlockFromSubChunk(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
+
+    int getBlockMetaFromSubChunk(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 }

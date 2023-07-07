@@ -25,7 +25,6 @@ import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.engine.LumiLightingEngine;
-import com.falsepattern.lumina.api.engine.LumiLightingEngineProvider;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import lombok.val;
 import net.minecraft.world.World;
@@ -60,6 +59,37 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     private short[] neighborLightChecks;
     private boolean isLightInitialized;
 
+
+    @Override
+    public LumiChunkRoot rootChunk() {
+        return (LumiChunkRoot) this;
+    }
+
+    @Override
+    public LumiWorld lumiWorld() {
+        return (LumiWorld) worldObj;
+    }
+
+    @Override
+    public @Nullable LumiSubChunk subChunk(int chunkPosY) {
+        val subChunk = storageArrays[chunkPosY];
+        if (subChunk instanceof LumiSubChunk)
+            return (LumiSubChunk) subChunk;
+        return null;
+    }
+
+    @Override
+    public LumiLightingEngine lightingEngine() {
+        if (lightingEngine != null)
+            return lightingEngine;
+
+        val lumiWorld = ((LumiWorld) worldObj);
+        val lightingEngine = lumiWorld.lightingEngine();
+        if (lightingEngine == null)
+            throw new IllegalStateException();
+        return lightingEngine;
+    }
+
     @Override
     public int chunkPosX() {
         return xPosition;
@@ -71,36 +101,23 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public @Nullable LumiSubChunk subChunk(int index) {
-        val subChunk = storageArrays[index];
-        if (subChunk instanceof LumiSubChunk)
-            return (LumiSubChunk) subChunk;
-        return null;
+    public void minSkyLightPosY(int minSkyLightPosY) {
+        heightMapMinimum = minSkyLightPosY;
     }
 
     @Override
-    public LumiWorld lumiWorld() {
-        return (LumiWorld) worldObj;
-    }
-
-    @Override
-    public void minSkylightColumnHeight(int minSkylightColumnHeight) {
-        heightMapMinimum = minSkylightColumnHeight;
-    }
-
-    @Override
-    public int minSkylightColumnHeight() {
+    public int minSkyLightPosY() {
         return heightMapMinimum;
     }
 
     @Override
-    public int[] skylightColumnHeightArray() {
-        return heightMap;
+    public void minSkyLightColumns(short[] minSkyLightColumns) {
+        this.neighborLightChecks = minSkyLightColumns;
     }
 
     @Override
-    public void neighborLightChecks(short[] neighborLightChecks) {
-        this.neighborLightChecks = neighborLightChecks;
+    public int[] minSkyLightColumns() {
+        return heightMap;
     }
 
     @Override
@@ -109,33 +126,17 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public void lightInitialized(boolean lightInitialized) {
-        this.isLightInitialized = lightInitialized;
+    public void hasLightInitialized(boolean hasLightInitialized) {
+        this.isLightInitialized = hasLightInitialized;
     }
 
     @Override
-    public boolean lightInitialized() {
+    public boolean hasLightInitialized() {
         return isLightInitialized;
     }
 
     @Override
     public boolean[] outdatedSkylightColumns() {
         return updateSkylightColumns;
-    }
-
-    @Override
-    public LumiLightingEngine lightingEngine() {
-        if (lightingEngine == null) {
-            lightingEngine = ((LumiLightingEngineProvider) worldObj).lightingEngine();
-            if (lightingEngine == null) {
-                throw new IllegalStateException();
-            }
-        }
-        return lightingEngine;
-    }
-
-    @Override
-    public LumiChunkRoot chunkRoot() {
-        return (LumiChunkRoot) this;
     }
 }

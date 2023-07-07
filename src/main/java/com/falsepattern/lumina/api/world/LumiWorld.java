@@ -24,23 +24,24 @@ package com.falsepattern.lumina.api.world;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.engine.LumiLightingEngine;
-import com.falsepattern.lumina.api.engine.LumiLightingEngineProvider;
 import net.minecraft.block.Block;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
-public interface LumiWorld extends LumiLightingEngineProvider {
-    LumiChunk toLumiChunk(Chunk chunk);
+public interface LumiWorld {
+    String luminaWorldID();
 
-    LumiSubChunk toLumiSubChunk(ExtendedBlockStorage subChunk);
+    LumiWorldRoot rootWorld();
+
+    LumiChunk toLumiChunk(Chunk vanillaChunk);
+
+    LumiSubChunk toLumiSubChunk(ExtendedBlockStorage vanillaSubChunk);
 
     void lightingEngine(LumiLightingEngine lightingEngine);
 
-    int lumiGetLightValue(Block block, int blockMeta, int posX, int posY, int posZ);
+    LumiLightingEngine lightingEngine();
 
-    int lumiGetLightOpacity(Block block, int blockMeta, int posX, int posY, int posZ);
+    int getLumiLightValue(Block block, int blockMeta, int posX, int posY, int posZ);
 
-    String luminaWorldID();
-
-    LumiWorldRoot worldRoot();
+    int getLumiLightOpacity(Block block, int blockMeta, int posX, int posY, int posZ);
 }

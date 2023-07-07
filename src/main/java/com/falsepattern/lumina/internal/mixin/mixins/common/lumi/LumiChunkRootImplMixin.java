@@ -47,7 +47,6 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     public abstract int getTopFilledSegment();
 
     @Shadow
-    @Override
     public abstract Block getBlock(int subChunkPosX, int posY, int subChunkPosZ);
 
     @Shadow
@@ -56,14 +55,18 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     @Shadow
     public abstract void setChunkModified();
 
-    // region LumiChunkRoot
     @Override
-    public void markDirty() {
-        setChunkModified();
+    public Chunk vanillaChunk() {
+        return thiz();
     }
 
     @Override
-    public int getBlockMeta(int subChunkPosX, int posY, int subChunkPosZ) {
+    public Block getBlockFromChunk(int subChunkPosX, int posY, int subChunkPosZ) {
+        return getBlock(subChunkPosX, posY, subChunkPosZ);
+    }
+
+    @Override
+    public int getBlockMetaFromChunk(int subChunkPosX, int posY, int subChunkPosZ) {
         return getBlockMetadata(subChunkPosX, posY, subChunkPosZ);
     }
 
@@ -84,18 +87,21 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     }
 
     @Override
-    public void rootIsGapLightingUpdated(boolean b) {
-        isGapLightingUpdated = b;
-    }
-
-    @Override
-    public int topExistingSubChunkIndex() {
+    public int topPreparedSubChunkPosY() {
         return getTopFilledSegment();
     }
 
     @Override
-    public int[] precipitationHeightArray() {
-        return precipitationHeightMap;
+    public void shouldRecheckLightingGaps(boolean shouldRecheckLightingGaps) {
+        this.isGapLightingUpdated = shouldRecheckLightingGaps;
     }
-    // endregion
+
+    @Override
+    public void markDirty() {
+        setChunkModified();
+    }
+
+    private Chunk thiz() {
+        return (Chunk) (Object) this;
+    }
 }

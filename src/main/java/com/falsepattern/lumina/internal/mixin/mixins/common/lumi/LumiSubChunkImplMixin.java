@@ -48,7 +48,7 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
     }
 
     @Override
-    public LumiSubChunkRoot subChunkRoot() {
+    public LumiSubChunkRoot rootSubChunk() {
         return (LumiSubChunkRoot) this;
     }
 }

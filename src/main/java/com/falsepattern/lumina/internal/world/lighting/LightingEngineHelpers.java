@@ -22,11 +22,10 @@
 package com.falsepattern.lumina.internal.world.lighting;
 
 import com.falsepattern.lib.compat.BlockPos;
-import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
+import com.falsepattern.lumina.api.world.LumiWorld;
 import lombok.val;
-
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 
@@ -46,7 +45,7 @@ public class LightingEngineHelpers {
 
         if (section != null)
         {
-            return section.subChunkRoot().getBlock(x & 15, y & 15, z & 15);
+            return section.rootSubChunk().getBlockFromSubChunk(x & 15, y & 15, z & 15);
         }
 
         return DEFAULT_BLOCK;
@@ -64,7 +63,7 @@ public class LightingEngineHelpers {
 
         if (section != null)
         {
-            return section.subChunkRoot().getBlockMeta(x & 15, y & 15, z & 15);
+            return section.rootSubChunk().getBlockMetaFromSubChunk(x & 15, y & 15, z & 15);
         }
 
         return DEFAULT_METADATA;
@@ -72,7 +71,7 @@ public class LightingEngineHelpers {
 
 
     public static LumiChunk getLoadedChunk(LumiWorld world, int chunkX, int chunkZ) {
-        val provider = world.worldRoot().chunkProvider();
+        val provider = world.rootWorld().chunkProvider();
         if(!provider.chunkExists(chunkX, chunkZ))
             return null;
         return world.toLumiChunk(provider.provideChunk(chunkX, chunkZ));

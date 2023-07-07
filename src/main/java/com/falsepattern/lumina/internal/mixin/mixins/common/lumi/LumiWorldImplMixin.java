@@ -27,8 +27,6 @@ import com.falsepattern.lumina.api.engine.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import com.falsepattern.lumina.internal.Tags;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import net.minecraft.block.Block;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -37,38 +35,46 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(World.class)
-@Accessors(fluent = true, chain = false)
 public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
-    @Setter
     private LumiLightingEngine lightingEngine;
-
-    @Override
-    public LumiChunk toLumiChunk(Chunk chunk) {
-        return (LumiChunk) chunk;
-    }
-
-    @Override
-    public LumiSubChunk toLumiSubChunk(ExtendedBlockStorage subChunk) {
-        return (LumiSubChunk) subChunk;
-    }
-
-    @Override
-    public int lumiGetLightValue(Block block, int blockMeta, int posX, int posY, int posZ) {
-        return block.getLightValue(this, posX, posY, posZ);
-    }
-
-    @Override
-    public int lumiGetLightOpacity(Block block, int blockMeta, int posX, int posY, int posZ) {
-        return block.getLightOpacity(this, posX, posY, posZ);
-    }
-
-    @Override
-    public LumiWorldRoot worldRoot() {
-        return (LumiWorldRoot) this;
-    }
 
     @Override
     public String luminaWorldID() {
         return Tags.MODID;
+    }
+
+    @Override
+    public LumiWorldRoot rootWorld() {
+        return (LumiWorldRoot) this;
+    }
+
+    @Override
+    public LumiChunk toLumiChunk(Chunk vanillaChunk) {
+        return (LumiChunk) vanillaChunk;
+    }
+
+    @Override
+    public LumiSubChunk toLumiSubChunk(ExtendedBlockStorage vanillaSubChunk) {
+        return (LumiSubChunk) vanillaSubChunk;
+    }
+
+    @Override
+    public void lightingEngine(LumiLightingEngine lightingEngine) {
+        this.lightingEngine = lightingEngine;
+    }
+
+    @Override
+    public LumiLightingEngine lightingEngine() {
+        return lightingEngine;
+    }
+
+    @Override
+    public int getLumiLightValue(Block block, int blockMeta, int posX, int posY, int posZ) {
+        return block.getLightValue(this, posX, posY, posZ);
+    }
+
+    @Override
+    public int getLumiLightOpacity(Block block, int blockMeta, int posX, int posY, int posZ) {
+        return block.getLightOpacity(this, posX, posY, posZ);
     }
 }

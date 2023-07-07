@@ -22,19 +22,20 @@
 package com.falsepattern.lumina.api.chunk;
 
 import net.minecraft.block.Block;
+import net.minecraft.world.chunk.Chunk;
 
 public interface LumiChunkRoot {
-    void markDirty();
+    Chunk vanillaChunk();
 
-    Block getBlock(int subChunkPosX, int posY, int subChunkPosZ);
+    Block getBlockFromChunk(int subChunkPosX, int posY, int subChunkPosZ);
 
-    int getBlockMeta(int subChunkPosX, int posY, int subChunkPosZ);
+    int getBlockMetaFromChunk(int subChunkPosX, int posY, int subChunkPosZ);
 
     void prepareSubChunk(int posY);
 
-    void rootIsGapLightingUpdated(boolean b);
+    int topPreparedSubChunkPosY();
 
-    int topExistingSubChunkIndex();
+    void shouldRecheckLightingGaps(boolean shouldRecheckLightingGaps);
 
-    int[] precipitationHeightArray();
+    void markDirty();
 }

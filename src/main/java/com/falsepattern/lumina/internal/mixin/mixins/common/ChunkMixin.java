@@ -25,6 +25,13 @@ import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
 import lombok.val;
 import lombok.var;
+import net.minecraft.block.Block;
+import net.minecraft.world.ChunkCoordIntPair;
+import net.minecraft.world.EnumSkyBlock;
+import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
@@ -35,14 +42,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
-
-import net.minecraft.block.Block;
-import net.minecraft.world.ChunkCoordIntPair;
-import net.minecraft.world.EnumSkyBlock;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @Mixin(Chunk.class)
 public abstract class ChunkMixin {
@@ -263,7 +262,7 @@ public abstract class ChunkMixin {
         for (int i = 0; i < lumiWorldCount; i++) {
             val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
             val lumiChunk = lumiWorld.toLumiChunk(thiz());
-            val height = lumiChunk.skylightColumnHeightArray()[cZ << 4 | cX];
+            val height = lumiChunk.minSkyLightColumns()[cZ << 4 | cX];
 
             if (cY >= height - 1)
                 LightingHooks.relightBlock(lumiChunk, cX, cY + 1, cZ);
@@ -329,8 +328,8 @@ public abstract class ChunkMixin {
                     for (int l = 0; l < lumiCount; l++) {
                         val lumiWorld = LumiWorldManager.getWorld(worldObj, l);
                         val lumiStorage = lumiWorld.toLumiSubChunk(vanillaStorage);
-                        if (lumiWorld.lumiGetLightOpacity(block, meta, bx, by, bz) >= 255 &&
-                            lumiWorld.lumiGetLightValue(block, meta, bx, by, bz) <= 0) {
+                        if (lumiWorld.getLumiLightOpacity(block, meta, bx, by, bz) >= 255 &&
+                            lumiWorld.getLumiLightValue(block, meta, bx, by, bz) <= 0) {
                             val bla = lumiStorage.blockLight();
                             final int prevLight = bla.get(x, y, z);
                             if (prevLight != 0) {

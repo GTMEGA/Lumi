@@ -25,9 +25,9 @@ import net.minecraft.world.chunk.NibbleArray;
 import org.jetbrains.annotations.Nullable;
 
 public interface LumiSubChunk {
+    LumiSubChunkRoot rootSubChunk();
+
     NibbleArray blockLight();
 
     @Nullable NibbleArray skyLight();
-
-    LumiSubChunkRoot subChunkRoot();
 }

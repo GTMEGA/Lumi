@@ -26,7 +26,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.IChunkProvider;
 
 public interface LumiWorldRoot {
-    World world();
+    World vanillaWorld();
 
     Profiler profiler();
 

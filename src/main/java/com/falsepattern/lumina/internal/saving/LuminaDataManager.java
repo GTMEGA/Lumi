@@ -26,7 +26,6 @@ import com.falsepattern.lumina.internal.Tags;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
 import lombok.val;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.Chunk;
 
@@ -42,8 +41,8 @@ public class LuminaDataManager implements ChunkDataManager.ChunkNBTDataManager, 
             val subTag = new NBTTagCompound();
             LightingHooks.writeNeighborLightChecksToNBT(lChunk, subTag);
 
-            subTag.setBoolean("LightPopulated", lChunk.lightInitialized());
-            subTag.setIntArray("HeightMap", lChunk.skylightColumnHeightArray());
+            subTag.setBoolean("LightPopulated", lChunk.hasLightInitialized());
+            subTag.setIntArray("HeightMap", lChunk.minSkyLightColumns());
             nbt.setTag(lWorld.luminaWorldID(), subTag);
         }
     }
@@ -58,13 +57,13 @@ public class LuminaDataManager implements ChunkDataManager.ChunkNBTDataManager, 
             val subTag = nbt.getCompoundTag(lWorld.luminaWorldID());
             LightingHooks.readNeighborLightChecksFromNBT(lChunk, subTag);
             boolean lightPop = !forceRelight && subTag.getBoolean("LightPopulated");
-            lChunk.lightInitialized(lightPop);
+            lChunk.hasLightInitialized(lightPop);
             if (!lightPop) {
                 LightingHooks.generateSkylightMap(lChunk);
             } else {
                 val heightMap = subTag.getIntArray("HeightMap");
                 if (heightMap != null && heightMap.length == 256) {
-                    System.arraycopy(heightMap, 0, lChunk.skylightColumnHeightArray(), 0, 256);
+                    System.arraycopy(heightMap, 0, lChunk.minSkyLightColumns(), 0, 256);
                 } else {
                     LightingHooks.generateSkylightMap(lChunk);
                 }
@@ -95,7 +94,7 @@ public class LuminaDataManager implements ChunkDataManager.ChunkNBTDataManager, 
     @Override
     public void readFromBuffer(Chunk chunk, int ebsMask, boolean forceUpdate, ByteBuffer buffer) {
         for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
-            LumiWorldManager.getWorld(chunk.worldObj, i).toLumiChunk(chunk).lightInitialized(true);
+            LumiWorldManager.getWorld(chunk.worldObj, i).toLumiChunk(chunk).hasLightInitialized(true);
         }
     }
 }
