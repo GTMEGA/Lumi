@@ -262,7 +262,7 @@ public abstract class ChunkMixin {
         for (int i = 0; i < lumiWorldCount; i++) {
             val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
             val lumiChunk = lumiWorld.toLumiChunk(thiz());
-            val height = lumiChunk.minSkyLightColumns()[cZ << 4 | cX];
+            val height = lumiChunk.skyLightHeights()[cZ << 4 | cX];
 
             if (cY >= height - 1)
                 LightingHooks.relightBlock(lumiChunk, cX, cY + 1, cZ);

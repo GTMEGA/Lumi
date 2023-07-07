@@ -137,8 +137,8 @@ public class LightingHooks {
 
             int l1 = lumiGetHeightValue(chunk, x, z);
 
-            if (l1 < chunk.minSkyLightPosY()) {
-                chunk.minSkyLightPosY(l1);
+            if (l1 < chunk.minSkyLightHeight()) {
+                chunk.minSkyLightHeight(l1);
             }
         }
     }
@@ -171,8 +171,8 @@ public class LightingHooks {
     private static boolean recheckGapsForColumn(LumiChunk chunk, WorldChunkSlice slice, int x, int z) {
         int i = x + z * 16;
 
-        if (chunk.outdatedSkylightColumns()[i]) {
-            chunk.outdatedSkylightColumns()[i] = false;
+        if (chunk.outdatedSkyLightColumns()[i]) {
+            chunk.outdatedSkyLightColumns()[i] = false;
 
             int height = lumiGetHeightValue(chunk, x, z);
 
@@ -196,7 +196,7 @@ public class LightingHooks {
             int j = x + facing.getFrontOffsetX();
             int k = z + facing.getFrontOffsetZ();
 
-            max = Math.min(max, slice.getChunkFromWorldCoords(j, k).minSkyLightPosY());
+            max = Math.min(max, slice.getChunkFromWorldCoords(j, k).minSkyLightHeight());
         }
 
         return max;
@@ -238,19 +238,19 @@ public class LightingHooks {
     }
 
     public static boolean lumiCanBlockSeeTheSky(LumiChunk iLumiChunk, int x, int y, int z) {
-        return y >= iLumiChunk.minSkyLightColumns()[z << 4 | x];
+        return y >= iLumiChunk.skyLightHeights()[z << 4 | x];
     }
 
     public static void lumiSetSkylightUpdatedPublic(LumiChunk iLumiChunk) {
-        Arrays.fill(iLumiChunk.outdatedSkylightColumns(), true);
+        Arrays.fill(iLumiChunk.outdatedSkyLightColumns(), true);
     }
 
     public static void lumiSetHeightValue(LumiChunk iLumiChunk, int x, int z, int val) {
-        iLumiChunk.minSkyLightColumns()[z << 4 | x] = val;
+        iLumiChunk.skyLightHeights()[z << 4 | x] = val;
     }
 
     public static int lumiGetHeightValue(LumiChunk iLumiChunk, int x, int z) {
-        return iLumiChunk.minSkyLightColumns()[z << 4 | x];
+        return iLumiChunk.skyLightHeights()[z << 4 | x];
     }
 
     public static int getCachedLightFor(LumiChunk iLumiChunk, EnumSkyBlock type, int xIn, int yIn, int zIn) {
@@ -322,9 +322,9 @@ public class LightingHooks {
     public static void generateSkylightMap(LumiChunk chunk) {
         val root = chunk.rootChunk();
         int topSegment = root.topPreparedSubChunkPosY();
-        chunk.minSkyLightPosY(Integer.MAX_VALUE);
+        chunk.minSkyLightHeight(Integer.MAX_VALUE);
         int heightMapMinimum = Integer.MAX_VALUE;
-        val heightMap = chunk.minSkyLightColumns();
+        val heightMap = chunk.skyLightHeights();
         for (int x = 0; x < 16; ++x) {
             int z = 0;
             while (z < 16) {
@@ -380,7 +380,7 @@ public class LightingHooks {
         }
 
         chunk.rootChunk().markDirty();
-        chunk.minSkyLightPosY(heightMapMinimum);
+        chunk.minSkyLightHeight(heightMapMinimum);
     }
 
     /**
@@ -391,7 +391,7 @@ public class LightingHooks {
     public static void generateHeightMap(LumiChunk chunk) {
         int i = chunk.rootChunk().topPreparedSubChunkPosY();
         int heightMapMinimum = Integer.MAX_VALUE;
-        val heightMap = chunk.minSkyLightColumns();
+        val heightMap = chunk.skyLightHeights();
 
         for (int j = 0; j < 16; ++j) {
             int k = 0;
@@ -421,7 +421,7 @@ public class LightingHooks {
             }
         }
 
-        chunk.minSkyLightPosY(heightMapMinimum);
+        chunk.minSkyLightHeight(heightMapMinimum);
         chunk.rootChunk().markDirty();
     }
 
@@ -441,7 +441,7 @@ public class LightingHooks {
     public static void flagChunkBoundaryForUpdate(final LumiChunk chunk, final short sectionMask, final EnumSkyBlock lightType, final EnumFacing dir,
                                                   final AxisDirection axisDirection, final EnumBoundaryFacing boundaryFacing) {
         initNeighborLightChecks(chunk);
-        chunk.neighborLightChecks()[getFlagIndex(lightType, dir, axisDirection, boundaryFacing)] |= sectionMask;
+        chunk.neighborLightCheckFlags()[getFlagIndex(lightType, dir, axisDirection, boundaryFacing)] |= sectionMask;
         chunk.rootChunk().markDirty();
     }
 
@@ -523,7 +523,7 @@ public class LightingHooks {
 
     private static void mergeFlags(final EnumSkyBlock lightType, final LumiChunk inChunk, final LumiChunk outChunk, final EnumFacing dir,
                                    final AxisDirection axisDir) {
-        if (outChunk.neighborLightChecks() == null) {
+        if (outChunk.neighborLightCheckFlags() == null) {
             return;
         }
 
@@ -532,19 +532,19 @@ public class LightingHooks {
         final int inIndex = getFlagIndex(lightType, dir, axisDir, EnumBoundaryFacing.IN);
         final int outIndex = getFlagIndex(lightType, getOpposite(dir), axisDir, EnumBoundaryFacing.OUT);
 
-        inChunk.neighborLightChecks()[inIndex] |= outChunk.neighborLightChecks()[outIndex];
+        inChunk.neighborLightCheckFlags()[inIndex] |= outChunk.neighborLightCheckFlags()[outIndex];
         //no need to call Chunk.setModified() since checks are not deleted from outChunk
     }
 
     private static void scheduleRelightChecksForBoundary(final LumiWorld world, final LumiChunk chunk, LumiChunk nChunk, LumiChunk sChunk, final EnumSkyBlock lightType,
                                                          final int xOffset, final int zOffset, final AxisDirection axisDir) {
-        if (chunk.neighborLightChecks() == null) {
+        if (chunk.neighborLightCheckFlags() == null) {
             return;
         }
 
         final int flagIndex = getFlagIndex(lightType, xOffset, zOffset, axisDir, EnumBoundaryFacing.IN); //OUT checks from neighbor are already merged
 
-        final int flags = chunk.neighborLightChecks()[flagIndex];
+        final int flags = chunk.neighborLightCheckFlags()[flagIndex];
 
         if (flags == 0) {
             return;
@@ -561,16 +561,16 @@ public class LightingHooks {
             int theZ = chunk.chunkPosZ() + (xOffset != 0 ? axisDir.getOffset() : 0);
 
             sChunk = LightingEngineHelpers.getLoadedChunk(world, theX, theZ);
-            if(sChunk == null)
+            if (sChunk == null)
                 return;
         }
 
         final int reverseIndex = getFlagIndex(lightType, -xOffset, -zOffset, axisDir, EnumBoundaryFacing.OUT);
 
-        chunk.neighborLightChecks()[flagIndex] = 0;
+        chunk.neighborLightCheckFlags()[flagIndex] = 0;
 
-        if (nChunk.neighborLightChecks() != null) {
-            nChunk.neighborLightChecks()[reverseIndex] = 0; //Clear only now that it's clear that the checks are processed
+        if (nChunk.neighborLightCheckFlags() != null) {
+            nChunk.neighborLightCheckFlags()[reverseIndex] = 0; //Clear only now that it's clear that the checks are processed
         }
 
         chunk.rootChunk().markDirty();
@@ -605,15 +605,15 @@ public class LightingHooks {
     }
 
     public static void initNeighborLightChecks(final LumiChunk chunk) {
-        if (chunk.neighborLightChecks() == null) {
-            chunk.neighborLightChecks(new short[FLAG_COUNT]);
+        if (chunk.neighborLightCheckFlags() == null) {
+            chunk.neighborLightCheckFlags(new short[FLAG_COUNT]);
         }
     }
 
     public static final String neighborLightChecksKey = "NeighborLightChecks";
 
     public static void writeNeighborLightChecksToNBT(final LumiChunk chunk, final NBTTagCompound nbt) {
-        short[] neighborLightChecks = chunk.neighborLightChecks();
+        short[] neighborLightChecks = chunk.neighborLightCheckFlags();
 
         if (neighborLightChecks == null) {
             return;
@@ -643,7 +643,7 @@ public class LightingHooks {
             if (list.tagCount() == FLAG_COUNT) {
                 initNeighborLightChecks(chunk);
 
-                short[] neighborLightChecks = chunk.neighborLightChecks();
+                short[] neighborLightChecks = chunk.neighborLightCheckFlags();
 
                 for (int i = 0; i < FLAG_COUNT; ++i) {
                     neighborLightChecks[i] = ((NBTTagShort) list.tagList.get(i)).func_150289_e();

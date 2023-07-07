@@ -42,7 +42,7 @@ public class LuminaDataManager implements ChunkDataManager.ChunkNBTDataManager, 
             LightingHooks.writeNeighborLightChecksToNBT(lChunk, subTag);
 
             subTag.setBoolean("LightPopulated", lChunk.hasLightInitialized());
-            subTag.setIntArray("HeightMap", lChunk.minSkyLightColumns());
+            subTag.setIntArray("HeightMap", lChunk.skyLightHeights());
             nbt.setTag(lWorld.luminaWorldID(), subTag);
         }
     }
@@ -63,7 +63,7 @@ public class LuminaDataManager implements ChunkDataManager.ChunkNBTDataManager, 
             } else {
                 val heightMap = subTag.getIntArray("HeightMap");
                 if (heightMap != null && heightMap.length == 256) {
-                    System.arraycopy(heightMap, 0, lChunk.minSkyLightColumns(), 0, 256);
+                    System.arraycopy(heightMap, 0, lChunk.skyLightHeights(), 0, 256);
                 } else {
                     LightingHooks.generateSkylightMap(lChunk);
                 }

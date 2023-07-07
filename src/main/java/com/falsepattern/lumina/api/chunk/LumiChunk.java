@@ -40,19 +40,23 @@ public interface LumiChunk {
 
     // TODO: Add isBlockOnTop
 
-    void minSkyLightPosY(int minSkyLightPosY);
+    // TODO: Add skyLightHeight setter/getter
+    int[] skyLightHeights();
 
-    int minSkyLightPosY();
+    void minSkyLightHeight(int minSkyLightPosY);
 
-    int[] minSkyLightColumns();
+    int minSkyLightHeight();
 
-    void neighborLightChecks(short @Nullable [] neighborLightChecks);
+    // TODO: Add outdatedSkylightColumn setter/getter
+    boolean[] outdatedSkyLightColumns();
 
-    short @Nullable [] neighborLightChecks();
+    // TODO: This is currently late-initialized, it should be tacked onto the constructor
+    @Deprecated
+    void neighborLightCheckFlags(short[] neighborLightCheckFlags);
+
+    short @Nullable [] neighborLightCheckFlags();
 
     void hasLightInitialized(boolean hasLightInitialized);
 
     boolean hasLightInitialized();
-
-    boolean[] outdatedSkylightColumns();
 }

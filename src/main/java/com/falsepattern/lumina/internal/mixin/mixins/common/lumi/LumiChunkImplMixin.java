@@ -55,7 +55,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     @Shadow
     public int heightMapMinimum;
 
-    private short[] neighborLightChecks;
+    private short[] neighborLightCheckFlags;
     private boolean isLightInitialized;
     private LumiLightingEngine lightingEngine;
 
@@ -100,28 +100,33 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public void minSkyLightPosY(int minSkyLightPosY) {
-        heightMapMinimum = minSkyLightPosY;
-    }
-
-    @Override
-    public int minSkyLightPosY() {
-        return heightMapMinimum;
-    }
-
-    @Override
-    public void neighborLightChecks(short[] neighborLightChecks) {
-        this.neighborLightChecks = neighborLightChecks;
-    }
-
-    @Override
-    public int[] minSkyLightColumns() {
+    public int[] skyLightHeights() {
         return heightMap;
     }
 
     @Override
-    public short[] neighborLightChecks() {
-        return neighborLightChecks;
+    public void minSkyLightHeight(int minSkyLightHeight) {
+        heightMapMinimum = minSkyLightHeight;
+    }
+
+    @Override
+    public int minSkyLightHeight() {
+        return heightMapMinimum;
+    }
+
+    @Override
+    public boolean[] outdatedSkyLightColumns() {
+        return updateSkylightColumns;
+    }
+
+    @Override
+    public void neighborLightCheckFlags(short[] neighborLightCheckFlags) {
+        this.neighborLightCheckFlags = neighborLightCheckFlags;
+    }
+
+    @Override
+    public short[] neighborLightCheckFlags() {
+        return neighborLightCheckFlags;
     }
 
     @Override
@@ -132,10 +137,5 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     @Override
     public boolean hasLightInitialized() {
         return isLightInitialized;
-    }
-
-    @Override
-    public boolean[] outdatedSkylightColumns() {
-        return updateSkylightColumns;
     }
 }
