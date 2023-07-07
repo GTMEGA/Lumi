@@ -55,10 +55,9 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     @Shadow
     public int heightMapMinimum;
 
-    private LumiLightingEngine lightingEngine;
     private short[] neighborLightChecks;
     private boolean isLightInitialized;
-
+    private LumiLightingEngine lightingEngine;
 
     @Override
     public LumiChunkRoot rootChunk() {
@@ -111,8 +110,8 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public void minSkyLightColumns(short[] minSkyLightColumns) {
-        this.neighborLightChecks = minSkyLightColumns;
+    public void neighborLightChecks(short[] neighborLightChecks) {
+        this.neighborLightChecks = neighborLightChecks;
     }
 
     @Override

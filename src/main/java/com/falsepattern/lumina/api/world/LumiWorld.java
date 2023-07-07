@@ -41,7 +41,10 @@ public interface LumiWorld {
 
     LumiLightingEngine lightingEngine();
 
-    int getLumiLightValue(Block block, int blockMeta, int posX, int posY, int posZ);
+    int getBlockLightValue(Block block, int blockMeta, int posX, int posY, int posZ);
 
-    int getLumiLightOpacity(Block block, int blockMeta, int posX, int posY, int posZ);
+    int getBlockLightOpacity(Block block, int blockMeta, int posX, int posY, int posZ);
+
+    // TODO: Add getWorldLightValue (EnumSkyBlock, x, y, z)
+    // TODO: Add getWorldLightOpacity (EnumSkyBlock, x, y, z)
 }

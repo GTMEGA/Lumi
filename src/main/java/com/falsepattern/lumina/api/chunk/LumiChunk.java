@@ -38,13 +38,15 @@ public interface LumiChunk {
 
     int chunkPosZ();
 
+    // TODO: Add isBlockOnTop
+
     void minSkyLightPosY(int minSkyLightPosY);
 
     int minSkyLightPosY();
 
-    void minSkyLightColumns(short[] minSkyLightColumns);
-
     int[] minSkyLightColumns();
+
+    void neighborLightChecks(short @Nullable [] neighborLightChecks);
 
     short @Nullable [] neighborLightChecks();
 

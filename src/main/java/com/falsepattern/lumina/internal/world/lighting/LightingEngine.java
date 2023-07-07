@@ -453,7 +453,7 @@ public class LightingEngine implements LumiLightingEngine {
                 return 0;
             }
         } else if (type == EnumSkyBlock.Sky) {
-            if (!chunk.lumiWorld().rootWorld().hasSkyLight()) {
+            if (!chunk.lumiWorld().rootWorld().hasSky()) {
                 return 0;
             } else {
                 return LightingHooks.lumiGetSkylight(storage, i, j & 15, k);
@@ -607,11 +607,11 @@ public class LightingEngine implements LumiLightingEngine {
             }
         }
 
-        return MathHelper.clamp_int(world.getLumiLightValue(block, meta, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ()), 0, MAX_LIGHT);
+        return MathHelper.clamp_int(world.getBlockLightValue(block, meta, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ()), 0, MAX_LIGHT);
     }
 
     private int getPosOpacity(final BlockPos pos, final Block block, final int meta) {
-        return MathHelper.clamp_int(world.getLumiLightOpacity(block, meta, pos.getX(), pos.getY(), pos.getZ()), 1, MAX_LIGHT);
+        return MathHelper.clamp_int(world.getBlockLightOpacity(block, meta, pos.getX(), pos.getY(), pos.getZ()), 1, MAX_LIGHT);
     }
 
     private LumiChunk getChunk(final BlockPos pos) {

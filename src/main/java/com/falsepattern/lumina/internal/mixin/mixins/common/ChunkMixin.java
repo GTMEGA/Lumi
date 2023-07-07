@@ -328,9 +328,9 @@ public abstract class ChunkMixin {
                     for (int l = 0; l < lumiCount; l++) {
                         val lumiWorld = LumiWorldManager.getWorld(worldObj, l);
                         val lumiStorage = lumiWorld.toLumiSubChunk(vanillaStorage);
-                        if (lumiWorld.getLumiLightOpacity(block, meta, bx, by, bz) >= 255 &&
-                            lumiWorld.getLumiLightValue(block, meta, bx, by, bz) <= 0) {
-                            val bla = lumiStorage.blockLight();
+                        if (lumiWorld.getBlockLightOpacity(block, meta, bx, by, bz) >= 255 &&
+                            lumiWorld.getBlockLightValue(block, meta, bx, by, bz) <= 0) {
+                            val bla = lumiStorage.blockLightValues();
                             final int prevLight = bla.get(x, y, z);
                             if (prevLight != 0) {
                                 bla.set(x, y, z, 0);

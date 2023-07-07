@@ -38,12 +38,12 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
     private NibbleArray skylightArray;
 
     @Override
-    public NibbleArray blockLight() {
+    public NibbleArray blockLightValues() {
         return blocklightArray;
     }
 
     @Override
-    public @Nullable NibbleArray skyLight() {
+    public @Nullable NibbleArray skyLightValues() {
         return skylightArray;
     }
 

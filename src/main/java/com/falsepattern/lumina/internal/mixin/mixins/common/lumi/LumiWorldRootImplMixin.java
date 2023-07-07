@@ -64,7 +64,7 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     private LumiLightingEngine lightingEngine;
 
     @Override
-    public World vanillaWorld() {
+    public World asVanillaWorld() {
         return thiz();
     }
 
@@ -79,7 +79,7 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     }
 
     @Override
-    public boolean hasSkyLight() {
+    public boolean hasSky() {
         return !provider.hasNoSky;
     }
 
@@ -89,12 +89,12 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     }
 
     @Override
-    public boolean doesChunkCuboidExist(int minPosX, int minPosY, int minPosZ, int maxPosX, int maxPosY, int maxPosZ) {
+    public boolean doChunksExist(int minPosX, int minPosY, int minPosZ, int maxPosX, int maxPosY, int maxPosZ) {
         return checkChunksExist(minPosX, minPosY, minPosZ, maxPosX, maxPosY, maxPosZ);
     }
 
     @Override
-    public boolean doesChunkCubeExist(int centerPosX, int centerPosY, int centerPosZ, int blockRange) {
+    public boolean doChunksExist(int centerPosX, int centerPosY, int centerPosZ, int blockRange) {
         return doChunksNearChunkExist(centerPosX, centerPosY, centerPosZ, blockRange);
     }
 

@@ -56,7 +56,7 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     public abstract void setChunkModified();
 
     @Override
-    public Chunk vanillaChunk() {
+    public Chunk asVanillaChunk() {
         return thiz();
     }
 

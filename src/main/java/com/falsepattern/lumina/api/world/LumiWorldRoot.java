@@ -26,19 +26,19 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.IChunkProvider;
 
 public interface LumiWorldRoot {
-    World vanillaWorld();
+    World asVanillaWorld();
 
     Profiler profiler();
 
     boolean isClientSide();
 
-    boolean hasSkyLight();
+    boolean hasSky();
 
     void markBlockForRenderUpdate(int posX, int posY, int posZ);
 
     IChunkProvider chunkProvider();
 
-    boolean doesChunkCuboidExist(int minPosX, int minPosY, int minPosZ, int maxPosX, int maxPosY, int maxPosZ);
+    boolean doChunksExist(int minPosX, int minPosY, int minPosZ, int maxPosX, int maxPosY, int maxPosZ);
 
-    boolean doesChunkCubeExist(int centerPosX, int centerPosY, int centerPosZ, int blockRange);
+    boolean doChunksExist(int centerPosX, int centerPosY, int centerPosZ, int blockRange);
 }

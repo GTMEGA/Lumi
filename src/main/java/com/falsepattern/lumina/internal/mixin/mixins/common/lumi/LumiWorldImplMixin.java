@@ -69,12 +69,12 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     }
 
     @Override
-    public int getLumiLightValue(Block block, int blockMeta, int posX, int posY, int posZ) {
+    public int getBlockLightValue(Block block, int blockMeta, int posX, int posY, int posZ) {
         return block.getLightValue(this, posX, posY, posZ);
     }
 
     @Override
-    public int getLumiLightOpacity(Block block, int blockMeta, int posX, int posY, int posZ) {
+    public int getBlockLightOpacity(Block block, int blockMeta, int posX, int posY, int posZ) {
         return block.getLightOpacity(this, posX, posY, posZ);
     }
 }

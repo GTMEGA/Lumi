@@ -25,7 +25,7 @@ import net.minecraft.block.Block;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 public interface LumiSubChunkRoot {
-    ExtendedBlockStorage vanillaSubChunk();
+    ExtendedBlockStorage asVanillaSubChunk();
 
     int posY();
 

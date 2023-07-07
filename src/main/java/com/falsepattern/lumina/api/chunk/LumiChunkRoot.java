@@ -25,7 +25,7 @@ import net.minecraft.block.Block;
 import net.minecraft.world.chunk.Chunk;
 
 public interface LumiChunkRoot {
-    Chunk vanillaChunk();
+    Chunk asVanillaChunk();
 
     Block getBlockFromChunk(int subChunkPosX, int posY, int subChunkPosZ);
 
