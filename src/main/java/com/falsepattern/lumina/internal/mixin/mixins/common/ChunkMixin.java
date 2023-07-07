@@ -46,22 +46,23 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @Mixin(Chunk.class)
 public abstract class ChunkMixin {
+    @Final
+    @Shadow
+    public int xPosition;
+    @Final
+    @Shadow
+    public int zPosition;
+
+    @Shadow
+    private ExtendedBlockStorage[] storageArrays;
     @Shadow
     public World worldObj;
     @Shadow
     public boolean isTerrainPopulated;
     @Shadow
-    private int queuedLightChecks;
-    @Shadow
-    @Final
-    public int xPosition;
-    @Shadow
-    @Final
-    public int zPosition;
-    @Shadow
-    private ExtendedBlockStorage[] storageArrays;
-    @Shadow
     public boolean isLightPopulated;
+    @Shadow
+    private int queuedLightChecks;
 
     /**
      * Callback injected to the head of getLightSubtracted(BlockPos, int) to force deferred light updates to be processed.
@@ -243,14 +244,29 @@ public abstract class ChunkMixin {
                      shift = At.Shift.AFTER),
             locals = LocalCapture.CAPTURE_FAILHARD,
             require = 1)
-    private void doCustomRelightChecks(int cX, int cY, int cZ, Block block, int p_150807_5_, CallbackInfoReturnable<Boolean> cir, int i1, int k, Block block1, int k1, ExtendedBlockStorage extendedblockstorage, boolean flag, int l1, int i2, int k2) {
-        for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
+    private void doCustomRelightChecks(int cX,
+                                       int cY,
+                                       int cZ,
+                                       Block block,
+                                       int p_150807_5_,
+                                       CallbackInfoReturnable<Boolean> cir,
+                                       int i1,
+                                       int k,
+                                       Block block1,
+                                       int k1,
+                                       ExtendedBlockStorage extendedblockstorage,
+                                       boolean flag,
+                                       int l1,
+                                       int i2,
+                                       int k2) {
+        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
+        for (int i = 0; i < lumiWorldCount; i++) {
             val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
             val lumiChunk = lumiWorld.toLumiChunk(thiz());
             val height = lumiChunk.skylightColumnHeightArray()[cZ << 4 | cX];
-            if (cY >= height - 1) {
+
+            if (cY >= height - 1)
                 LightingHooks.relightBlock(lumiChunk, cX, cY + 1, cZ);
-            }
         }
     }
 
@@ -267,19 +283,7 @@ public abstract class ChunkMixin {
               expect = 0
     )
     private ExtendedBlockStorage setBlockStateCreateSectionVanilla(int y, boolean storeSkylight) {
-        return initSection(y, storeSkylight);
-    }
-
-    private ExtendedBlockStorage initSection(int y, boolean storeSkylight) {
-        val storage = new ExtendedBlockStorage(y, storeSkylight);
-        for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
-            val world = LumiWorldManager.getWorld(worldObj, i);
-            val chunk = world.toLumiChunk((Chunk) (Object) this);
-            val ebs = world.toLumiSubChunk(storage);
-            LightingHooks.initSkylightForSection(world, chunk, ebs);
-        }
-
-        return storage;
+        return initSubChunk(y, storeSkylight);
     }
 
     /**
@@ -344,6 +348,20 @@ public abstract class ChunkMixin {
                 }
             }
         }
+    }
+
+    private ExtendedBlockStorage initSubChunk(int posY, boolean hasSky) {
+        val vanillaSubChunk = new ExtendedBlockStorage(posY, hasSky);
+
+        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
+        for (var i = 0; i < lumiWorldCount; i++) {
+            val world = LumiWorldManager.getWorld(worldObj, i);
+            val chunk = world.toLumiChunk(thiz());
+            val subChunk = world.toLumiSubChunk(vanillaSubChunk);
+            LightingHooks.initSkylightForSection(world, chunk, subChunk);
+        }
+
+        return vanillaSubChunk;
     }
 
     private Chunk thiz() {
