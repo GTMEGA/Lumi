@@ -31,6 +31,7 @@ import com.falsepattern.lumina.internal.collections.PooledLongQueue;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import lombok.val;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.profiler.Profiler;
@@ -591,8 +592,11 @@ public class LightingEngine implements LumiLightingEngine {
         return true;
     }
 
-    private int getCursorCachedLight(final EnumSkyBlock lightType) {
-        return LightingHooks.getCachedLightFor(this.curChunk, lightType, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ());
+    private int getCursorCachedLight(EnumSkyBlock lightType) {
+        val posY = curPos.getY();
+        val subChunkPosX = curPos.getX() & 15;
+        val subChunkPosZ = curPos.getZ() & 15;
+        return curChunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);
     }
 
     /**

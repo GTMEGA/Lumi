@@ -31,7 +31,6 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import lombok.val;
 import lombok.var;
-import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagShort;
@@ -254,45 +253,13 @@ public class LightingHooks {
         return iLumiChunk.skyLightHeights()[z << 4 | x];
     }
 
-    public static int getCachedLightFor(LumiChunk iLumiChunk, EnumSkyBlock type, int xIn, int yIn, int zIn) {
-        int i = xIn & 15;
-        int j = yIn;
-        int k = zIn & 15;
-
-        LumiSubChunk extendedblockstorage = iLumiChunk.subChunk(j >> 4);
-
-        if (extendedblockstorage == null) {
-            if (lumiCanBlockSeeTheSky(iLumiChunk, i, j, k)) {
-                return type.defaultLightValue;
-            } else {
-                return 0;
-            }
-        } else if (type == EnumSkyBlock.Sky) {
-            if (!iLumiChunk.lumiWorld().rootWorld().hasSky()) {
-                return 0;
-            } else {
-                return extendedblockstorage.getSkyLightValue(i, j & 15, k);
-            }
-        } else {
-            if (type == EnumSkyBlock.Block) {
-                return extendedblockstorage.getBlockLightValue(i, j & 15, k);
-            } else {
-                return type.defaultLightValue;
-            }
-        }
-    }
-
-    public static void lumiSetLightValue(LumiChunk iLumiChunk, EnumSkyBlock enumSkyBlock, int x, int y, int z, int lightValue) {
-        iLumiChunk.rootChunk().prepareSubChunk(y / 16);
-        val ebs = iLumiChunk.subChunk(y >>> 4);
-
-        if (enumSkyBlock == EnumSkyBlock.Sky) {
-            if (iLumiChunk.lumiWorld().rootWorld().hasSky()) {
-                ebs.setSkyLightValue(x, y & 15, z, lightValue);
-            }
-        } else if (enumSkyBlock == EnumSkyBlock.Block) {
-            ebs.setBlockLightValue(x, y & 15, z, lightValue);
-        }
+    public static void lumiSetLightValue(LumiChunk chunk,
+                                         EnumSkyBlock lightType,
+                                         int subChunkPosX,
+                                         int posY,
+                                         int subChunkPosZ,
+                                         int lightValue) {
+        chunk.lumi$setLightValue(lightType, subChunkPosX, posY, subChunkPosZ, lightValue);
     }
 
     /**
@@ -636,29 +603,22 @@ public class LightingHooks {
         if (!world.rootWorld().doChunksExist(minPosX, minPosY, minPosZ, maxPosX, maxPosY, maxPosZ))
             return;
 
-        val blockPos = new BlockPos.MutableBlockPos(basePosX, 0, basePosZ);
         for (var chunkPosY = 0; chunkPosY < 16; chunkPosY++) {
             val subChunk = chunk.subChunk(chunkPosY);
             if (subChunk == null)
                 continue;
-            val rootSubChunk = subChunk.rootSubChunk();
 
             val basePosY = chunkPosY * 16;
             for (int subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
                 for (int subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
                     for (int subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
-                        val block = rootSubChunk.getBlockFromSubChunk(subChunkPosX, subChunkPosY, subChunkPosZ);
-                        if (block == Blocks.air)
-                            continue;
-
-                        val blockMeta = rootSubChunk.getBlockMetaFromSubChunk(subChunkPosX, subChunkPosY, subChunkPosZ);
-                        val posX = basePosX + subChunkPosX;
-                        val posY = basePosY + subChunkPosY;
-                        val posZ = basePosZ + subChunkPosZ;
-
-                        val brightness = chunk.lumiWorld().getBlockBrightness(block, blockMeta, posX, posY, posZ);
-                        if (brightness > 0)
+                        val brightness = chunk.getBlockBrightness(subChunkPosX, subChunkPosY, subChunkPosZ);
+                        if (brightness > 0) {
+                            val posX = basePosX + subChunkPosX;
+                            val posY = basePosY + subChunkPosY;
+                            val posZ = basePosZ + subChunkPosZ;
                             world.lightingEngine().scheduleLightUpdate(EnumSkyBlock.Block, posX, posY, posZ);
+                        }
                     }
                 }
             }

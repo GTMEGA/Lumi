@@ -150,7 +150,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     public int lumi$getLightValue(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ) {
         switch (lightType) {
             case Block:
-                return getBrightnessAndBlockLightValueMax(subChunkPosX, posY, subChunkPosZ);
+                return getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
             case Sky:
                 return getSkyLightValue(subChunkPosX, posY, subChunkPosZ);
             default:
