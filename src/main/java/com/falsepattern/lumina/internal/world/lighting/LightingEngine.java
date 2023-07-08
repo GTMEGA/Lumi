@@ -456,11 +456,11 @@ public class LightingEngine implements LumiLightingEngine {
             if (!chunk.lumiWorld().rootWorld().hasSky()) {
                 return 0;
             } else {
-                return LightingHooks.lumiGetSkylight(storage, i, j & 15, k);
+                return storage.getSkyLightValue(i, j & 15, k);
             }
         } else {
             if (type == EnumSkyBlock.Block) {
-                return LightingHooks.lumiGetBlocklight(storage, i, j & 15, k);
+                return storage.getBlockLightValue(i, j & 15, k);
             } else {
                 return type.defaultLightValue;
             }

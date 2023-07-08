@@ -270,11 +270,11 @@ public class LightingHooks {
             if (!iLumiChunk.lumiWorld().rootWorld().hasSky()) {
                 return 0;
             } else {
-                return lumiGetSkylight(extendedblockstorage, i, j & 15, k);
+                return extendedblockstorage.getSkyLightValue(i, j & 15, k);
             }
         } else {
             if (type == EnumSkyBlock.Block) {
-                return lumiGetBlocklight(extendedblockstorage, i, j & 15, k);
+                return extendedblockstorage.getBlockLightValue(i, j & 15, k);
             } else {
                 return type.defaultLightValue;
             }
@@ -287,33 +287,11 @@ public class LightingHooks {
 
         if (enumSkyBlock == EnumSkyBlock.Sky) {
             if (iLumiChunk.lumiWorld().rootWorld().hasSky()) {
-                lumiSetSkylight(ebs, x, y & 15, z, lightValue);
+                ebs.setSkyLightValue(x, y & 15, z, lightValue);
             }
         } else if (enumSkyBlock == EnumSkyBlock.Block) {
-            lumiSetBlocklight(ebs, x, y & 15, z, lightValue);
+            ebs.setBlockLightValue(x, y & 15, z, lightValue);
         }
-    }
-
-    /**
-     * The custom skylight data
-     */
-    public static int lumiGetSkylight(LumiSubChunk iLumiEBS, int x, int y, int z) {
-        return iLumiEBS.getSkyLightValue(x, y, z);
-    }
-
-    public static void lumiSetSkylight(LumiSubChunk iLumiEBS, int x, int y, int z, int defaultLightValue) {
-        iLumiEBS.setSkyLightValue(x, y, z, defaultLightValue);
-    }
-
-    /**
-     * The custom blocklight data
-     */
-    public static int lumiGetBlocklight(LumiSubChunk iLumiEBS, int x, int y, int z) {
-        return iLumiEBS.getBlockLightValue(x, y, z);
-    }
-
-    public static void lumiSetBlocklight(LumiSubChunk iLumiEBS, int x, int y, int z, int defaultLightValue) {
-        iLumiEBS.setBlockLightValue(x, y, z, defaultLightValue);
     }
 
     /**
@@ -725,7 +703,7 @@ public class LightingHooks {
                 for (int z = 0; z < 16; ++z) {
                     if (lumiGetHeightValue(chunk, x, z) <= section.rootSubChunk().posY()) {
                         for (int y = 0; y < 16; ++y) {
-                            lumiSetSkylight(section, x, y, z, EnumSkyBlock.Sky.defaultLightValue);
+                            section.setSkyLightValue(x, y, z, EnumSkyBlock.Sky.defaultLightValue);
                         }
                     }
                 }
