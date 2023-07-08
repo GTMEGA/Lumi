@@ -22,10 +22,9 @@
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
 import lombok.val;
+import net.minecraft.util.LongHashMap;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
-
-import net.minecraft.util.LongHashMap;
 
 @Mixin(LongHashMap.class)
 public abstract class LongHashMapMixin {
@@ -39,6 +38,6 @@ public abstract class LongHashMapMixin {
     private static int getHashedKey(long key) {
         val a = (int) key;
         val b = (int) (key >>> 32);
-        return (a + b) * HASH_PRIME;
+        return a + (b * HASH_PRIME);
     }
 }
