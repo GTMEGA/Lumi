@@ -27,10 +27,17 @@ import org.jetbrains.annotations.Nullable;
 public interface LumiSubChunk {
     LumiSubChunkRoot rootSubChunk();
 
-    // TODO: Add blockLight() Setter/Getter
-    // TODO: Add skyLight() Setter/Getter
+    void setBlockLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
 
+    int getBlockLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
+
+    void setSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
+
+    int getSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
+
+    @Deprecated
     NibbleArray blockLightValues();
 
+    @Deprecated
     @Nullable NibbleArray skyLightValues();
 }

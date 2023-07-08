@@ -27,6 +27,7 @@ import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.engine.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import lombok.val;
+import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
@@ -97,6 +98,30 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     @Override
     public int chunkPosZ() {
         return zPosition;
+    }
+
+    @Override
+    public int getBlockLightValue(int subChunkPosX, int posY, int subChunkPosZ) {
+        val chunkPosY = (posY & 255) / 16;
+
+        val subChunk = subChunk(chunkPosY);
+        if (subChunk == null)
+            return EnumSkyBlock.Block.defaultLightValue;
+
+        val subChunkPosY = posY & 15;
+        return subChunk.getBlockLightValue(subChunkPosX, subChunkPosY, subChunkPosZ);
+    }
+
+    @Override
+    public int getSkyLightValue(int subChunkPosX, int posY, int subChunkPosZ) {
+        val chunkPosY = (posY & 255) / 16;
+
+        val subChunk = subChunk(chunkPosY);
+        if (subChunk == null)
+            return EnumSkyBlock.Sky.defaultLightValue;
+
+        val subChunkPosY = posY & 15;
+        return subChunk.getSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ);
     }
 
     @Override

@@ -113,7 +113,7 @@ public class LightingHooks {
 
 
     private static int getBlockLightOpacity(LumiChunk chunk, int x, int y, int z) {
-        return chunk.lumiWorld().getBlockLightOpacity(chunk.rootChunk().getBlockFromChunk(x, y, z), chunk.rootChunk().getBlockMetaFromChunk(x, y, z), x, y, z);
+        return chunk.lumiWorld().getBlockOpacity(chunk.rootChunk().getBlockFromChunk(x, y, z), chunk.rootChunk().getBlockMetaFromChunk(x, y, z), x, y, z);
     }
 
     public static void relightBlock(LumiChunk chunk, int x, int y, int z) {
@@ -363,7 +363,7 @@ public class LightingHooks {
                                 val ebs = chunk.subChunk(y >> 4);
 
                                 if (ebs != null) {
-                                    ebs.skyLightValues().set(x, y & 15, z, lightLevel);
+                                    ebs.setSkyLightValue(x, y & 15, z, lightLevel);
                                     chunk.lumiWorld().rootWorld().markBlockForRenderUpdate((chunk.chunkPosX() << 4) + x, y, (chunk.chunkPosZ() << 4) + z);
                                 }
                             }
@@ -678,7 +678,7 @@ public class LightingHooks {
                             int meta = storage.rootSubChunk().getBlockMetaFromSubChunk(x, y, z);
                             if (block != Blocks.air) {
                                 pos.setPos(xBase + x, yBase + y, zBase + z);
-                                int light = chunk.lumiWorld().getBlockLightValue(block, meta, pos.getX(), pos.getY(), pos.getZ());
+                                int light = chunk.lumiWorld().getBlockBrightness(block, meta, pos.getX(), pos.getY(), pos.getZ());
 
                                 if (light > 0) {
                                     world.lightingEngine().scheduleLightUpdate(EnumSkyBlock.Block, pos.getX(), pos.getY(), pos.getZ());
@@ -752,6 +752,6 @@ public class LightingHooks {
     public static int getLightOpacity(LumiChunk chunk, int cx, int y, int cz) {
         int x = (chunk.chunkPosX() << 4) + cx;
         int z = (chunk.chunkPosZ() << 4) + cz;
-        return chunk.lumiWorld().getBlockLightOpacity(chunk.rootChunk().getBlockFromChunk(cx, y, cz), chunk.rootChunk().getBlockMetaFromChunk(cx, y, cz), x, y, z);
+        return chunk.lumiWorld().getBlockOpacity(chunk.rootChunk().getBlockFromChunk(cx, y, cz), chunk.rootChunk().getBlockMetaFromChunk(cx, y, cz), x, y, z);
     }
 }

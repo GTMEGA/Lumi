@@ -23,6 +23,7 @@ package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunkRoot;
+import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +37,29 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
     @Shadow
     @Nullable
     private NibbleArray skylightArray;
+
+    @Override
+    public void setBlockLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue) {
+        blocklightArray.set(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+    }
+
+    @Override
+    public int getBlockLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ) {
+        return blocklightArray.get(subChunkPosX, subChunkPosY, subChunkPosZ);
+    }
+
+    @Override
+    public void setSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue) {
+        if (skylightArray != null)
+            skylightArray.set(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+    }
+
+    @Override
+    public int getSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ) {
+        if (skylightArray != null)
+            skylightArray.get(subChunkPosX, subChunkPosY, subChunkPosZ);
+        return EnumSkyBlock.Sky.defaultLightValue;
+    }
 
     @Override
     public NibbleArray blockLightValues() {

@@ -38,6 +38,10 @@ public interface LumiChunk {
 
     int chunkPosZ();
 
+    int getBlockLightValue(int subChunkPosX, int posY, int subChunkPosZ);
+
+    int getSkyLightValue(int subChunkPosX, int posY, int subChunkPosZ);
+
     // TODO: Add isBlockOnTop
 
     // TODO: Add skyLightHeight setter/getter
