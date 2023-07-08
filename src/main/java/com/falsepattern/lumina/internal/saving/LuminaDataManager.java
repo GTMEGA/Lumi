@@ -37,13 +37,13 @@ public class LuminaDataManager implements ChunkDataManager.ChunkNBTDataManager, 
         nbt.setString(Tags.MODID + "_version", Tags.VERSION);
         for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
             val lWorld = LumiWorldManager.getWorld(chunk.worldObj, i);
-            val lChunk = lWorld.toLumiChunk(chunk);
+            val lChunk = lWorld.lumi$wrap(chunk);
             val subTag = new NBTTagCompound();
             LightingHooks.writeNeighborLightChecksToNBT(lChunk, subTag);
 
-            subTag.setBoolean("LightPopulated", lChunk.hasLightInitialized());
-            subTag.setIntArray("HeightMap", lChunk.skyLightHeights());
-            nbt.setTag(lWorld.luminaWorldID(), subTag);
+            subTag.setBoolean("LightPopulated", lChunk.lumi$hasLightInitialized());
+            subTag.setIntArray("HeightMap", lChunk.lumi$skyLightHeights());
+            nbt.setTag(lWorld.lumi$worldID(), subTag);
         }
     }
 
@@ -53,17 +53,17 @@ public class LuminaDataManager implements ChunkDataManager.ChunkNBTDataManager, 
         val forceRelight = !Tags.VERSION.equals(version);
         for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
             val lWorld = LumiWorldManager.getWorld(chunk.worldObj, i);
-            val lChunk = lWorld.toLumiChunk(chunk);
-            val subTag = nbt.getCompoundTag(lWorld.luminaWorldID());
+            val lChunk = lWorld.lumi$wrap(chunk);
+            val subTag = nbt.getCompoundTag(lWorld.lumi$worldID());
             LightingHooks.readNeighborLightChecksFromNBT(lChunk, subTag);
             boolean lightPop = !forceRelight && subTag.getBoolean("LightPopulated");
-            lChunk.hasLightInitialized(lightPop);
+            lChunk.lumi$hasLightInitialized(lightPop);
             if (!lightPop) {
                 LightingHooks.generateSkylightMap(lChunk);
             } else {
                 val heightMap = subTag.getIntArray("HeightMap");
                 if (heightMap != null && heightMap.length == 256) {
-                    System.arraycopy(heightMap, 0, lChunk.skyLightHeights(), 0, 256);
+                    System.arraycopy(heightMap, 0, lChunk.lumi$skyLightHeights(), 0, 256);
                 } else {
                     LightingHooks.generateSkylightMap(lChunk);
                 }
@@ -94,7 +94,7 @@ public class LuminaDataManager implements ChunkDataManager.ChunkNBTDataManager, 
     @Override
     public void readFromBuffer(Chunk chunk, int ebsMask, boolean forceUpdate, ByteBuffer buffer) {
         for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
-            LumiWorldManager.getWorld(chunk.worldObj, i).toLumiChunk(chunk).hasLightInitialized(true);
+            LumiWorldManager.getWorld(chunk.worldObj, i).lumi$wrap(chunk).lumi$hasLightInitialized(true);
         }
     }
 }

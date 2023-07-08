@@ -23,30 +23,27 @@ package com.falsepattern.lumina.internal.mixin.mixins.common;
 
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import lombok.val;
+import lombok.var;
+import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.storage.AnvilChunkLoader;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.storage.AnvilChunkLoader;
-
 @Mixin(AnvilChunkLoader.class)
 public abstract class AnvilChunkLoaderMixin {
-    /**
-     * Injects into the head of saveChunk() to forcefully process all pending light updates. Fail-safe.
-     *
-     * @author Angeline
-     */
     @Inject(method = "saveChunk",
             at = @At("HEAD"),
             require = 1)
-    private void onSaveChunk(World world, Chunk chunk, CallbackInfo callbackInfo) {
-        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
-        for (int i = 0; i < lumiWorldCount; i++) {
-            val lumiWorld = LumiWorldManager.getWorld(world, i);
-            lumiWorld.lightingEngine().processLightUpdates();
+    private void processLightUpdatesOnSave(World baseWorld, Chunk baseChunk, CallbackInfo callbackInfo) {
+        val worldCount = LumiWorldManager.lumiWorldCount();
+        for (var i = 0; i < worldCount; i++) {
+            val world = LumiWorldManager.getWorld(baseWorld, i);
+            val chunk = world.lumi$wrap(baseChunk);
+            val lightingEngine = chunk.lumi$lightingEngine();
+            lightingEngine.processLightUpdates();
         }
     }
 }

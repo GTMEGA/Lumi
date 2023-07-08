@@ -35,7 +35,7 @@ public class LightingEngineHelpers {
 
     // Avoids some additional logic in Chunk#getBlockState... 0 is always air
     static Block posToBlock(final BlockPos pos, final LumiChunk chunk) {
-        return posToBlock(pos, chunk.subChunk(pos.getY() >> 4));
+        return posToBlock(pos, chunk.lumi$subChunk(pos.getY() >> 4));
     }
 
     static Block posToBlock(final BlockPos pos, final LumiSubChunk section) {
@@ -45,7 +45,7 @@ public class LightingEngineHelpers {
 
         if (section != null)
         {
-            return section.rootSubChunk().getBlockFromSubChunk(x & 15, y & 15, z & 15);
+            return section.lumi$root().lumi$getBlock(x & 15, y & 15, z & 15);
         }
 
         return DEFAULT_BLOCK;
@@ -53,7 +53,7 @@ public class LightingEngineHelpers {
 
     // Avoids some additional logic in Chunk#getBlockState... 0 is always air
     static int posToMeta(final BlockPos pos, final LumiChunk chunk) {
-        return posToMeta(pos, chunk.subChunk(pos.getY() >> 4));
+        return posToMeta(pos, chunk.lumi$subChunk(pos.getY() >> 4));
     }
 
     static int posToMeta(final BlockPos pos, final LumiSubChunk section) {
@@ -63,7 +63,7 @@ public class LightingEngineHelpers {
 
         if (section != null)
         {
-            return section.rootSubChunk().getBlockMetaFromSubChunk(x & 15, y & 15, z & 15);
+            return section.lumi$root().lumi$getBlockMeta(x & 15, y & 15, z & 15);
         }
 
         return DEFAULT_METADATA;
@@ -71,9 +71,9 @@ public class LightingEngineHelpers {
 
 
     public static LumiChunk getLoadedChunk(LumiWorld world, int chunkX, int chunkZ) {
-        val provider = world.rootWorld().chunkProvider();
+        val provider = world.lumi$root().lumi$chunkProvider();
         if(!provider.chunkExists(chunkX, chunkZ))
             return null;
-        return world.toLumiChunk(provider.provideChunk(chunkX, chunkZ));
+        return world.lumi$wrap(provider.provideChunk(chunkX, chunkZ));
     }
 }

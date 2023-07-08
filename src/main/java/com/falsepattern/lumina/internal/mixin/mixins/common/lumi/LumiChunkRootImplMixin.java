@@ -56,22 +56,22 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     public abstract void setChunkModified();
 
     @Override
-    public Chunk asVanillaChunk() {
-        return thiz();
+    public Chunk lumi$base() {
+        return (Chunk) (Object) this;
     }
 
     @Override
-    public Block getBlockFromChunk(int subChunkPosX, int posY, int subChunkPosZ) {
+    public Block lumi$getBlock(int subChunkPosX, int posY, int subChunkPosZ) {
         return getBlock(subChunkPosX, posY, subChunkPosZ);
     }
 
     @Override
-    public int getBlockMetaFromChunk(int subChunkPosX, int posY, int subChunkPosZ) {
+    public int lumi$getBlockMeta(int subChunkPosX, int posY, int subChunkPosZ) {
         return getBlockMetadata(subChunkPosX, posY, subChunkPosZ);
     }
 
     @Override
-    public void prepareSubChunk(int chunkPosY) {
+    public void lumi$prepareSubChunk(int chunkPosY) {
         chunkPosY &= 15;
         val subChunk = storageArrays[chunkPosY];
 
@@ -79,37 +79,33 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
             storageArrays[chunkPosY] = new ExtendedBlockStorage(chunkPosY * 16, !worldObj.provider.hasNoSky);
             for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
                 val world = LumiWorldManager.getWorld(worldObj, i);
-                val lChunk = world.toLumiChunk((Chunk) (Object) this);
-                LightingHooks.initSkylightForSection(world, lChunk, lChunk.subChunk(chunkPosY));
+                val lChunk = world.lumi$wrap((Chunk) (Object) this);
+                LightingHooks.initSkyLightForSubChunk(world, lChunk, lChunk.lumi$subChunk(chunkPosY));
             }
         }
 
-        markDirty();
+        lumi$markDirty();
     }
 
     @Override
-    public boolean isSubChunkPrepared(int chunkPosY) {
+    public boolean lumi$isSubChunkPrepared(int chunkPosY) {
         chunkPosY &= 15;
         val subChunk = storageArrays[chunkPosY];
         return subChunk != null;
     }
 
     @Override
-    public int topPreparedSubChunkPosY() {
+    public int lumi$topPreparedSubChunkPosY() {
         return getTopFilledSegment();
     }
 
     @Override
-    public void shouldRecheckLightingGaps(boolean shouldRecheckLightingGaps) {
+    public void lumi$shouldRecheckLightingGaps(boolean shouldRecheckLightingGaps) {
         this.isGapLightingUpdated = shouldRecheckLightingGaps;
     }
 
     @Override
-    public void markDirty() {
+    public void lumi$markDirty() {
         setChunkModified();
-    }
-
-    private Chunk thiz() {
-        return (Chunk) (Object) this;
     }
 }

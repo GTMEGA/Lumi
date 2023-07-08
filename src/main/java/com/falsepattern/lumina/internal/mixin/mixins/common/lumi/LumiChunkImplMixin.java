@@ -62,13 +62,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     @Shadow
     public int heightMapMinimum;
 
-    @Shadow
-    public abstract Block getBlock(int p_150810_1_, int p_150810_2_, int p_150810_3_);
-
-    @Shadow
-    public abstract int getBlockMetadata(int p_76628_1_, int p_76628_2_, int p_76628_3_);
-
-    private LumiChunkRoot rootChunk;
+    private LumiChunkRoot root;
     private LumiWorld world;
     private LumiLightingEngine lightingEngine;
     private short[] neighborLightCheckFlags;
@@ -78,25 +72,25 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
             at = @At("RETURN"),
             require = 1)
     private void lumiChunkInit(CallbackInfo ci) {
-        this.rootChunk = (LumiChunkRoot) this;
+        this.root = (LumiChunkRoot) this;
         this.world = (LumiWorld) worldObj;
-        this.lightingEngine = world.lightingEngine();
+        this.lightingEngine = world.lumi$lightingEngine();
         this.neighborLightCheckFlags = new short[FLAG_COUNT];
         this.isLightInitialized = false;
     }
 
     @Override
-    public LumiChunkRoot rootChunk() {
-        return rootChunk;
+    public LumiChunkRoot lumi$root() {
+        return root;
     }
 
     @Override
-    public LumiWorld lumiWorld() {
+    public LumiWorld lumi$world() {
         return world;
     }
 
     @Override
-    public @Nullable LumiSubChunk subChunk(int chunkPosY) {
+    public @Nullable LumiSubChunk lumi$subChunk(int chunkPosY) {
         val subChunk = storageArrays[chunkPosY];
         if (subChunk instanceof LumiSubChunk)
             return (LumiSubChunk) subChunk;
@@ -104,31 +98,43 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public LumiLightingEngine lightingEngine() {
+    public LumiLightingEngine lumi$lightingEngine() {
         return lightingEngine;
     }
 
     @Override
-    public int chunkPosX() {
+    public int lumi$chunkPosX() {
         return xPosition;
     }
 
     @Override
-    public int chunkPosZ() {
+    public int lumi$chunkPosZ() {
         return zPosition;
     }
 
     @Override
-    public int getBrightnessAndBlockLightValueMax(int subChunkPosX, int posY, int subChunkPosZ) {
-        val blockBrightness = getBlockBrightness(subChunkPosX, posY, subChunkPosZ);
-        val blockLightValue = getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
+    public int lumi$getBrightnessAndLightValueMax(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ) {
+        switch (lightType) {
+            case Block:
+                return lumi$getBrightnessAndBlockLightValueMax(subChunkPosX, posY, subChunkPosZ);
+            case Sky:
+                return lumi$getSkyLightValue(subChunkPosX, posY, subChunkPosZ);
+            default:
+                return 0;
+        }
+    }
+
+    @Override
+    public int lumi$getBrightnessAndBlockLightValueMax(int subChunkPosX, int posY, int subChunkPosZ) {
+        val blockBrightness = lumi$getBlockBrightness(subChunkPosX, posY, subChunkPosZ);
+        val blockLightValue = lumi$getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
         return Math.max(blockBrightness, blockLightValue);
     }
 
     @Override
-    public int getBlockSkyAndLightValueMax(int subChunkPosX, int posY, int subChunkPosZ) {
-        val blockLightValue = getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
-        val skyLightValue = getSkyLightValue(subChunkPosX, posY, subChunkPosZ);
+    public int lumi$getLightValueMax(int subChunkPosX, int posY, int subChunkPosZ) {
+        val blockLightValue = lumi$getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
+        val skyLightValue = lumi$getSkyLightValue(subChunkPosX, posY, subChunkPosZ);
         return Math.max(blockLightValue, skyLightValue);
     }
 
@@ -136,10 +142,10 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     public void lumi$setLightValue(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ, int lightValue) {
         switch (lightType) {
             case Block:
-                setBlockLightValue(subChunkPosX, posY, subChunkPosZ, lightValue);
+                lumi$setBlockLightValue(subChunkPosX, posY, subChunkPosZ, lightValue);
                 break;
             case Sky:
-                setSkyLightValue(subChunkPosX, posY, subChunkPosZ, lightValue);
+                lumi$setSkyLightValue(subChunkPosX, posY, subChunkPosZ, lightValue);
                 break;
             default:
                 break;
@@ -150,143 +156,138 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     public int lumi$getLightValue(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ) {
         switch (lightType) {
             case Block:
-                return getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
+                return lumi$getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
             case Sky:
-                return getSkyLightValue(subChunkPosX, posY, subChunkPosZ);
+                return lumi$getSkyLightValue(subChunkPosX, posY, subChunkPosZ);
             default:
                 return 0;
         }
     }
 
     @Override
-    public void setBlockLightValue(int subChunkPosX, int posY, int subChunkPosZ, int lightValue) {
+    public void lumi$setBlockLightValue(int subChunkPosX, int posY, int subChunkPosZ, int lightValue) {
         val chunkPosY = (posY & 255) / 16;
         val subChunkPosY = posY & 15;
 
-        rootChunk.prepareSubChunk(chunkPosY);
-        val subChunk = subChunk(chunkPosY);
-        subChunk.setBlockLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+        root.lumi$prepareSubChunk(chunkPosY);
+        val subChunk = lumi$subChunk(chunkPosY);
+        subChunk.lumi$setBlockLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
 
-        rootChunk.markDirty();
+        root.lumi$markDirty();
     }
 
     @Override
-    public int getBlockLightValue(int subChunkPosX, int posY, int subChunkPosZ) {
+    public int lumi$getBlockLightValue(int subChunkPosX, int posY, int subChunkPosZ) {
         val chunkPosY = (posY & 255) / 16;
 
-        val subChunk = subChunk(chunkPosY);
+        val subChunk = lumi$subChunk(chunkPosY);
         if (subChunk == null)
             return EnumSkyBlock.Block.defaultLightValue;
 
         val subChunkPosY = posY & 15;
-        return subChunk.getBlockLightValue(subChunkPosX, subChunkPosY, subChunkPosZ);
+        return subChunk.lumi$getBlockLightValue(subChunkPosX, subChunkPosY, subChunkPosZ);
     }
 
     @Override
-    public void setSkyLightValue(int subChunkPosX, int posY, int subChunkPosZ, int lightValue) {
-        if (!world.rootWorld().hasSky())
+    public void lumi$setSkyLightValue(int subChunkPosX, int posY, int subChunkPosZ, int lightValue) {
+        if (!world.lumi$root().lumi$hasSky())
             return;
 
         val chunkPosY = (posY & 255) / 16;
         val subChunkPosY = posY & 15;
 
-        rootChunk.prepareSubChunk(chunkPosY);
-        val subChunk = subChunk(chunkPosY);
-        subChunk.setSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+        root.lumi$prepareSubChunk(chunkPosY);
+        val subChunk = lumi$subChunk(chunkPosY);
+        subChunk.lumi$setSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
 
-        rootChunk.markDirty();
+        root.lumi$markDirty();
     }
 
     @Override
-    public int getSkyLightValue(int subChunkPosX, int posY, int subChunkPosZ) {
-        if (!world.rootWorld().hasSky())
+    public int lumi$getSkyLightValue(int subChunkPosX, int posY, int subChunkPosZ) {
+        if (!world.lumi$root().lumi$hasSky())
             return 0;
 
         val chunkPosY = (posY & 255) / 16;
 
-        val subChunk = subChunk(chunkPosY);
+        val subChunk = lumi$subChunk(chunkPosY);
         if (subChunk == null) {
-            if (isBlockOnTop(subChunkPosX, posY, subChunkPosZ))
+            if (lumi$isBlockOnTop(subChunkPosX, posY, subChunkPosZ))
                 return EnumSkyBlock.Sky.defaultLightValue;
             return 0;
         }
 
         val subChunkPosY = posY & 15;
-        return subChunk.getSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ);
+        return subChunk.lumi$getSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ);
     }
 
     @Override
-    public int getBlockBrightness(int subChunkPosX, int posY, int subChunkPosZ) {
-        val block = getBlock(subChunkPosX, posY, subChunkPosZ);
-        val blockMeta = getBlockMetadata(subChunkPosX, posY, subChunkPosZ);
-        return getBlockBrightness(block, blockMeta, subChunkPosX, posY, subChunkPosZ);
+    public int lumi$getBlockBrightness(int subChunkPosX, int posY, int subChunkPosZ) {
+        val block = root.lumi$getBlock(subChunkPosX, posY, subChunkPosZ);
+        val blockMeta = root.lumi$getBlockMeta(subChunkPosX, posY, subChunkPosZ);
+        return lumi$getBlockBrightness(block, blockMeta, subChunkPosX, posY, subChunkPosZ);
     }
 
     @Override
-    public int getBlockOpacity(int subChunkPosX, int posY, int subChunkPosZ) {
-        val block = getBlock(subChunkPosX, posY, subChunkPosZ);
-        val blockMeta = getBlockMetadata(subChunkPosX, posY, subChunkPosZ);
-        return getBlockOpacity(block, blockMeta, subChunkPosX, posY, subChunkPosZ);
+    public int lumi$getBlockOpacity(int subChunkPosX, int posY, int subChunkPosZ) {
+        val block = root.lumi$getBlock(subChunkPosX, posY, subChunkPosZ);
+        val blockMeta = root.lumi$getBlockMeta(subChunkPosX, posY, subChunkPosZ);
+        return lumi$getBlockOpacity(block, blockMeta, subChunkPosX, posY, subChunkPosZ);
     }
 
     @Override
-    public int getBlockBrightness(Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ) {
+    public int lumi$getBlockBrightness(Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ) {
         val posX = (xPosition * 16) + subChunkPosX;
         val posZ = (zPosition * 16) + subChunkPosZ;
-        return world.getBlockBrightness(block, blockMeta, posX, posY, posZ);
+        return world.lumi$getBlockBrightness(block, blockMeta, posX, posY, posZ);
     }
 
     @Override
-    public int getBlockOpacity(Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ) {
+    public int lumi$getBlockOpacity(Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ) {
         val posX = (xPosition * 16) + subChunkPosX;
         val posZ = (zPosition * 16) + subChunkPosZ;
-        return world.getBlockOpacity(block, blockMeta, posX, posY, posZ);
+        return world.lumi$getBlockOpacity(block, blockMeta, posX, posY, posZ);
     }
 
     @Override
-    public boolean isBlockOnTop(int subChunkPosX, int posY, int subChunkPosZ) {
+    public boolean lumi$isBlockOnTop(int subChunkPosX, int posY, int subChunkPosZ) {
         val index = subChunkPosX + (subChunkPosZ * 16);
         val maxPosY = heightMap[index];
         return maxPosY <= posY;
     }
 
     @Override
-    public int[] skyLightHeights() {
+    public int[] lumi$skyLightHeights() {
         return heightMap;
     }
 
     @Override
-    public void minSkyLightHeight(int minSkyLightHeight) {
+    public void lumi$minSkyLightHeight(int minSkyLightHeight) {
         heightMapMinimum = minSkyLightHeight;
     }
 
     @Override
-    public int minSkyLightHeight() {
+    public int lumi$minSkyLightHeight() {
         return heightMapMinimum;
     }
 
     @Override
-    public boolean[] outdatedSkyLightColumns() {
+    public boolean[] lumi$outdatedSkyLightColumns() {
         return updateSkylightColumns;
     }
 
     @Override
-    public void neighborLightCheckFlags(short[] neighborLightCheckFlags) {
-        this.neighborLightCheckFlags = neighborLightCheckFlags;
-    }
-
-    @Override
-    public short[] neighborLightCheckFlags() {
+    public short[] lumi$neighborLightCheckFlags() {
         return neighborLightCheckFlags;
     }
 
     @Override
-    public void hasLightInitialized(boolean hasLightInitialized) {
+    public void lumi$hasLightInitialized(boolean hasLightInitialized) {
         this.isLightInitialized = hasLightInitialized;
     }
 
     @Override
-    public boolean hasLightInitialized() {
+    public boolean lumi$hasLightInitialized() {
         return isLightInitialized;
     }
 }

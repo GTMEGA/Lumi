@@ -123,7 +123,7 @@ public class LightingEngine implements LumiLightingEngine {
 
     public LightingEngine(final LumiWorld world) {
         this.world = world;
-        this.profiler = world.rootWorld().profiler();
+        this.profiler = world.lumi$root().lumi$profiler();
         isDynamicLightsLoaded = Loader.isModLoaded("DynamicLights");
 
         PooledLongQueue.Pool pool = new PooledLongQueue.Pool();
@@ -194,7 +194,7 @@ public class LightingEngine implements LumiLightingEngine {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
-        if (this.world.rootWorld().isClientSide() && !this.isCallingFromMainThread()) {
+        if (this.world.lumi$root().lumi$isClientSide() && !this.isCallingFromMainThread()) {
             return;
         }
 
@@ -384,7 +384,7 @@ public class LightingEngine implements LumiLightingEngine {
 
                 if (oldLight == curLight) //only process this if nothing else has happened at this position since scheduling
                 {
-                    this.world.rootWorld().markBlockForRenderUpdate(this.curPos.getX(), this.curPos.getY(), this.curPos.getZ());
+                    this.world.lumi$root().lumi$markBlockForRenderUpdate(this.curPos.getX(), this.curPos.getY(), this.curPos.getZ());
 
                     if (curLight > 1) {
                         this.spreadLightFromCursor(curLight, lightType);
@@ -433,7 +433,7 @@ public class LightingEngine implements LumiLightingEngine {
             }
 
             if (nChunk != null) {
-                LumiSubChunk nSection = nChunk.subChunk(nPos.getY() >> 4);
+                LumiSubChunk nSection = nChunk.lumi$subChunk(nPos.getY() >> 4);
 
                 info.light = getCachedLightFor(nChunk, nSection, nPos, lightType);
                 info.section = nSection;
@@ -454,14 +454,14 @@ public class LightingEngine implements LumiLightingEngine {
                 return 0;
             }
         } else if (type == EnumSkyBlock.Sky) {
-            if (!chunk.lumiWorld().rootWorld().hasSky()) {
+            if (!chunk.lumi$world().lumi$root().lumi$hasSky()) {
                 return 0;
             } else {
-                return storage.getSkyLightValue(i, j & 15, k);
+                return storage.lumi$getSkyLightValue(i, j & 15, k);
             }
         } else {
             if (type == EnumSkyBlock.Block) {
-                return storage.getBlockLightValue(i, j & 15, k);
+                return storage.lumi$getBlockLightValue(i, j & 15, k);
             } else {
                 return type.defaultLightValue;
             }
@@ -617,11 +617,11 @@ public class LightingEngine implements LumiLightingEngine {
             }
         }
 
-        return MathHelper.clamp_int(world.getBlockBrightness(block, meta, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ()), 0, MAX_LIGHT);
+        return MathHelper.clamp_int(world.lumi$getBlockBrightness(block, meta, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ()), 0, MAX_LIGHT);
     }
 
     private int getPosOpacity(final BlockPos pos, final Block block, final int meta) {
-        return MathHelper.clamp_int(world.getBlockOpacity(block, meta, pos.getX(), pos.getY(), pos.getZ()), 1, MAX_LIGHT);
+        return MathHelper.clamp_int(world.lumi$getBlockOpacity(block, meta, pos.getX(), pos.getY(), pos.getZ()), 1, MAX_LIGHT);
     }
 
     private LumiChunk getChunk(final BlockPos pos) {

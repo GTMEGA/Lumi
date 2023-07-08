@@ -25,11 +25,11 @@ import net.minecraft.block.Block;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 public interface LumiSubChunkRoot {
-    ExtendedBlockStorage asVanillaSubChunk();
+    ExtendedBlockStorage lumi$base();
 
-    int posY();
+    int lumi$posY();
 
-    Block getBlockFromSubChunk(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
+    Block lumi$getBlock(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 
-    int getBlockMetaFromSubChunk(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
+    int lumi$getBlockMeta(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 }

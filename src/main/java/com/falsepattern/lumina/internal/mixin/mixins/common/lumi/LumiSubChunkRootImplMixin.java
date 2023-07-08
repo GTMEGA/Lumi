@@ -39,17 +39,17 @@ public abstract class LumiSubChunkRootImplMixin implements LumiSubChunkRoot {
     public abstract int getExtBlockMetadata(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 
     @Override
-    public Block getBlockFromSubChunk(int subChunkPosX, int subChunkPosY, int subChunkPosZ) {
+    public Block lumi$getBlock(int subChunkPosX, int subChunkPosY, int subChunkPosZ) {
         return getBlockByExtId(subChunkPosX, subChunkPosY, subChunkPosZ);
     }
 
     @Override
-    public int getBlockMetaFromSubChunk(int subChunkPosX, int subChunkPosY, int subChunkPosZ) {
+    public int lumi$getBlockMeta(int subChunkPosX, int subChunkPosY, int subChunkPosZ) {
         return getExtBlockMetadata(subChunkPosX, subChunkPosY, subChunkPosZ);
     }
 
     @Override
-    public int posY() {
+    public int lumi$posY() {
         return yBase;
     }
 }

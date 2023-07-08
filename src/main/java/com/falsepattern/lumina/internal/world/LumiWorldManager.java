@@ -25,7 +25,6 @@ import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldProvider;
 import com.falsepattern.lumina.internal.world.lighting.LightingEngine;
 import lombok.val;
-
 import net.minecraft.world.World;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -47,7 +46,7 @@ public class LumiWorldManager {
 
     //No bounds checking, because this is an internal method
     public static LumiWorld getWorld(World world, int i) {
-        return providers[i].toLumiWorld(world);
+        return providers[i].lumi$wrap(world);
     }
 
     //Synchronized just in case, only called during init anyway
@@ -67,8 +66,8 @@ public class LumiWorldManager {
         val providers = LumiWorldManager.providers;
         for (int i = 0, providersLength = providers.length; i < providersLength; i++) {
             LumiWorldProvider provider = providers[i];
-            val lWorld = provider.toLumiWorld(world);
-            lWorld.lightingEngine(new LightingEngine(lWorld));
+            val lWorld = provider.lumi$wrap(world);
+            lWorld.lumi$lightingEngine(new LightingEngine(lWorld));
         }
     }
 

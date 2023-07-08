@@ -33,13 +33,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
 @Mixin(World.class)
 public abstract class WorldMixin implements IBlockAccess {
     @Inject(method = "finishSetup",
             at = @At("RETURN"),
             remap = false,
             require = 1)
-    private void onConstructed(CallbackInfo ci) {
+    private void initClientLumiWorld(CallbackInfo ci) {
         LumiWorldManager.initialize(thiz());
     }
 
@@ -47,13 +48,13 @@ public abstract class WorldMixin implements IBlockAccess {
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;getSavedLightValue(Lnet/minecraft/world/EnumSkyBlock;III)I"),
               require = 1)
-    private int useBlockIntrinsicBrightness(Chunk vanillaChunk,
-                                            EnumSkyBlock lightType,
-                                            int subChunkPosX,
-                                            int posY,
-                                            int subChunkPosZ) {
-        val chunk = (LumiChunk) vanillaChunk;
-        return chunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);
+    private int getBrightnessAndLightValueMax(Chunk baseChunk,
+                                              EnumSkyBlock lightType,
+                                              int subChunkPosX,
+                                              int posY,
+                                              int subChunkPosZ) {
+        val chunk = (LumiChunk) baseChunk;
+        return chunk.lumi$getBrightnessAndLightValueMax(lightType, subChunkPosX, posY, subChunkPosZ);
     }
 
     private World thiz() {

@@ -24,16 +24,15 @@ package com.falsepattern.lumina.internal.mixin.mixins.client;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import lombok.val;
 import lombok.var;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.WorldClient;
+import net.minecraft.profiler.Profiler;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.WorldClient;
-import net.minecraft.profiler.Profiler;
 
 @Mixin(Minecraft.class)
 public abstract class MinecraftMixin {
@@ -44,19 +43,19 @@ public abstract class MinecraftMixin {
     @Shadow
     public WorldClient theWorld;
 
-    /**
-     * @author Angeline
-     * Forces the client to process light updates before rendering the world. We inject before the call to the profiler
-     * which designates the start of world rendering. This is a rather injection site.
-     */
-    @Inject(method = "runTick", at = @At(value = "CONSTANT", args = "stringValue=levelRenderer", shift = At.Shift.BY, by = -3))
-    private void onRunTick(CallbackInfo ci) {
+    @Inject(method = "runTick",
+            at = @At(value = "CONSTANT",
+                     args = "stringValue=levelRenderer",
+                     shift = At.Shift.BY,
+                     by = -3),
+            require = 1)
+    private void updateClientLighting(CallbackInfo ci) {
         mcProfiler.endStartSection("lighting");
-
-        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < lumiWorldCount; i++) {
-            val lumiWorld = LumiWorldManager.getWorld(theWorld, i);
-            lumiWorld.lightingEngine().processLightUpdates();
+        val worldCount = LumiWorldManager.lumiWorldCount();
+        for (var i = 0; i < worldCount; i++) {
+            val world = LumiWorldManager.getWorld(theWorld, i);
+            val lightingEngine = world.lumi$lightingEngine();
+            lightingEngine.processLightUpdates();
         }
     }
 }

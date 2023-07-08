@@ -21,23 +21,37 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
+import lombok.val;
+import net.minecraft.world.EnumSkyBlock;
+import net.minecraft.world.chunk.NibbleArray;
+import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.world.chunk.NibbleArray;
-import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ExtendedBlockStorage.class)
 public abstract class ExtendedBlockStorageMixin {
     @Shadow
     private int blockRefCount;
     @Shadow
-    private NibbleArray skylightArray;
-    @Shadow
     private NibbleArray blocklightArray;
+    @Shadow
+    private NibbleArray skylightArray;
 
-    private int lightRefCount = -1;
+    private boolean isDirty;
+    private boolean isTrivial;
+
+    @Inject(method = "<init>*",
+            at = @At(value = "RETURN",
+                     target = "Ljava/util/Random;nextInt(I)I"),
+            require = 1)
+    private void lumiSubChunkInit(int posY, boolean hasSky, CallbackInfo ci) {
+        this.isDirty = true;
+        this.isTrivial = false;
+    }
 
     /**
      * @author Angeline
@@ -46,7 +60,7 @@ public abstract class ExtendedBlockStorageMixin {
     @Overwrite
     public void setExtSkylightValue(int posX, int posY, int posZ, int lightValue) {
         skylightArray.set(posX, posY, posZ, lightValue);
-        lightRefCount = -1;
+        isDirty = true;
     }
 
     /**
@@ -56,7 +70,7 @@ public abstract class ExtendedBlockStorageMixin {
     @Overwrite
     public void setExtBlocklightValue(int posX, int posY, int posZ, int lightValue) {
         blocklightArray.set(posX, posY, posZ, lightValue);
-        lightRefCount = -1;
+        isDirty = true;
     }
 
     /**
@@ -64,9 +78,9 @@ public abstract class ExtendedBlockStorageMixin {
      * @reason Reset lightRefCount on call
      */
     @Overwrite
-    public void setBlocklightArray(NibbleArray array) {
-        blocklightArray = array;
-        lightRefCount = -1;
+    public void setBlocklightArray(NibbleArray blockLightArray) {
+        this.blocklightArray = blockLightArray;
+        isDirty = true;
     }
 
     /**
@@ -74,11 +88,10 @@ public abstract class ExtendedBlockStorageMixin {
      * @reason Reset lightRefCount on call
      */
     @Overwrite
-    public void setSkylightArray(NibbleArray array) {
-        this.skylightArray = array;
-        this.lightRefCount = -1;
+    public void setSkylightArray(NibbleArray skyLightArray) {
+        this.skylightArray = skyLightArray;
+        isDirty = true;
     }
-
 
     /**
      * @author Angeline
@@ -89,30 +102,25 @@ public abstract class ExtendedBlockStorageMixin {
         if (blockRefCount != 0)
             return false;
 
-        // -1 indicates the lightRefCount needs to be re-calculated
-        if (lightRefCount == -1) {
-            if (checkLightArrayEqual(skylightArray, (byte) 0xFF)
-                && checkLightArrayEqual(blocklightArray, (byte) 0x00)) {
-                lightRefCount = 0; // Lighting is trivial, don't send to clients
-            } else {
-                lightRefCount = 1; // Lighting is not trivial, send to clients
-            }
+        if (isDirty) {
+            val blockLightEqual = checkLightArrayEqual(blocklightArray, EnumSkyBlock.Block);
+            val skyLightEqual = checkLightArrayEqual(skylightArray, EnumSkyBlock.Sky);
+            isTrivial = blockLightEqual && skyLightEqual;
+            isDirty = false;
         }
 
-        return lightRefCount == 0;
+        return isTrivial;
     }
 
-    private boolean checkLightArrayEqual(NibbleArray storage, byte val) {
+    private boolean checkLightArrayEqual(NibbleArray storage, EnumSkyBlock lightType) {
         if (storage == null)
             return true;
 
-        byte[] arr = storage.data;
-
-        for (byte b : arr) {
-            if (b != val) {
+        val expectedValue = (byte) lightType.defaultLightValue;
+        val data = storage.data;
+        for (val value : data)
+            if (value != expectedValue)
                 return false;
-            }
-        }
 
         return true;
     }

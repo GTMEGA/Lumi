@@ -63,52 +63,52 @@ public abstract class ChunkMixin {
     @Shadow
     private int queuedLightChecks;
 
-    /**
-     * Callback injected to the head of getLightSubtracted(BlockPos, int) to force deferred light updates to be processed.
-     *
-     * @author Angeline
-     */
     @Inject(method = "getBlockLightValue",
-            at = @At("HEAD"))
-    private void onGetLightSubtracted(int x, int y, int z, int amount, CallbackInfoReturnable<Integer> cir) {
-        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < lumiWorldCount; i++)
-            LumiWorldManager.getWorld(worldObj, i).lightingEngine().processLightUpdates();
-    }
-
-    /**
-     * Callback injected at the end of onLoad() to have previously scheduled light updates scheduled again.
-     *
-     * @author Angeline
-     */
-    @Inject(method = "onChunkLoad",
-            at = @At("RETURN"))
-    private void onLoad(CallbackInfo ci) {
-        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < lumiWorldCount; i++) {
-            val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
-            val lumiChunk = lumiWorld.toLumiChunk(thiz());
-            LightingHooks.scheduleRelightChecksForChunkBoundaries(lumiWorld, lumiChunk);
+            at = @At("HEAD"),
+            require = 1)
+    private void processLightUpdatesOnSubtract(int subChunkPosX,
+                                               int posY,
+                                               int subChunkPosZ,
+                                               int subtract,
+                                               CallbackInfoReturnable<Integer> cir) {
+        val worldCount = LumiWorldManager.lumiWorldCount();
+        for (var i = 0; i < worldCount; i++) {
+            val world = LumiWorldManager.getWorld(worldObj, i);
+            val lightingEngine = world.lumi$lightingEngine();
+            lightingEngine.processLightUpdates();
         }
     }
 
-    // === REPLACEMENTS ===
+    @Inject(method = "onChunkLoad",
+            at = @At("RETURN"),
+            require = 1)
+    private void scheduleRelightOnLoad(CallbackInfo ci) {
+        val worldCount = LumiWorldManager.lumiWorldCount();
+        for (var i = 0; i < worldCount; i++) {
+            val world = LumiWorldManager.getWorld(worldObj, i);
+            val chunk = world.lumi$wrap(thiz());
+            LightingHooks.scheduleRelightChecksForChunkBoundaries(world, chunk);
+        }
+    }
 
-    /**
-     * Replaces the call in setLightFor(Chunk, EnumSkyBlock, BlockPos) with our hook.
-     *
-     * @author Angeline
-     */
     @Redirect(method = "setLightValue",
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;generateSkylightMap()V"),
-              expect = 0)
-    private void setLightForRedirectGenerateSkylightMap(Chunk chunk, EnumSkyBlock type, int x, int y, int z, int value) {
-        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < lumiWorldCount; i++) {
-            val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
-            val lumiChunk = lumiWorld.toLumiChunk(chunk);
-            LightingHooks.initSkylightForSection(lumiWorld, lumiChunk, lumiChunk.subChunk(y >> 4));
+              require = 1)
+    private void initSubChunkSkyLightOnSet(Chunk baseChunk,
+                                           EnumSkyBlock lightType,
+                                           int subChunkPosX,
+                                           int posY,
+                                           int subChunkPosZ,
+                                           int value) {
+        val worldCount = LumiWorldManager.lumiWorldCount();
+        for (var i = 0; i < worldCount; i++) {
+            val world = LumiWorldManager.getWorld(worldObj, i);
+            val chunk = world.lumi$wrap(baseChunk);
+
+            val chunkPosY = posY / 16;
+            val subChunk = chunk.lumi$subChunk(chunkPosY);
+            LightingHooks.initSkyLightForSubChunk(world, chunk, subChunk);
         }
     }
 
@@ -126,11 +126,11 @@ public abstract class ChunkMixin {
      */
     @Overwrite
     public void generateSkylightMap() {
-        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < lumiWorldCount; i++) {
-            val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
-            val lumiChunk = lumiWorld.toLumiChunk((Chunk) (Object) this);
-            LightingHooks.generateSkylightMap(lumiChunk);
+        val worldCount = LumiWorldManager.lumiWorldCount();
+        for (var i = 0; i < worldCount; i++) {
+            val world = LumiWorldManager.getWorld(worldObj, i);
+            val chunk = world.lumi$wrap(thiz());
+            LightingHooks.generateSkylightMap(chunk);
         }
     }
 
@@ -141,17 +141,16 @@ public abstract class ChunkMixin {
     @Overwrite
     public int getSavedLightValue(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ) {
         var lightValue = 0;
-
-        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < lumiWorldCount; i++) {
+        val worldCount = LumiWorldManager.lumiWorldCount();
+        for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(worldObj, i);
-            val chunk = world.toLumiChunk(thiz());
-            chunk.lightingEngine().processLightUpdatesForType(lightType);
+            val chunk = world.lumi$wrap(thiz());
+            val lightingEngine = chunk.lumi$lightingEngine();
+            lightingEngine.processLightUpdatesForType(lightType);
 
             val chunkLightValue = chunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);
             lightValue = Math.max(lightValue, chunkLightValue);
         }
-
         return lightValue;
     }
 
@@ -162,17 +161,14 @@ public abstract class ChunkMixin {
     @Overwrite
     public void func_150809_p() {
         isTerrainPopulated = true;
-        var doLightPop = true;
+        isLightPopulated = true;
 
-        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < lumiWorldCount; i++) {
-            val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
-            val lumiChunk = lumiWorld.toLumiChunk((Chunk) (Object) this);
-            doLightPop &= LightingHooks.checkChunkLighting(lumiWorld, lumiChunk);
+        val worldCount = LumiWorldManager.lumiWorldCount();
+        for (var i = 0; i < worldCount; i++) {
+            val world = LumiWorldManager.getWorld(worldObj, i);
+            val chunk = world.lumi$wrap(thiz());
+            isLightPopulated &= LightingHooks.checkChunkLighting(world, chunk);
         }
-
-        if (doLightPop)
-            isLightPopulated = true;
     }
 
     /**
@@ -181,11 +177,11 @@ public abstract class ChunkMixin {
      */
     @Overwrite
     private void recheckGaps(boolean onlyOne) {
-        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < lumiWorldCount; i++) {
-            val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
-            val lumiChunk = lumiWorld.toLumiChunk(thiz());
-            LightingHooks.doRecheckGaps(lumiChunk, onlyOne);
+        val worldCount = LumiWorldManager.lumiWorldCount();
+        for (var i = 0; i < worldCount; i++) {
+            val world = LumiWorldManager.getWorld(worldObj, i);
+            val chunk = world.lumi$wrap(thiz());
+            LightingHooks.doRecheckGaps(chunk, onlyOne);
         }
     }
 
@@ -193,39 +189,28 @@ public abstract class ChunkMixin {
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;relightBlock(III)V"),
               require = 2)
-    private void disableRelight(Chunk thiz, int posX, int posY, int posZ) {
+    private void skipBlockRelight(Chunk thiz, int posX, int posY, int posZ) {
     }
 
     @Redirect(method = "func_150807_a",
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;generateSkylightMap()V"),
               require = 1)
-    private void disableGenSky(Chunk thiz) {
+    private void skipSkyLightGeneration(Chunk thiz) {
     }
 
-    /**
-     * Prevent propagateSkylightOcclusion from being called.
-     *
-     * @author embeddedt
-     */
     @Redirect(method = "func_150807_a",
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;propagateSkylightOcclusion(II)V"),
               require = 1)
-    private void disableSkyPropagate(Chunk chunk, int posX, int posZ) {
-        /* No-op, we don't want skylight propagated */
+    private void skipSkyLightPropagation(Chunk chunk, int posX, int posZ) {
     }
 
-    /**
-     * Prevent getLightFor from being called.
-     *
-     * @author embeddedt
-     */
     @Redirect(method = "func_150807_a(IIILnet/minecraft/block/Block;I)Z",
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;getSavedLightValue(Lnet/minecraft/world/EnumSkyBlock;III)I"),
               require = 2)
-    private int disableGetSavedLightValue(Chunk chunk, EnumSkyBlock lightType, int posX, int posY, int posZ) {
+    private int alwaysZeroLightValue(Chunk chunk, EnumSkyBlock lightType, int posX, int posY, int posZ) {
         return 0;
     }
 
@@ -233,7 +218,7 @@ public abstract class ChunkMixin {
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/block/Block;getLightOpacity(Lnet/minecraft/world/IBlockAccess;III)I"),
               require = 2)
-    private int disableGetLightOpacity(Block block, IBlockAccess world, int posX, int posY, int posZ) {
+    private int alwaysZeroLightOpacity(Block block, IBlockAccess world, int posX, int posY, int posZ) {
         return 0;
     }
 
@@ -244,46 +229,51 @@ public abstract class ChunkMixin {
                      shift = At.Shift.AFTER),
             locals = LocalCapture.CAPTURE_FAILHARD,
             require = 1)
-    private void doCustomRelightChecks(int cX,
-                                       int cY,
-                                       int cZ,
-                                       Block block,
-                                       int p_150807_5_,
-                                       CallbackInfoReturnable<Boolean> cir,
-                                       int i1,
-                                       int k,
-                                       Block block1,
-                                       int k1,
-                                       ExtendedBlockStorage extendedblockstorage,
-                                       boolean flag,
-                                       int l1,
-                                       int i2,
-                                       int k2) {
-        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
-        for (int i = 0; i < lumiWorldCount; i++) {
-            val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
-            val lumiChunk = lumiWorld.toLumiChunk(thiz());
-            val height = lumiChunk.skyLightHeights()[cZ << 4 | cX];
+    private void relightBlocksOnBlockMetaChange(int subChunkPosX,
+                                                int posY,
+                                                int subChunkPosZ,
+                                                Block block,
+                                                int p_150807_5_,
+                                                CallbackInfoReturnable<Boolean> cir,
+                                                int i1,
+                                                int k,
+                                                Block block1,
+                                                int k1,
+                                                ExtendedBlockStorage extendedblockstorage,
+                                                boolean flag,
+                                                int l1,
+                                                int i2,
+                                                int k2) {
+        val worldCount = LumiWorldManager.lumiWorldCount();
+        for (var i = 0; i < worldCount; i++) {
+            val world = LumiWorldManager.getWorld(worldObj, i);
+            val chunk = world.lumi$wrap(thiz());
 
-            if (cY >= height - 1)
-                LightingHooks.relightBlock(lumiChunk, cX, cY + 1, cZ);
+            val index = subChunkPosX + (subChunkPosZ * 16);
+            val maxPosY = chunk.lumi$skyLightHeights()[index];
+            if (posY >= maxPosY - 1)
+                LightingHooks.relightBlock(chunk, subChunkPosX, posY + 1, subChunkPosZ);
         }
     }
 
-    /**
-     * Redirects the construction of the ExtendedBlockStorage in setBlockState(BlockPos, IBlockState). We need to initialize
-     * the skylight data for the constructed section as soon as possible.
-     *
-     * @author Angeline
-     */
     @Redirect(method = "func_150807_a",
               at = @At(value = "NEW",
-                       args = "class=net/minecraft/world/chunk/storage/ExtendedBlockStorage"
-              ),
-              expect = 0
-    )
-    private ExtendedBlockStorage setBlockStateCreateSectionVanilla(int y, boolean storeSkylight) {
-        return initSubChunk(y, storeSkylight);
+                       args = "class=net/minecraft/world/chunk/storage/ExtendedBlockStorage"),
+              require = 1)
+    private ExtendedBlockStorage createSubChunkWithInitializedSkyLight(int posY, boolean hasSky) {
+        val baseSubChunk = new ExtendedBlockStorage(posY, hasSky);
+
+        val worldCount = LumiWorldManager.lumiWorldCount();
+        for (var i = 0; i < worldCount; i++) {
+            val world = LumiWorldManager.getWorld(worldObj, i);
+            val chunk = world.lumi$wrap(thiz());
+            val subChunk = world.lumi$wrap(baseSubChunk);
+            LightingHooks.initSkyLightForSubChunk(world, chunk, subChunk);
+
+            // TODO: Can we put a world reference in it too?
+        }
+
+        return baseSubChunk;
     }
 
     /**
@@ -292,75 +282,88 @@ public abstract class ChunkMixin {
      */
     @Overwrite
     public void enqueueRelightChecks() {
-        /* Skip object allocation if we weren't going to run checks anyway */
-        if (queuedLightChecks >= 4096)
+        if (queuedLightChecks >= (16 * 16 * 16))
             return;
-        final boolean isActiveChunk = worldObj.activeChunkSet.contains(new ChunkCoordIntPair(xPosition, zPosition));
-        final int lightRecheckSpeed;
+
+        val isActiveChunk = worldObj.activeChunkSet.contains(new ChunkCoordIntPair(xPosition, zPosition));
+        final int maxUpdateIterations;
         if (worldObj.isRemote && isActiveChunk) {
-            lightRecheckSpeed = 256;
-        } else if (worldObj.isRemote)
-            lightRecheckSpeed = 64;
-        else
-            lightRecheckSpeed = 32;
-        for (int i = 0; i < lightRecheckSpeed; ++i) {
-            if (queuedLightChecks >= 4096) {
+            maxUpdateIterations = 256;
+        } else if (worldObj.isRemote) {
+            maxUpdateIterations = 64;
+        } else {
+            maxUpdateIterations = 32;
+        }
+
+        val minPosX = xPosition * 16;
+        val minPosZ = zPosition * 16;
+
+        val worldCount = LumiWorldManager.lumiWorldCount();
+
+        var remainingIterations = maxUpdateIterations;
+        while (remainingIterations > 0) {
+            if (queuedLightChecks >= (16 * 16 * 16))
                 return;
-            }
 
-            final int section = queuedLightChecks % 16;
-            final int x = queuedLightChecks / 16 % 16;
-            final int z = queuedLightChecks / 256;
-            ++this.queuedLightChecks;
-            final int bx = (xPosition << 4) + x;
-            final int bz = (zPosition << 4) + z;
+            val chunkPosY = queuedLightChecks % 16;
 
-            val lumiCount = LumiWorldManager.lumiWorldCount();
-            for (int y = 0; y < 16; ++y) {
-                final int by = (section << 4) + y;
-                final ExtendedBlockStorage vanillaStorage = storageArrays[section];
+            val minPosY = chunkPosY * 16;
 
-                boolean performFullLightUpdate = false;
-                if (vanillaStorage == null && (y == 0 || y == 15 || x == 0 || x == 15 || z == 0 || z == 15))
-                    performFullLightUpdate = true;
-                else if (vanillaStorage != null) {
-                    final Block block = vanillaStorage.getBlockByExtId(x, y, z);
-                    val meta = vanillaStorage.getExtBlockMetadata(x, y, z);
-                    for (int l = 0; l < lumiCount; l++) {
-                        val lumiWorld = LumiWorldManager.getWorld(worldObj, l);
-                        val lumiStorage = lumiWorld.toLumiSubChunk(vanillaStorage);
-                        if (lumiWorld.getBlockOpacity(block, meta, bx, by, bz) >= 255 &&
-                            lumiWorld.getBlockBrightness(block, meta, bx, by, bz) <= 0) {
-                            final int prevLight = lumiStorage.getBlockLightValue(x, y, z);
-                            if (prevLight != 0) {
-                                lumiStorage.setBlockLightValue(x, y, z, EnumSkyBlock.Block.defaultLightValue);
-                                worldObj.markBlockRangeForRenderUpdate(bx, by, bz, bx, by, bz);
-                            }
-                        } else {
-                            performFullLightUpdate = true;
-                            break;
+            val subChunkPosX = (queuedLightChecks / 16) % 16;
+            val subChunkPosZ = queuedLightChecks / (16 * 16);
+
+            val posX = minPosX + subChunkPosX;
+            val posZ = minPosZ + subChunkPosZ;
+
+            for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
+                val posY = minPosY + subChunkPosY;
+                val baseSubChunk = storageArrays[chunkPosY];
+                if (baseSubChunk != null) {
+                    for (var i = 0; i < worldCount; i++) {
+                        val world = LumiWorldManager.getWorld(worldObj, i);
+                        val chunk = world.lumi$wrap(thiz());
+
+                        val blockBrightness = chunk.lumi$getBlockBrightness(subChunkPosX, posY, subChunkPosZ);
+                        val blockOpacity = chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ);
+
+                        renderUpdateCheck:
+                        {
+                            if (blockOpacity < 15)
+                                break renderUpdateCheck;
+                            if (blockBrightness > 0)
+                                break renderUpdateCheck;
+
+                            val lightValue = chunk.lumi$getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
+                            if (lightValue == 0)
+                                continue;
+
+                            chunk.lumi$setBlockLightValue(subChunkPosX, posY, subChunkPosZ, 0);
+                            worldObj.markBlockRangeForRenderUpdate(posX, posY, posZ, posX, posY, posZ);
                         }
+
+                        performFullLightingUpdate(worldObj, posX, posY, posZ);
+                        break;
                     }
+                    continue;
                 }
-                if (performFullLightUpdate) {
-                    worldObj.func_147451_t(bx, by, bz);
-                }
+
+                if (subChunkPosX != 0 && subChunkPosX != 15)
+                    continue;
+                if (subChunkPosY != 0 && subChunkPosY != 15)
+                    continue;
+                if (subChunkPosZ != 0 && subChunkPosZ != 15)
+                    continue;
+
+                performFullLightingUpdate(worldObj, posX, posY, posZ);
             }
+
+            queuedLightChecks++;
+            remainingIterations--;
         }
     }
 
-    private ExtendedBlockStorage initSubChunk(int posY, boolean hasSky) {
-        val vanillaSubChunk = new ExtendedBlockStorage(posY, hasSky);
-
-        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < lumiWorldCount; i++) {
-            val world = LumiWorldManager.getWorld(worldObj, i);
-            val chunk = world.toLumiChunk(thiz());
-            val subChunk = world.toLumiSubChunk(vanillaSubChunk);
-            LightingHooks.initSkylightForSection(world, chunk, subChunk);
-        }
-
-        return vanillaSubChunk;
+    private static void performFullLightingUpdate(World world, int posX, int posY, int posZ) {
+        world.func_147451_t(posX, posY, posZ);
     }
 
     private Chunk thiz() {

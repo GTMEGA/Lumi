@@ -28,61 +28,59 @@ import net.minecraft.world.EnumSkyBlock;
 import org.jetbrains.annotations.Nullable;
 
 public interface LumiChunk {
-    LumiChunkRoot rootChunk();
+    LumiChunkRoot lumi$root();
 
-    LumiWorld lumiWorld();
+    LumiWorld lumi$world();
 
-    @Nullable LumiSubChunk subChunk(int chunkPosY);
+    @Nullable LumiSubChunk lumi$subChunk(int chunkPosY);
 
-    LumiLightingEngine lightingEngine();
+    LumiLightingEngine lumi$lightingEngine();
 
-    int chunkPosX();
+    int lumi$chunkPosX();
 
-    int chunkPosZ();
+    int lumi$chunkPosZ();
 
-    int getBrightnessAndBlockLightValueMax(int subChunkPosX, int posY, int subChunkPosZ);
+    int lumi$getBrightnessAndLightValueMax(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ);
 
-    int getBlockSkyAndLightValueMax(int subChunkPosX, int posY, int subChunkPosZ);
+    int lumi$getBrightnessAndBlockLightValueMax(int subChunkPosX, int posY, int subChunkPosZ);
+
+    int lumi$getLightValueMax(int subChunkPosX, int posY, int subChunkPosZ);
 
     void lumi$setLightValue(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ, int lightValue);
 
     int lumi$getLightValue(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ);
 
-    void setBlockLightValue(int subChunkPosX, int posY, int subChunkPosZ, int lightValue);
+    void lumi$setBlockLightValue(int subChunkPosX, int posY, int subChunkPosZ, int lightValue);
 
-    int getBlockLightValue(int subChunkPosX, int posY, int subChunkPosZ);
+    int lumi$getBlockLightValue(int subChunkPosX, int posY, int subChunkPosZ);
 
-    void setSkyLightValue(int subChunkPosX, int posY, int subChunkPosZ, int lightValue);
+    void lumi$setSkyLightValue(int subChunkPosX, int posY, int subChunkPosZ, int lightValue);
 
-    int getSkyLightValue(int subChunkPosX, int posY, int subChunkPosZ);
+    int lumi$getSkyLightValue(int subChunkPosX, int posY, int subChunkPosZ);
 
-    int getBlockBrightness(int subChunkPosX, int posY, int subChunkPosZ);
+    int lumi$getBlockBrightness(int subChunkPosX, int posY, int subChunkPosZ);
 
-    int getBlockOpacity(int subChunkPosX, int posY, int subChunkPosZ);
+    int lumi$getBlockOpacity(int subChunkPosX, int posY, int subChunkPosZ);
 
-    int getBlockBrightness(Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ);
+    int lumi$getBlockBrightness(Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ);
 
-    int getBlockOpacity(Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ);
+    int lumi$getBlockOpacity(Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ);
 
-    boolean isBlockOnTop(int subChunkPosX, int posY, int subChunkPosZ);
+    boolean lumi$isBlockOnTop(int subChunkPosX, int posY, int subChunkPosZ);
 
     // TODO: Add skyLightHeight setter/getter
-    int[] skyLightHeights();
+    int[] lumi$skyLightHeights();
 
-    void minSkyLightHeight(int minSkyLightPosY);
+    void lumi$minSkyLightHeight(int minSkyLightPosY);
 
-    int minSkyLightHeight();
+    int lumi$minSkyLightHeight();
 
     // TODO: Add outdatedSkylightColumn setter/getter
-    boolean[] outdatedSkyLightColumns();
+    boolean[] lumi$outdatedSkyLightColumns();
 
-    // TODO: This is currently late-initialized, it should be tacked onto the constructor
-    @Deprecated
-    void neighborLightCheckFlags(short[] neighborLightCheckFlags);
+    short @Nullable [] lumi$neighborLightCheckFlags();
 
-    short @Nullable [] neighborLightCheckFlags();
+    void lumi$hasLightInitialized(boolean hasLightInitialized);
 
-    void hasLightInitialized(boolean hasLightInitialized);
-
-    boolean hasLightInitialized();
+    boolean lumi$hasLightInitialized();
 }

@@ -24,34 +24,29 @@ package com.falsepattern.lumina.internal.mixin.mixins.common;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import lombok.val;
 import lombok.var;
+import net.minecraft.network.play.server.S21PacketChunkData;
+import net.minecraft.world.chunk.Chunk;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import net.minecraft.network.play.server.S21PacketChunkData;
-import net.minecraft.world.chunk.Chunk;
 @Mixin(value = S21PacketChunkData.class,
        priority = 1001)
 public abstract class S21PacketChunkDataMixin {
-    /**
-     * @author Angeline
-     * Injects a callback into SPacketChunkData#calculateChunkSize(Chunk, booolean, int) to force light updates to be
-     * processed before creating the client payload. We use this method rather than the constructor as it is not valid
-     * to inject elsewhere other than the RETURN of a ctor, which is too late for our needs.
-     */
     @Inject(method = "func_149269_a",
             at = @At("HEAD"),
             require = 1)
-    private static void onCalculateChunkSize(Chunk chunk,
-                                             boolean hasSkyLight,
-                                             int changedSectionFilter,
-                                             CallbackInfoReturnable<S21PacketChunkData.Extracted> cir) {
-        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < lumiWorldCount; i++) {
-            val lumiWorld = LumiWorldManager.getWorld(chunk.worldObj, i);
-            val lumiChunk = lumiWorld.toLumiChunk(chunk);
-            lumiChunk.lightingEngine().processLightUpdates();
+    private static void processLightUpdatesOnReceive(Chunk baseChunk,
+                                                     boolean hasSkyLight,
+                                                     int changedSectionFilter,
+                                                     CallbackInfoReturnable<S21PacketChunkData.Extracted> cir) {
+        val baseWorld = baseChunk.worldObj;
+        val worldCount = LumiWorldManager.lumiWorldCount();
+        for (var i = 0; i < worldCount; i++) {
+            val world = LumiWorldManager.getWorld(baseWorld, i);
+            val chunk = world.lumi$wrap(baseChunk);
+            val lightingEngine = chunk.lumi$lightingEngine();
+            lightingEngine.processLightUpdates();
         }
     }
 }

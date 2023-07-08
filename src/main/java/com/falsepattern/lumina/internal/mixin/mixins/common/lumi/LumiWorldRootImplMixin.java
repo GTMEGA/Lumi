@@ -26,6 +26,7 @@ import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.minecraft.block.Block;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -51,10 +52,16 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     public boolean isRemote;
 
     @Shadow
+    public abstract Block getBlock(int posX, int posY, int posZ);
+
+    @Shadow
     public abstract boolean doChunksNearChunkExist(int centerPosX, int centerPosY, int centerPosZ, int blockRange);
 
     @Shadow
     public abstract boolean checkChunksExist(int minPosX, int minPosY, int minPosZ, int maxPosX, int maxPosY, int maxPosZ);
+
+    @Shadow
+    public abstract int getBlockMetadata(int posX, int posY, int posZ);
 
     @Shadow
     public abstract void func_147479_m(int posX, int posY, int posZ);
@@ -64,46 +71,52 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     private LumiLightingEngine lightingEngine;
 
     @Override
-    public World asVanillaWorld() {
-        return thiz();
+    public World lumi$base() {
+        return (World) (Object) this;
     }
 
     @Override
-    public Profiler profiler() {
+    public Profiler lumi$profiler() {
         return theProfiler;
     }
 
     @Override
-    public boolean isClientSide() {
+    public boolean lumi$isClientSide() {
         return isRemote;
     }
 
     @Override
-    public boolean hasSky() {
+    public boolean lumi$hasSky() {
         return !provider.hasNoSky;
     }
 
     @Override
-    public IChunkProvider chunkProvider() {
+    public Block lumi$getBlock(int posX, int posY, int posZ) {
+        return getBlock(posX, posY, posZ);
+    }
+
+    @Override
+    public int lumi$getBlockMeta(int posX, int posY, int posZ) {
+        return getBlockMetadata(posX, posY, posZ);
+    }
+
+    @Override
+    public IChunkProvider lumi$chunkProvider() {
         return chunkProvider;
     }
 
     @Override
-    public boolean doChunksExist(int minPosX, int minPosY, int minPosZ, int maxPosX, int maxPosY, int maxPosZ) {
+    public boolean lumi$doChunksExist(int minPosX, int minPosY, int minPosZ, int maxPosX, int maxPosY, int maxPosZ) {
         return checkChunksExist(minPosX, minPosY, minPosZ, maxPosX, maxPosY, maxPosZ);
     }
 
     @Override
-    public boolean doChunksExist(int centerPosX, int centerPosY, int centerPosZ, int blockRange) {
+    public boolean lumi$doChunksExist(int centerPosX, int centerPosY, int centerPosZ, int blockRange) {
         return doChunksNearChunkExist(centerPosX, centerPosY, centerPosZ, blockRange);
     }
 
     @Override
-    public void markBlockForRenderUpdate(int posX, int posY, int posZ) {
+    public void lumi$markBlockForRenderUpdate(int posX, int posY, int posZ) {
         func_147479_m(posX, posY, posZ);
-    }
-
-    private World thiz() {
-        return (World) (Object) this;
     }
 }

@@ -24,53 +24,40 @@ package com.falsepattern.lumina.internal.mixin.mixins.common;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import lombok.val;
 import lombok.var;
+import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
+import net.minecraft.world.storage.ISaveHandler;
+import net.minecraft.world.storage.WorldInfo;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.minecraft.world.EnumSkyBlock;
-import net.minecraft.world.World;
-import net.minecraft.world.storage.ISaveHandler;
-import net.minecraft.world.storage.WorldInfo;
-
 @Mixin(World.class)
 public abstract class WorldMixin implements IBlockAccess {
-    /**
-     * @author Angeline
-     * Initialize the lighting engine on world construction.
-     */
     @Redirect(method = "<init>(Lnet/minecraft/world/storage/ISaveHandler;Ljava/lang/String;Lnet/minecraft/world/WorldSettings;Lnet/minecraft/world/WorldProvider;Lnet/minecraft/profiler/Profiler;)V",
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/storage/ISaveHandler;loadWorldInfo()Lnet/minecraft/world/storage/WorldInfo;"),
               require = 1)
-    private WorldInfo onConstructed(ISaveHandler handler) {
+    private WorldInfo initLumiWorld(ISaveHandler handler) {
         LumiWorldManager.initialize(thiz());
         return handler.loadWorldInfo();
     }
 
-    /**
-     * Directs the light update to the lighting engine and always returns a success value.
-     *
-     * @author Angeline
-     */
     @Inject(method = "updateLightByType",
             at = @At("HEAD"),
             cancellable = true,
             require = 1)
-    private void checkLightFor(EnumSkyBlock lightType, int posX, int posY, int posZ, CallbackInfoReturnable<Boolean> cir) {
-        doScheduleLightUpdate(lightType, posX, posY, posZ);
-        cir.setReturnValue(true);
-    }
-
-    private void doScheduleLightUpdate(EnumSkyBlock lightType, int posX, int posY, int posZ) {
-        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < lumiWorldCount; i++) {
-            val lumiWorld = LumiWorldManager.getWorld(thiz(), i);
-            lumiWorld.lightingEngine().scheduleLightUpdate(lightType, posX, posY, posZ);
+    private void scheduleLightUpdate(EnumSkyBlock lightType, int posX, int posY, int posZ, CallbackInfoReturnable<Boolean> cir) {
+        val worldCount = LumiWorldManager.lumiWorldCount();
+        for (var i = 0; i < worldCount; i++) {
+            val world = LumiWorldManager.getWorld(thiz(), i);
+            val lightingEngine = world.lumi$lightingEngine();
+            lightingEngine.scheduleLightUpdate(lightType, posX, posY, posZ);
         }
+        cir.setReturnValue(true);
     }
 
     private World thiz() {

@@ -21,24 +21,29 @@
 
 package com.falsepattern.lumina.api.world;
 
+import net.minecraft.block.Block;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.IChunkProvider;
 
 public interface LumiWorldRoot {
-    World asVanillaWorld();
+    World lumi$base();
 
-    Profiler profiler();
+    Profiler lumi$profiler();
 
-    boolean isClientSide();
+    boolean lumi$isClientSide();
 
-    boolean hasSky();
+    boolean lumi$hasSky();
 
-    void markBlockForRenderUpdate(int posX, int posY, int posZ);
+    Block lumi$getBlock(int posX, int posY, int posZ);
 
-    IChunkProvider chunkProvider();
+    int lumi$getBlockMeta(int posX, int posY, int posZ);
 
-    boolean doChunksExist(int minPosX, int minPosY, int minPosZ, int maxPosX, int maxPosY, int maxPosZ);
+    void lumi$markBlockForRenderUpdate(int posX, int posY, int posZ);
 
-    boolean doChunksExist(int centerPosX, int centerPosY, int centerPosZ, int blockRange);
+    IChunkProvider lumi$chunkProvider();
+
+    boolean lumi$doChunksExist(int minPosX, int minPosY, int minPosZ, int maxPosX, int maxPosY, int maxPosZ);
+
+    boolean lumi$doChunksExist(int centerPosX, int centerPosY, int centerPosZ, int blockRange);
 }

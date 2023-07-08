@@ -25,19 +25,19 @@ import net.minecraft.block.Block;
 import net.minecraft.world.chunk.Chunk;
 
 public interface LumiChunkRoot {
-    Chunk asVanillaChunk();
+    Chunk lumi$base();
 
-    Block getBlockFromChunk(int subChunkPosX, int posY, int subChunkPosZ);
+    Block lumi$getBlock(int subChunkPosX, int posY, int subChunkPosZ);
 
-    int getBlockMetaFromChunk(int subChunkPosX, int posY, int subChunkPosZ);
+    int lumi$getBlockMeta(int subChunkPosX, int posY, int subChunkPosZ);
 
-    void prepareSubChunk(int chunkPosY);
+    void lumi$prepareSubChunk(int chunkPosY);
 
-    boolean isSubChunkPrepared(int chunkPosY);
+    boolean lumi$isSubChunkPrepared(int chunkPosY);
 
-    int topPreparedSubChunkPosY();
+    int lumi$topPreparedSubChunkPosY();
 
-    void shouldRecheckLightingGaps(boolean shouldRecheckLightingGaps);
+    void lumi$shouldRecheckLightingGaps(boolean shouldRecheckLightingGaps);
 
-    void markDirty();
+    void lumi$markDirty();
 }

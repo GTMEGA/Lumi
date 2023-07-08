@@ -23,16 +23,15 @@ package com.falsepattern.lumina.internal.mixin.mixins.client;
 
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import lombok.val;
 import lombok.var;
+import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
-
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 @Mixin(Chunk.class)
 public abstract class ChunkMixin {
@@ -46,11 +45,11 @@ public abstract class ChunkMixin {
     @Overwrite
     @SideOnly(Side.CLIENT)
     public void generateHeightMap() {
-        val lumiWorldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < lumiWorldCount; i++) {
-            val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
-            val lumiChunk = lumiWorld.toLumiChunk(thiz());
-            LightingHooks.generateHeightMap(lumiChunk);
+        val worldCount = LumiWorldManager.lumiWorldCount();
+        for (var i = 0; i < worldCount; i++) {
+            val world = LumiWorldManager.getWorld(worldObj, i);
+            val chunk = world.lumi$wrap(thiz());
+            LightingHooks.generateHeightMap(chunk);
         }
     }
 

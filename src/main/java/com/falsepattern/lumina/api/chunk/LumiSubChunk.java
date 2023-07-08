@@ -24,17 +24,17 @@ package com.falsepattern.lumina.api.chunk;
 import net.minecraft.world.EnumSkyBlock;
 
 public interface LumiSubChunk {
-    LumiSubChunkRoot rootSubChunk();
+    LumiSubChunkRoot lumi$root();
 
-    void setLightValue(EnumSkyBlock lightType, int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
+    void lumi$setLightValue(EnumSkyBlock lightType, int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
 
-    int getLightValue(EnumSkyBlock lightType, int subChunkPosX, int subChunkPosY, int subChunkPosZ);
+    int lumi$getLightValue(EnumSkyBlock lightType, int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 
-    void setBlockLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
+    void lumi$setBlockLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
 
-    int getBlockLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
+    int lumi$getBlockLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 
-    void setSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
+    void lumi$setSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
 
-    int getSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
+    int lumi$getSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 }
