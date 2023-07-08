@@ -71,19 +71,27 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     }
 
     @Override
-    public void prepareSubChunk(int posY) {
-        val ebs = storageArrays[posY >> 4];
+    public void prepareSubChunk(int chunkPosY) {
+        chunkPosY &= 15;
+        val subChunk = storageArrays[chunkPosY];
 
-        if (ebs == null) {
-            storageArrays[posY >> 4] = new ExtendedBlockStorage(posY >> 4 << 4, !worldObj.provider.hasNoSky);
+        if (subChunk == null) {
+            storageArrays[chunkPosY] = new ExtendedBlockStorage(chunkPosY * 16, !worldObj.provider.hasNoSky);
             for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
                 val world = LumiWorldManager.getWorld(worldObj, i);
                 val lChunk = world.toLumiChunk((Chunk) (Object) this);
-                LightingHooks.initSkylightForSection(world, lChunk, lChunk.subChunk(posY >> 4));
+                LightingHooks.initSkylightForSection(world, lChunk, lChunk.subChunk(chunkPosY));
             }
         }
 
         markDirty();
+    }
+
+    @Override
+    public boolean isSubChunkPrepared(int chunkPosY) {
+        chunkPosY &= 15;
+        val subChunk = storageArrays[chunkPosY];
+        return subChunk != null;
     }
 
     @Override

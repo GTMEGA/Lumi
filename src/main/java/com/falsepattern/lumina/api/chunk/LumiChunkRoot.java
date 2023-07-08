@@ -31,7 +31,9 @@ public interface LumiChunkRoot {
 
     int getBlockMetaFromChunk(int subChunkPosX, int posY, int subChunkPosZ);
 
-    void prepareSubChunk(int posY);
+    void prepareSubChunk(int chunkPosY);
+
+    boolean isSubChunkPrepared(int chunkPosY);
 
     int topPreparedSubChunkPosY();
 

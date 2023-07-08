@@ -39,6 +39,39 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
     private NibbleArray skylightArray;
 
     @Override
+    public void setLightValue(EnumSkyBlock lightType,
+                              int subChunkPosX,
+                              int subChunkPosY,
+                              int subChunkPosZ,
+                              int lightValue) {
+        switch (lightType) {
+            case Block:
+                setBlockLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+                break;
+            case Sky:
+                setSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+                break;
+            default:
+                break;
+        }
+    }
+
+    @Override
+    public int getLightValue(EnumSkyBlock lightType,
+                             int subChunkPosX,
+                             int subChunkPosY,
+                             int subChunkPosZ) {
+        switch (lightType) {
+            case Block:
+                return getBlockLightValue(subChunkPosX, subChunkPosY, subChunkPosZ);
+            case Sky:
+                return getSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ);
+            default:
+                return lightType.defaultLightValue;
+        }
+    }
+
+    @Override
     public void setBlockLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue) {
         blocklightArray.set(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
     }
@@ -50,15 +83,16 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
 
     @Override
     public void setSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue) {
-        if (skylightArray != null)
-            skylightArray.set(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+        if (skylightArray == null)
+            return;
+        skylightArray.set(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
     }
 
     @Override
     public int getSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ) {
         if (skylightArray != null)
             return skylightArray.get(subChunkPosX, subChunkPosY, subChunkPosZ);
-        return EnumSkyBlock.Sky.defaultLightValue;
+        return 0;
     }
 
     @Override

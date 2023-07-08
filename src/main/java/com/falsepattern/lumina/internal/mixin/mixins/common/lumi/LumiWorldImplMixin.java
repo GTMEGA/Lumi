@@ -34,6 +34,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
@@ -47,6 +48,9 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
 
     @Shadow
     public abstract Chunk getChunkFromChunkCoords(int p_72964_1_, int p_72964_2_);
+
+    @Shadow
+    public abstract int getBlockMetadata(int p_72805_1_, int p_72805_2_, int p_72805_3_);
 
     private LumiLightingEngine lightingEngine;
 
@@ -71,7 +75,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     }
 
     @Override
-    public LumiChunk getLumiChunkFromBlockPos(int posX, int posZ) {
+    public @Nullable LumiChunk getLumiChunkFromBlockPos(int posX, int posZ) {
         val vanillaChunk = getChunkFromBlockCoords(posX, posZ);
         if (vanillaChunk instanceof LumiChunk)
             return (LumiChunk) vanillaChunk;
@@ -79,7 +83,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     }
 
     @Override
-    public LumiChunk getLumiChunkFromChunkPos(int chunkPosX, int chunkPosZ) {
+    public @Nullable LumiChunk getLumiChunkFromChunkPos(int chunkPosX, int chunkPosZ) {
         val vanillaChunk = getChunkFromChunkCoords(chunkPosX, chunkPosZ);
         if (vanillaChunk instanceof LumiChunk)
             return (LumiChunk) vanillaChunk;
@@ -97,20 +101,67 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     }
 
     @Override
-    public int getBrightnessOrBlockLightValueMax(int posX, int posY, int posZ) {
-        val block = getBlock(posX, posY, posZ);
-        val blockBrightness = block.getLightValue();
-
+    public int getBrightnessAndBlockLightValueMax(int posX, int posY, int posZ) {
         val chunk = getLumiChunkFromBlockPos(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
+            return chunk.getBrightnessAndBlockLightValueMax(subChunkPosX, posY, subChunkPosZ);
+        }
+        val blockBrightness = getBlockBrightness(posX, posY, posZ);
+        return Math.max(blockBrightness, EnumSkyBlock.Block.defaultLightValue);
+    }
 
-            val lightValue = chunk.getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
-            return Math.max(blockBrightness, lightValue);
+    @Override
+    public int getBlockSkyAndLightValueMax(int posX, int posY, int posZ) {
+        val chunk = getLumiChunkFromBlockPos(posX, posZ);
+        if (chunk != null) {
+            val subChunkPosX = posX & 15;
+            val subChunkPosZ = posZ & 15;
+            return chunk.getBlockSkyAndLightValueMax(subChunkPosX, posY, subChunkPosZ);
+        }
+        return Math.max(EnumSkyBlock.Block.defaultLightValue, EnumSkyBlock.Sky.defaultLightValue);
+    }
+
+    @Override
+    public void lumi$setLightValue(EnumSkyBlock lightType, int posX, int posY, int posZ, int lightValue) {
+        val chunk = getLumiChunkFromBlockPos(posX, posZ);
+        if (chunk != null) {
+            val subChunkPosX = posX & 15;
+            val subChunkPosZ = posZ & 15;
+            chunk.lumi$setLightValue(lightType, subChunkPosX, posY, subChunkPosZ, lightValue);
+        }
+    }
+
+    @Override
+    public int getLightValue(EnumSkyBlock lightType, int posX, int posY, int posZ) {
+        val chunk = getLumiChunkFromBlockPos(posX, posZ);
+        if (chunk != null) {
+            val subChunkPosX = posX & 15;
+            val subChunkPosZ = posZ & 15;
+            return chunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);
         }
 
-        return blockBrightness;
+        switch (lightType) {
+            default:
+            case Block:
+                return EnumSkyBlock.Block.defaultLightValue;
+            case Sky: {
+                if (rootWorld().hasSky())
+                    return EnumSkyBlock.Sky.defaultLightValue;
+                return 0;
+            }
+        }
+    }
+
+    @Override
+    public void setBlockLightValue(int posX, int posY, int posZ, int lightValue) {
+        val chunk = getLumiChunkFromBlockPos(posX, posZ);
+        if (chunk != null) {
+            val subChunkPosX = posX & 15;
+            val subChunkPosZ = posZ & 15;
+            chunk.setBlockLightValue(subChunkPosX, posY, subChunkPosZ, lightValue);
+        }
     }
 
     @Override
@@ -119,20 +170,33 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
-
             return chunk.getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
         }
-
         return EnumSkyBlock.Block.defaultLightValue;
     }
 
     @Override
-    public int getSkyLightValue(int posX, int posY, int posZ) {
+    public void setSkyLightValue(int posX, int posY, int posZ, int lightValue) {
+        if (!rootWorld().hasSky())
+            return;
+
         val chunk = getLumiChunkFromBlockPos(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
+            chunk.setSkyLightValue(subChunkPosX, posY, subChunkPosZ, lightValue);
+        }
+    }
 
+    @Override
+    public int getSkyLightValue(int posX, int posY, int posZ) {
+        if (!rootWorld().hasSky())
+            return 0;
+
+        val chunk = getLumiChunkFromBlockPos(posX, posZ);
+        if (chunk != null) {
+            val subChunkPosX = posX & 15;
+            val subChunkPosZ = posZ & 15;
             return chunk.getSkyLightValue(subChunkPosX, posY, subChunkPosZ);
         }
 
@@ -140,7 +204,13 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     }
 
     @Override
-    public int getOpacity(int posX, int posY, int posZ) {
+    public int getBlockBrightness(int posX, int posY, int posZ) {
+        val block = getBlock(posX, posY, posZ);
+        return block.getLightValue(this, posX, posY, posZ);
+    }
+
+    @Override
+    public int getBlockOpacity(int posX, int posY, int posZ) {
         val block = getBlock(posX, posY, posZ);
         return block.getLightOpacity(this, posX, posY, posZ);
     }

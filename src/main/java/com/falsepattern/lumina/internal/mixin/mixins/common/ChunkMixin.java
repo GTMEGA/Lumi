@@ -139,16 +139,17 @@ public abstract class ChunkMixin {
      * @author Angeline
      */
     @Overwrite
-    public int getSavedLightValue(EnumSkyBlock type, int x, int y, int z) {
+    public int getSavedLightValue(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ) {
         var lightValue = 0;
 
         val lumiWorldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < lumiWorldCount; i++) {
-            val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
-            val lumiChunk = lumiWorld.toLumiChunk(thiz());
-            lumiChunk.lightingEngine().processLightUpdatesForType(type);
-            if (i == 0)
-                lightValue = LightingHooks.getCachedLightFor(lumiChunk, type, x, y, z);
+            val world = LumiWorldManager.getWorld(worldObj, i);
+            val chunk = world.toLumiChunk(thiz());
+            chunk.lightingEngine().processLightUpdatesForType(lightType);
+
+            val chunkLightValue = chunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);
+            lightValue = Math.max(lightValue, chunkLightValue);
         }
 
         return lightValue;

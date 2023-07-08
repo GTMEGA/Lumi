@@ -50,7 +50,7 @@ public class LightingHooks {
     public static final EnumFacing[] HORIZONTAL_FACINGS = new EnumFacing[]{EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.NORTH, EnumFacing.EAST};
     private static final EnumFacing[] HORIZONTAL = HORIZONTAL_FACINGS;
 
-    private static final int FLAG_COUNT = 32; //2 light types * 4 directions * 2 halves * (inwards + outwards)
+    public static final int FLAG_COUNT = 32; //2 light types * 4 directions * 2 halves * (inwards + outwards)
 
     public static void relightSkylightColumn(final LumiWorld world, final LumiChunk chunk, final int x, final int z, final int height1, final int height2) {
         final int yMin = Math.min(height1, height2);
@@ -282,7 +282,7 @@ public class LightingHooks {
     }
 
     public static void lumiSetLightValue(LumiChunk iLumiChunk, EnumSkyBlock enumSkyBlock, int x, int y, int z, int lightValue) {
-        iLumiChunk.rootChunk().prepareSubChunk(y);
+        iLumiChunk.rootChunk().prepareSubChunk(y / 16);
         val ebs = iLumiChunk.subChunk(y >>> 4);
 
         if (enumSkyBlock == EnumSkyBlock.Sky) {

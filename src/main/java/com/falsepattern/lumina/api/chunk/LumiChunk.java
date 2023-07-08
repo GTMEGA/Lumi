@@ -23,6 +23,8 @@ package com.falsepattern.lumina.api.chunk;
 
 import com.falsepattern.lumina.api.engine.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
+import net.minecraft.block.Block;
+import net.minecraft.world.EnumSkyBlock;
 import org.jetbrains.annotations.Nullable;
 
 public interface LumiChunk {
@@ -38,11 +40,31 @@ public interface LumiChunk {
 
     int chunkPosZ();
 
+    int getBrightnessAndBlockLightValueMax(int subChunkPosX, int posY, int subChunkPosZ);
+
+    int getBlockSkyAndLightValueMax(int subChunkPosX, int posY, int subChunkPosZ);
+
+    void lumi$setLightValue(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ, int lightValue);
+
+    int lumi$getLightValue(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ);
+
+    void setBlockLightValue(int subChunkPosX, int posY, int subChunkPosZ, int lightValue);
+
     int getBlockLightValue(int subChunkPosX, int posY, int subChunkPosZ);
+
+    void setSkyLightValue(int subChunkPosX, int posY, int subChunkPosZ, int lightValue);
 
     int getSkyLightValue(int subChunkPosX, int posY, int subChunkPosZ);
 
-    // TODO: Add isBlockOnTop
+    int getBlockBrightness(int subChunkPosX, int posY, int subChunkPosZ);
+
+    int getBlockOpacity(int subChunkPosX, int posY, int subChunkPosZ);
+
+    int getBlockBrightness(Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ);
+
+    int getBlockOpacity(Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ);
+
+    boolean isBlockOnTop(int subChunkPosX, int posY, int subChunkPosZ);
 
     // TODO: Add skyLightHeight setter/getter
     int[] skyLightHeights();
