@@ -21,9 +21,6 @@
 
 package com.falsepattern.lumina.api.chunk;
 
-import net.minecraft.world.chunk.NibbleArray;
-import org.jetbrains.annotations.Nullable;
-
 public interface LumiSubChunk {
     LumiSubChunkRoot rootSubChunk();
 
@@ -34,10 +31,4 @@ public interface LumiSubChunk {
     void setSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
 
     int getSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
-
-    @Deprecated
-    NibbleArray blockLightValues();
-
-    @Deprecated
-    @Nullable NibbleArray skyLightValues();
 }

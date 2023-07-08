@@ -330,10 +330,9 @@ public abstract class ChunkMixin {
                         val lumiStorage = lumiWorld.toLumiSubChunk(vanillaStorage);
                         if (lumiWorld.getBlockOpacity(block, meta, bx, by, bz) >= 255 &&
                             lumiWorld.getBlockBrightness(block, meta, bx, by, bz) <= 0) {
-                            val bla = lumiStorage.blockLightValues();
-                            final int prevLight = bla.get(x, y, z);
+                            final int prevLight = lumiStorage.getBlockLightValue(x, y, z);
                             if (prevLight != 0) {
-                                bla.set(x, y, z, 0);
+                                lumiStorage.setBlockLightValue(x, y, z, EnumSkyBlock.Block.defaultLightValue);
                                 worldObj.markBlockRangeForRenderUpdate(bx, by, bz, bx, by, bz);
                             }
                         } else {

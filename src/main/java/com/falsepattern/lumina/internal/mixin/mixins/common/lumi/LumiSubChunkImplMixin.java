@@ -57,18 +57,8 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
     @Override
     public int getSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ) {
         if (skylightArray != null)
-            skylightArray.get(subChunkPosX, subChunkPosY, subChunkPosZ);
+            return skylightArray.get(subChunkPosX, subChunkPosY, subChunkPosZ);
         return EnumSkyBlock.Sky.defaultLightValue;
-    }
-
-    @Override
-    public NibbleArray blockLightValues() {
-        return blocklightArray;
-    }
-
-    @Override
-    public @Nullable NibbleArray skyLightValues() {
-        return skylightArray;
     }
 
     @Override

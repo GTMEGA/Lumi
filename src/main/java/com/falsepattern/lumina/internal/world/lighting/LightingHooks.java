@@ -47,7 +47,7 @@ public class LightingHooks {
 
     private static final AxisDirection[] ENUM_AXIS_DIRECTION_VALUES = AxisDirection.values();
 
-    public static final EnumFacing[] HORIZONTAL_FACINGS = new EnumFacing[] { EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.NORTH, EnumFacing.EAST };
+    public static final EnumFacing[] HORIZONTAL_FACINGS = new EnumFacing[]{EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.NORTH, EnumFacing.EAST};
     private static final EnumFacing[] HORIZONTAL = HORIZONTAL_FACINGS;
 
     private static final int FLAG_COUNT = 32; //2 light types * 4 directions * 2 halves * (inwards + outwards)
@@ -80,8 +80,8 @@ public class LightingHooks {
 
                 final boolean neighborColumnExists =
                         (((x + xOffset) | (z + zOffset)) & 16) == 0
-                                //Checks whether the position is at the specified border (the 16 bit is set for both 15+1 and 0-1)
-                                || LightingEngineHelpers.getLoadedChunk(world, chunk.chunkPosX() + xOffset, chunk.chunkPosZ() + zOffset) != null;
+                        //Checks whether the position is at the specified border (the 16 bit is set for both 15+1 and 0-1)
+                        || LightingEngineHelpers.getLoadedChunk(world, chunk.chunkPosX() + xOffset, chunk.chunkPosZ() + zOffset) != null;
 
                 if (neighborColumnExists) {
                     for (int sec = yMax >> 4; sec >= yMin >> 4; --sec) {
@@ -298,22 +298,22 @@ public class LightingHooks {
      * The custom skylight data
      */
     public static int lumiGetSkylight(LumiSubChunk iLumiEBS, int x, int y, int z) {
-        return iLumiEBS.skyLightValues().get(x, y, z);
+        return iLumiEBS.getSkyLightValue(x, y, z);
     }
 
     public static void lumiSetSkylight(LumiSubChunk iLumiEBS, int x, int y, int z, int defaultLightValue) {
-        iLumiEBS.skyLightValues().set(x, y, z, defaultLightValue);
+        iLumiEBS.setSkyLightValue(x, y, z, defaultLightValue);
     }
 
     /**
      * The custom blocklight data
      */
     public static int lumiGetBlocklight(LumiSubChunk iLumiEBS, int x, int y, int z) {
-        return iLumiEBS.blockLightValues().get(x, y, z);
+        return iLumiEBS.getBlockLightValue(x, y, z);
     }
 
     public static void lumiSetBlocklight(LumiSubChunk iLumiEBS, int x, int y, int z, int defaultLightValue) {
-        iLumiEBS.blockLightValues().set(x, y, z, defaultLightValue);
+        iLumiEBS.setBlockLightValue(x, y, z, defaultLightValue);
     }
 
     /**
@@ -385,6 +385,7 @@ public class LightingHooks {
 
     /**
      * Generates the height map for a chunk from scratch
+     *
      * @param chunk
      */
     @SideOnly(Side.CLIENT)
@@ -461,7 +462,7 @@ public class LightingHooks {
     }
 
     private static EnumFacing getOpposite(EnumFacing in) {
-        switch(in) {
+        switch (in) {
             case NORTH:
                 return EnumFacing.SOUTH;
             case SOUTH:
@@ -497,7 +498,7 @@ public class LightingHooks {
 
             final LumiChunk nChunk = LightingEngineHelpers.getLoadedChunk(chunk.lumiWorld(), chunk.chunkPosX() + xOffset, chunk.chunkPosZ() + zOffset);
 
-            if(nChunk == null)
+            if (nChunk == null)
                 continue;
 
             for (final EnumSkyBlock lightType : ENUM_SKY_BLOCK_VALUES) {
@@ -513,9 +514,9 @@ public class LightingHooks {
                     scheduleRelightChecksForBoundary(world, nChunk, chunk, null, lightType, -xOffset, -zOffset, axisDir);
                     //The boundary to the diagonal neighbor (since the checks in that chunk were aborted if this chunk wasn't loaded, see scheduleRelightChecksForBoundary)
                     scheduleRelightChecksForBoundary(world, nChunk, null, chunk, lightType, (zOffset != 0 ? axisDir.getOffset() : 0),
-                            (xOffset != 0 ? axisDir.getOffset() : 0), getAxisDirection(dir) == AxisDirection.POSITIVE ?
-                                    AxisDirection.NEGATIVE :
-                                    AxisDirection.POSITIVE);
+                                                     (xOffset != 0 ? axisDir.getOffset() : 0), getAxisDirection(dir) == AxisDirection.POSITIVE ?
+                                                             AxisDirection.NEGATIVE :
+                                                             AxisDirection.POSITIVE);
                 }
             }
         }
@@ -552,7 +553,7 @@ public class LightingHooks {
 
         if (nChunk == null) {
             nChunk = LightingEngineHelpers.getLoadedChunk(world, chunk.chunkPosX() + xOffset, chunk.chunkPosZ() + zOffset);
-            if(nChunk == null)
+            if (nChunk == null)
                 return;
         }
 
@@ -734,10 +735,11 @@ public class LightingHooks {
 
     /**
      * Get the intrinsic or saved block light value in a chunk.
+     *
      * @param chunk the chunk
-     * @param x X coordinate (0-15)
-     * @param y Y coordinate (0-255)
-     * @param z Z coordinate (0-15)
+     * @param x     X coordinate (0-15)
+     * @param y     Y coordinate (0-255)
+     * @param z     Z coordinate (0-15)
      * @return light level
      */
     public static int getIntrinsicOrSavedBlockLightValue(Chunk chunk, int x, int y, int z) {
