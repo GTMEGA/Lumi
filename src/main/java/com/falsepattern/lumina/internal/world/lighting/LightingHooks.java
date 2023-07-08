@@ -253,15 +253,6 @@ public class LightingHooks {
         return iLumiChunk.skyLightHeights()[z << 4 | x];
     }
 
-    public static void lumiSetLightValue(LumiChunk chunk,
-                                         EnumSkyBlock lightType,
-                                         int subChunkPosX,
-                                         int posY,
-                                         int subChunkPosZ,
-                                         int lightValue) {
-        chunk.lumi$setLightValue(lightType, subChunkPosX, posY, subChunkPosZ, lightValue);
-    }
-
     /**
      * Generates the initial skylight map for the chunk upon generation or load.
      */
@@ -280,7 +271,8 @@ public class LightingHooks {
 
                 while (true) {
                     if (y > 0) {
-                        if (getLightOpacity(chunk, x, y - 1, z) == 0) {
+                        val blockOpacity = chunk.getBlockOpacity(x, y - 1, z);
+                        if (blockOpacity == 0) {
                             --y;
                             continue;
                         }
@@ -297,13 +289,13 @@ public class LightingHooks {
                         y = topSegment + 16 - 1;
 
                         do {
-                            int opacity = getLightOpacity(chunk, x, y, z);
+                            int blockOpacity = chunk.getBlockOpacity(x, y, z);
 
-                            if (opacity == 0 && lightLevel != 15) {
-                                opacity = 1;
+                            if (blockOpacity == 0 && lightLevel != 15) {
+                                blockOpacity = 1;
                             }
 
-                            lightLevel -= opacity;
+                            lightLevel -= blockOpacity;
 
                             if (lightLevel > 0) {
                                 val ebs = chunk.subChunk(y >> 4);
@@ -350,7 +342,8 @@ public class LightingHooks {
 
                 while (true) {
                     if (l > 0) {
-                        if (getLightOpacity(chunk, j, l - 1, k) == 0) {
+                        val blockOpacity = chunk.getBlockOpacity(j, l - 1, k);
+                        if (blockOpacity == 0) {
                             --l;
                             continue;
                         }
@@ -666,9 +659,5 @@ public class LightingHooks {
                 }
             }
         }
-    }
-
-    public static int getLightOpacity(LumiChunk chunk, int subChunkPosX, int posY, int subChunkPosZ) {
-        return chunk.getBlockOpacity(subChunkPosX, posY, subChunkPosZ);
     }
 }

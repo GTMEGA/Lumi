@@ -532,19 +532,25 @@ public class LightingEngine implements LumiLightingEngine {
     /**
      * Enqueues the pos for brightening and sets its light value to <code>newLight</code>
      */
-    private void enqueueBrightening(final BlockPos pos, final long longPos, final int newLight, final LumiChunk chunk, final EnumSkyBlock lightType) {
-        this.queuedBrightenings[newLight].add(longPos);
+    private void enqueueBrightening(BlockPos blockPos, long posLong, int newLight, LumiChunk chunk, EnumSkyBlock lightType) {
+        this.queuedBrightenings[newLight].add(posLong);
 
-        LightingHooks.lumiSetLightValue(chunk, lightType, pos.getX() & 15, pos.getY(), pos.getZ() & 15, newLight);
+        val posY = blockPos.getY();
+        val subChunkPosX = blockPos.getX() & 15;
+        val subChunkPosZ = blockPos.getZ() & 15;
+        chunk.lumi$setLightValue(lightType, subChunkPosX, posY, subChunkPosZ, newLight);
     }
 
     /**
      * Enqueues the pos for darkening and sets its light value to 0
      */
-    private void enqueueDarkening(final BlockPos pos, final long longPos, final int oldLight, final LumiChunk chunk, final EnumSkyBlock lightType) {
-        this.queuedDarkenings[oldLight].add(longPos);
+    private void enqueueDarkening(BlockPos blockPos, long posLong, int oldLight, LumiChunk chunk, EnumSkyBlock lightType) {
+        this.queuedDarkenings[oldLight].add(posLong);
 
-        LightingHooks.lumiSetLightValue(chunk, lightType, pos.getX() & 15, pos.getY(), pos.getZ() & 15, 0);
+        val posY = blockPos.getY();
+        val subChunkPosX = blockPos.getX() & 15;
+        val subChunkPosZ = blockPos.getZ() & 15;
+        chunk.lumi$setLightValue(lightType, subChunkPosX, posY, subChunkPosZ, 0);
     }
 
     private static BlockPos.MutableBlockPos decodeWorldCoord(final BlockPos.MutableBlockPos pos, final long longPos) {
