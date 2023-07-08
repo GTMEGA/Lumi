@@ -168,7 +168,7 @@ public abstract class ChunkMixin {
         for (var i = 0; i < lumiWorldCount; i++) {
             val lumiWorld = LumiWorldManager.getWorld(worldObj, i);
             val lumiChunk = lumiWorld.toLumiChunk((Chunk) (Object) this);
-            doLightPop &= LightingHooks.checkChunkLighting(lumiChunk, lumiWorld);
+            doLightPop &= LightingHooks.checkChunkLighting(lumiWorld, lumiChunk);
         }
 
         if (doLightPop)
