@@ -56,6 +56,7 @@ public enum Mixin implements IMixin {
     common_lumi_LumiSubChunkImplMixin(COMMON, always(), "lumi.LumiSubChunkImplMixin"),
     common_lumi_LumiSubChunkRootImplMixin(COMMON, always(), "lumi.LumiSubChunkRootImplMixin"),
 
+    common_NibbleArrayMixin(COMMON, always(), "NibbleArrayMixin"),
     common_MixinLongHashMap(COMMON, avoid(ARCHAICFIX), "LongHashMapMixin"),
     ;
 
