@@ -31,7 +31,6 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import lombok.val;
 import lombok.var;
-import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -584,93 +583,98 @@ public class LightingHooks {
 
     public static final String neighborLightChecksKey = "NeighborLightChecks";
 
-    public static void writeNeighborLightChecksToNBT(final LumiChunk chunk, final NBTTagCompound nbt) {
-        short[] neighborLightChecks = chunk.neighborLightCheckFlags();
+    public static void writeNeighborLightChecksToNBT(LumiChunk chunk, NBTTagCompound output) {
+        val neighborLightCheckFlags = chunk.neighborLightCheckFlags();
 
-        if (neighborLightChecks == null) {
+        var empty = true;
+
+        val flagList = new NBTTagList();
+        for (val flag : neighborLightCheckFlags) {
+            val flagTag = new NBTTagShort(flag);
+            flagList.appendTag(new NBTTagShort(flag));
+            if (flag != 0)
+                empty = false;
+        }
+
+        if (!empty)
+            output.setTag(neighborLightChecksKey, flagList);
+    }
+
+    public static void readNeighborLightChecksFromNBT(LumiChunk chunk, NBTTagCompound input) {
+        if (!input.hasKey(neighborLightChecksKey, 9))
+            return;
+
+        val list = input.getTagList(neighborLightChecksKey, 2);
+        if (list.tagCount() != FLAG_COUNT) {
+            Share.LOG.warn("Chunk field {} had invalid length, ignoring it (chunk coordinates: {} {})",
+                           neighborLightChecksKey,
+                           chunk.chunkPosX(),
+                           chunk.chunkPosZ());
             return;
         }
 
-        boolean empty = true;
-
-        final NBTTagList list = new NBTTagList();
-
-        for (final short flags : neighborLightChecks) {
-            list.appendTag(new NBTTagShort(flags));
-
-            if (flags != 0) {
-                empty = false;
-            }
-        }
-
-        if (!empty) {
-            nbt.setTag(neighborLightChecksKey, list);
+        val neighborLightCheckFlags = chunk.neighborLightCheckFlags();
+        for (var flagIndex = 0; flagIndex < FLAG_COUNT; ++flagIndex) {
+            val flagTag = (NBTTagShort) list.tagList.get(flagIndex);
+            val flag = flagTag.func_150289_e();
+            neighborLightCheckFlags[flagIndex] = flag;
         }
     }
 
-    public static void readNeighborLightChecksFromNBT(final LumiChunk chunk, final NBTTagCompound nbt) {
-        if (nbt.hasKey(neighborLightChecksKey, 9)) {
-            final NBTTagList list = nbt.getTagList(neighborLightChecksKey, 2);
+    public static void initChunkLighting(LumiWorld world, LumiChunk chunk) {
+        val basePosX = chunk.chunkPosX() * 16;
+        val basePosZ = chunk.chunkPosZ() * 16;
 
-            if (list.tagCount() == FLAG_COUNT) {
-                short[] neighborLightChecks = chunk.neighborLightCheckFlags();
+        val minPosX = basePosX - 16;
+        val minPosY = 0;
+        val minPosZ = basePosZ - 16;
 
-                for (int i = 0; i < FLAG_COUNT; ++i) {
-                    neighborLightChecks[i] = ((NBTTagShort) list.tagList.get(i)).func_150289_e();
-                }
-            } else {
-                Share.LOG.warn("Chunk field {} had invalid length, ignoring it (chunk coordinates: {} {})", neighborLightChecksKey, chunk.chunkPosX(), chunk.chunkPosZ());
-            }
-        }
-    }
+        val maxPosX = basePosX + 31;
+        val maxPosY = 255;
+        val maxPosZ = basePosZ + 31;
 
-    public static void initChunkLighting(final LumiChunk chunk, final LumiWorld world) {
-        final int xBase = chunk.chunkPosX() << 4;
-        final int zBase = chunk.chunkPosZ() << 4;
+        if (!world.rootWorld().doChunksExist(minPosX, minPosY, minPosZ, maxPosX, maxPosY, maxPosZ))
+            return;
 
-        final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(xBase, 0, zBase);
+        val blockPos = new BlockPos.MutableBlockPos(basePosX, 0, basePosZ);
+        for (var chunkPosY = 0; chunkPosY < 16; chunkPosY++) {
+            val subChunk = chunk.subChunk(chunkPosY);
+            if (subChunk == null)
+                continue;
+            val rootSubChunk = subChunk.rootSubChunk();
 
-        if (world.rootWorld().doChunksExist(xBase - 16, 0, zBase - 16, xBase + 31, 255, zBase + 31)) {
+            val basePosY = chunkPosY * 16;
+            for (int subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
+                for (int subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
+                    for (int subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
+                        val block = rootSubChunk.getBlockFromSubChunk(subChunkPosX, subChunkPosY, subChunkPosZ);
+                        if (block == Blocks.air)
+                            continue;
 
-            for (int j = 0; j < 16; ++j) {
-                final LumiSubChunk storage = chunk.subChunk(j);
+                        val blockMeta = rootSubChunk.getBlockMetaFromSubChunk(subChunkPosX, subChunkPosY, subChunkPosZ);
+                        val posX = basePosX + subChunkPosX;
+                        val posY = basePosY + subChunkPosY;
+                        val posZ = basePosZ + subChunkPosZ;
 
-                if (storage == null) {
-                    continue;
-                }
-
-                int yBase = j * 16;
-
-                for (int y = 0; y < 16; y++) {
-                    for (int z = 0; z < 16; z++) {
-                        for (int x = 0; x < 16; x++) {
-                            Block block = storage.rootSubChunk().getBlockFromSubChunk(x, y, z);
-                            int meta = storage.rootSubChunk().getBlockMetaFromSubChunk(x, y, z);
-                            if (block != Blocks.air) {
-                                pos.setPos(xBase + x, yBase + y, zBase + z);
-                                int light = chunk.lumiWorld().getBlockBrightness(block, meta, pos.getX(), pos.getY(), pos.getZ());
-
-                                if (light > 0) {
-                                    world.lightingEngine().scheduleLightUpdate(EnumSkyBlock.Block, pos.getX(), pos.getY(), pos.getZ());
-                                }
-                            }
-                        }
+                        val brightness = chunk.lumiWorld().getBlockBrightness(block, blockMeta, posX, posY, posZ);
+                        if (brightness > 0)
+                            world.lightingEngine().scheduleLightUpdate(EnumSkyBlock.Block, posX, posY, posZ);
                     }
                 }
             }
-
-            if (world.rootWorld().hasSky()) {
-                lumiSetSkylightUpdatedPublic(chunk);
-                doRecheckGaps(chunk, false);
-            }
-
-            chunk.hasLightInitialized(true);
         }
+
+        if (world.rootWorld().hasSky()) {
+            lumiSetSkylightUpdatedPublic(chunk);
+            doRecheckGaps(chunk, false);
+        }
+
+        chunk.hasLightInitialized(true);
     }
 
     public static boolean checkChunkLighting(LumiWorld world, LumiChunk chunk) {
         if (!chunk.hasLightInitialized())
-            initChunkLighting(chunk, world);
+            initChunkLighting(world, chunk);
 
         for (int xOffset = -1; xOffset <= 1; ++xOffset) {
             for (int zOffset = -1; zOffset <= 1; ++zOffset) {
