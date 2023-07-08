@@ -44,13 +44,11 @@ import static com.falsepattern.lumina.internal.world.lighting.LightingEngineHelp
 @SuppressWarnings("unused")
 public class LightingHooks {
     private static final EnumSkyBlock[] ENUM_SKY_BLOCK_VALUES = EnumSkyBlock.values();
-
     private static final AxisDirection[] ENUM_AXIS_DIRECTION_VALUES = AxisDirection.values();
-
-    public static final EnumFacing[] HORIZONTAL_FACINGS = new EnumFacing[]{EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.NORTH, EnumFacing.EAST};
-    private static final EnumFacing[] HORIZONTAL = HORIZONTAL_FACINGS;
+    public static final EnumFacing[] HORIZONTAL_FACINGS = {EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.NORTH, EnumFacing.EAST};
 
     public static final int FLAG_COUNT = 32; //2 light types * 4 directions * 2 halves * (inwards + outwards)
+    public static final String NEIGHBOR_LIGHT_CHECKS_KEY = "NeighborLightChecks";
 
     public static void relightSkylightColumn(final LumiWorld world, final LumiChunk chunk, final int x, final int z, final int height1, final int height2) {
         final int yMin = Math.min(height1, height2);
@@ -192,7 +190,7 @@ public class LightingHooks {
     private static int recheckGapsGetLowestHeight(WorldChunkSlice slice, int x, int z) {
         int max = Integer.MAX_VALUE;
 
-        for (EnumFacing facing : HORIZONTAL) {
+        for (val facing : HORIZONTAL_FACINGS) {
             int j = x + facing.getFrontOffsetX();
             int k = z + facing.getFrontOffsetZ();
 
@@ -205,7 +203,7 @@ public class LightingHooks {
     private static void recheckGapsSkylightNeighborHeight(LumiChunk chunk, WorldChunkSlice slice, int x, int z, int height, int max) {
         checkSkylightNeighborHeight(chunk, slice, x, z, max);
 
-        for (EnumFacing facing : HORIZONTAL) {
+        for (val facing : HORIZONTAL_FACINGS) {
             int j = x + facing.getFrontOffsetX();
             int k = z + facing.getFrontOffsetZ();
 
@@ -365,13 +363,7 @@ public class LightingHooks {
         chunk.rootChunk().markDirty();
     }
 
-    public enum EnumBoundaryFacing {
-        IN, OUT;
 
-        public EnumBoundaryFacing getOpposite() {
-            return this == IN ? OUT : IN;
-        }
-    }
 
     public static void flagSecBoundaryForUpdate(final LumiChunk chunk, final BlockPos pos, final EnumSkyBlock lightType, final EnumFacing dir,
                                                 final EnumBoundaryFacing boundaryFacing) {
@@ -397,36 +389,6 @@ public class LightingHooks {
 
     private static AxisDirection getAxisDirection(final EnumFacing dir, final int x, final int z) {
         return (((dir == EnumFacing.EAST || dir == EnumFacing.WEST) ? z : x) & 15) < 8 ? AxisDirection.NEGATIVE : AxisDirection.POSITIVE;
-    }
-
-    private static EnumFacing getOpposite(EnumFacing in) {
-        switch (in) {
-            case NORTH:
-                return EnumFacing.SOUTH;
-            case SOUTH:
-                return EnumFacing.NORTH;
-            case EAST:
-                return EnumFacing.WEST;
-            case WEST:
-                return EnumFacing.EAST;
-            case DOWN:
-                return EnumFacing.UP;
-            case UP:
-                return EnumFacing.DOWN;
-            default:
-                throw new IllegalArgumentException();
-        }
-    }
-
-    private static AxisDirection getAxisDirection(EnumFacing in) {
-        switch (in) {
-            case DOWN:
-            case NORTH:
-            case WEST:
-                return AxisDirection.NEGATIVE;
-            default:
-                return AxisDirection.POSITIVE;
-        }
     }
 
     public static void scheduleRelightChecksForChunkBoundaries(final LumiWorld world, final LumiChunk chunk) {
@@ -541,8 +503,6 @@ public class LightingHooks {
         }
     }
 
-    public static final String neighborLightChecksKey = "NeighborLightChecks";
-
     public static void writeNeighborLightChecksToNBT(LumiChunk chunk, NBTTagCompound output) {
         val neighborLightCheckFlags = chunk.neighborLightCheckFlags();
 
@@ -557,17 +517,17 @@ public class LightingHooks {
         }
 
         if (!empty)
-            output.setTag(neighborLightChecksKey, flagList);
+            output.setTag(NEIGHBOR_LIGHT_CHECKS_KEY, flagList);
     }
 
     public static void readNeighborLightChecksFromNBT(LumiChunk chunk, NBTTagCompound input) {
-        if (!input.hasKey(neighborLightChecksKey, 9))
+        if (!input.hasKey(NEIGHBOR_LIGHT_CHECKS_KEY, 9))
             return;
 
-        val list = input.getTagList(neighborLightChecksKey, 2);
+        val list = input.getTagList(NEIGHBOR_LIGHT_CHECKS_KEY, 2);
         if (list.tagCount() != FLAG_COUNT) {
             Share.LOG.warn("Chunk field {} had invalid length, ignoring it (chunk coordinates: {} {})",
-                           neighborLightChecksKey,
+                           NEIGHBOR_LIGHT_CHECKS_KEY,
                            chunk.chunkPosX(),
                            chunk.chunkPosZ());
             return;
@@ -658,6 +618,44 @@ public class LightingHooks {
                         subChunk.setSkyLightValue(subChunkPosX, posY, subChunkPosZ, EnumSkyBlock.Sky.defaultLightValue);
                 }
             }
+        }
+    }
+
+    private static AxisDirection getAxisDirection(EnumFacing in) {
+        switch (in) {
+            case DOWN:
+            case NORTH:
+            case WEST:
+                return AxisDirection.NEGATIVE;
+            default:
+                return AxisDirection.POSITIVE;
+        }
+    }
+
+    private static EnumFacing getOpposite(EnumFacing in) {
+        switch (in) {
+            case NORTH:
+                return EnumFacing.SOUTH;
+            case SOUTH:
+                return EnumFacing.NORTH;
+            case EAST:
+                return EnumFacing.WEST;
+            case WEST:
+                return EnumFacing.EAST;
+            case DOWN:
+                return EnumFacing.UP;
+            case UP:
+                return EnumFacing.DOWN;
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
+    public enum EnumBoundaryFacing {
+        IN, OUT;
+
+        public EnumBoundaryFacing getOpposite() {
+            return this == IN ? OUT : IN;
         }
     }
 }
