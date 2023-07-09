@@ -78,7 +78,7 @@ public interface LumiChunk {
     // TODO: Add outdatedSkylightColumn setter/getter
     boolean[] lumi$outdatedSkyLightColumns();
 
-    short @Nullable [] lumi$neighborLightCheckFlags();
+    short[] lumi$neighborLightCheckFlags();
 
     void lumi$hasLightInitialized(boolean hasLightInitialized);
 

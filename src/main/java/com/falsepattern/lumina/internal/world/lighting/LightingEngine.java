@@ -324,8 +324,8 @@ public class LightingEngine implements LumiLightingEngine {
                     continue;
                 }
 
-                final Block block = LightingEngineHelpers.posToBlock(this.curPos, this.curChunk);
-                final int meta = LightingEngineHelpers.posToMeta(this.curPos, this.curChunk);
+                final Block block = LightingEngineHelpers.getBlockFromChunk(this.curChunk, this.curPos);
+                final int meta = LightingEngineHelpers.getBlockMetaFromChunk(this.curChunk, this.curPos);
                 final int luminosity = this.getCursorLuminosity(block, meta, lightType);
                 final int opacity; //if luminosity is high enough, opacity is irrelevant
 
@@ -357,7 +357,7 @@ public class LightingEngine implements LumiLightingEngine {
 
                         final BlockPos.MutableBlockPos nPos = info.pos;
 
-                        if (curLight - this.getPosOpacity(nPos, LightingEngineHelpers.posToBlock(nPos, info.section), LightingEngineHelpers.posToMeta(nPos, info.section)) >= nLight) //schedule neighbor for darkening if we possibly light it
+                        if (curLight - this.getPosOpacity(nPos, LightingEngineHelpers.getBlockFromSubChunk(info.section, nPos), LightingEngineHelpers.getBlockMetaFromSubChunk(info.section, nPos)) >= nLight) //schedule neighbor for darkening if we possibly light it
                         {
                             this.enqueueDarkening(nPos, info.key, nLight, nChunk, lightType);
                         } else //only use for new light calculation if not
@@ -470,8 +470,8 @@ public class LightingEngine implements LumiLightingEngine {
 
 
     private int calculateNewLightFromCursor(final EnumSkyBlock lightType) {
-        final Block block = LightingEngineHelpers.posToBlock(this.curPos, this.curChunk);
-        final int meta = LightingEngineHelpers.posToMeta(this.curPos, this.curChunk);
+        final Block block = LightingEngineHelpers.getBlockFromChunk(this.curChunk, this.curPos);
+        final int meta = LightingEngineHelpers.getBlockMetaFromChunk(this.curChunk, this.curPos);
 
         final int luminosity = this.getCursorLuminosity(block, meta, lightType);
         final int opacity;
@@ -517,7 +517,7 @@ public class LightingEngine implements LumiLightingEngine {
                 continue;
             }
 
-            final int newLight = curLight - this.getPosOpacity(info.pos, LightingEngineHelpers.posToBlock(info.pos, info.section), LightingEngineHelpers.posToMeta(info.pos, info.section));
+            final int newLight = curLight - this.getPosOpacity(info.pos, LightingEngineHelpers.getBlockFromSubChunk(info.section, info.pos), LightingEngineHelpers.getBlockMetaFromSubChunk(info.section, info.pos));
 
             if (newLight > info.light) {
                 this.enqueueBrightening(info.pos, info.key, newLight, nChunk, lightType);

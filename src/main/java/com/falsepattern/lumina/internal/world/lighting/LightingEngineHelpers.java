@@ -25,55 +25,55 @@ import com.falsepattern.lib.compat.BlockPos;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.world.LumiWorld;
+import lombok.experimental.UtilityClass;
 import lombok.val;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
+import org.jetbrains.annotations.Nullable;
 
-public class LightingEngineHelpers {
+@UtilityClass
+public final class LightingEngineHelpers {
     private static final Block DEFAULT_BLOCK = Blocks.air;
     private static final int DEFAULT_METADATA = 0;
 
-    // Avoids some additional logic in Chunk#getBlockState... 0 is always air
-    static Block posToBlock(final BlockPos pos, final LumiChunk chunk) {
-        return posToBlock(pos, chunk.lumi$subChunk(pos.getY() >> 4));
+    public static Block getBlockFromChunk(LumiChunk chunk, BlockPos blockPos) {
+        val chunkPosY = blockPos.getY() / 16;
+        val subChunk = chunk.lumi$subChunk(chunkPosY);
+        return getBlockFromSubChunk(subChunk, blockPos);
     }
 
-    static Block posToBlock(final BlockPos pos, final LumiSubChunk section) {
-        final int x = pos.getX();
-        final int y = pos.getY();
-        final int z = pos.getZ();
+    public static Block getBlockFromSubChunk(LumiSubChunk subChunk, BlockPos blockPos) {
+        if (subChunk == null)
+            return DEFAULT_BLOCK;
 
-        if (section != null)
-        {
-            return section.lumi$root().lumi$getBlock(x & 15, y & 15, z & 15);
-        }
-
-        return DEFAULT_BLOCK;
+        val subChunkPosX = blockPos.getX() & 15;
+        val subChunkPosY = blockPos.getY() & 15;
+        val subChunkPosZ = blockPos.getZ() & 15;
+        return subChunk.lumi$root().lumi$getBlock(subChunkPosX, subChunkPosY, subChunkPosZ);
     }
 
-    // Avoids some additional logic in Chunk#getBlockState... 0 is always air
-    static int posToMeta(final BlockPos pos, final LumiChunk chunk) {
-        return posToMeta(pos, chunk.lumi$subChunk(pos.getY() >> 4));
+    public static int getBlockMetaFromChunk(LumiChunk chunk, BlockPos blockPos) {
+        val chunkPosY = blockPos.getY() / 16;
+        val subChunk = chunk.lumi$subChunk(chunkPosY);
+        return getBlockMetaFromSubChunk(subChunk, blockPos);
     }
 
-    static int posToMeta(final BlockPos pos, final LumiSubChunk section) {
-        final int x = pos.getX();
-        final int y = pos.getY();
-        final int z = pos.getZ();
+    public static int getBlockMetaFromSubChunk(LumiSubChunk subChunk, BlockPos blockPos) {
+        if (subChunk == null)
+            return DEFAULT_METADATA;
 
-        if (section != null)
-        {
-            return section.lumi$root().lumi$getBlockMeta(x & 15, y & 15, z & 15);
-        }
-
-        return DEFAULT_METADATA;
+        val subChunkPosX = blockPos.getX() & 15;
+        val subChunkPosY = blockPos.getY() & 15;
+        val subChunkPosZ = blockPos.getZ() & 15;
+        return subChunk.lumi$root().lumi$getBlockMeta(subChunkPosX, subChunkPosY, subChunkPosZ);
     }
 
-
-    public static LumiChunk getLoadedChunk(LumiWorld world, int chunkX, int chunkZ) {
+    public static @Nullable LumiChunk getLoadedChunk(LumiWorld world, int chunkPosX, int chunkPosZ) {
         val provider = world.lumi$root().lumi$chunkProvider();
-        if(!provider.chunkExists(chunkX, chunkZ))
+        if (!provider.chunkExists(chunkPosX, chunkPosZ))
             return null;
-        return world.lumi$wrap(provider.provideChunk(chunkX, chunkZ));
+
+        val baseChunk = provider.provideChunk(chunkPosX, chunkPosZ);
+        return world.lumi$wrap(baseChunk);
     }
 }

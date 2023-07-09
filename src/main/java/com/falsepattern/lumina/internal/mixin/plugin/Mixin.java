@@ -40,7 +40,6 @@ public enum Mixin implements IMixin {
     common_AnvilChunkLoaderMixin(COMMON, always(), "AnvilChunkLoaderMixin"),
     common_ChunkMixin(COMMON, always(), "ChunkMixin"),
     common_ChunkProviderServerMixin(COMMON, always(), "ChunkProviderServerMixin"),
-    common_ExtendedBlockStorageMixin(COMMON, always(), "ExtendedBlockStorageMixin"),
     common_S21PacketChunkDataMixin(COMMON, always(), "S21PacketChunkDataMixin"),
     common_WorldMixin(COMMON, always(), "WorldMixin"),
 
@@ -56,6 +55,7 @@ public enum Mixin implements IMixin {
     common_lumi_LumiSubChunkImplMixin(COMMON, always(), "lumi.LumiSubChunkImplMixin"),
     common_lumi_LumiSubChunkRootImplMixin(COMMON, always(), "lumi.LumiSubChunkRootImplMixin"),
 
+    common_ExtendedBlockStorageMixin(COMMON, always(), "ExtendedBlockStorageMixin"),
     common_NibbleArrayMixin(COMMON, always(), "NibbleArrayMixin"),
     common_MixinLongHashMap(COMMON, avoid(ARCHAICFIX), "LongHashMapMixin"),
     ;

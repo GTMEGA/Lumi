@@ -26,6 +26,8 @@ public enum AxisDirection {
     NEGATIVE(-1);
 
     private final int off;
+    private AxisDirection opposite;
+
     AxisDirection(int off) {
         this.off = off;
     }
@@ -34,4 +36,14 @@ public enum AxisDirection {
         return off;
     }
 
+    public AxisDirection getOpposite() {
+        if (opposite == null) {
+            if (this == POSITIVE) {
+                opposite = NEGATIVE;
+            } else {
+                opposite = POSITIVE;
+            }
+        }
+        return opposite;
+    }
 }
