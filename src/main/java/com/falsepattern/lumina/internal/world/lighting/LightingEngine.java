@@ -100,6 +100,7 @@ public final class LightingEngine implements LumiLightingEngine {
     private final Thread updateThread = Thread.currentThread();
     private final ReentrantLock lock = new ReentrantLock();
 
+    private final PooledLongQueue.Pool queuePool = PooledLongQueue.createPool();
     /**
      * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
      */
@@ -115,11 +116,11 @@ public final class LightingEngine implements LumiLightingEngine {
     /**
      * Layout of longs: [newLight(4)] [y(8)] [x(26)] [z(26)]
      */
-    private final PooledLongQueue initialBrighteningQueue;
+    private final PooledLongQueue initialBrighteningQueue = queuePool.createQueue();
     /**
      * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
      */
-    private final PooledLongQueue initialDarkeningsQueue;
+    private final PooledLongQueue initialDarkeningQueue = queuePool.createQueue();
 
     private PooledLongQueue.LongQueueIterator queueIterator = null;
 
@@ -140,15 +141,12 @@ public final class LightingEngine implements LumiLightingEngine {
         this.world = world;
         this.profiler = world.lumi$root().lumi$profiler();
 
-        val queuePool = new PooledLongQueue.Pool();
-        this.initialDarkeningsQueue = new PooledLongQueue(queuePool);
-        this.initialBrighteningQueue = new PooledLongQueue(queuePool);
         for (var i = 0; i < updateQueues.length; i++)
-            updateQueues[i] = new PooledLongQueue(queuePool);
+            updateQueues[i] = queuePool.createQueue();
         for (var i = 0; i < brighteningQueues.length; i++)
-            brighteningQueues[i] = new PooledLongQueue(queuePool);
+            brighteningQueues[i] = queuePool.createQueue();
         for (var i = 0; i < darkeningQueues.length; i++)
-            darkeningQueues[i] = new PooledLongQueue(queuePool);
+            darkeningQueues[i] = queuePool.createQueue();
 
         for (var i = 0; i < neighborBlocks.length; i++)
             neighborBlocks[i] = new NeighborBlock();
@@ -268,7 +266,7 @@ public final class LightingEngine implements LumiLightingEngine {
                 initialBrighteningQueue.add(newData);
             } else if (cursorCurrentLightValue > cursorUpdatedLightValue) {
                 // Don't enqueue directly for darkening in order to avoid duplicate scheduling
-                initialDarkeningsQueue.add(cursorData);
+                initialDarkeningQueue.add(cursorData);
             }
         }
 
@@ -282,7 +280,7 @@ public final class LightingEngine implements LumiLightingEngine {
             }
         }
 
-        queueIterator = initialDarkeningsQueue.iterator();
+        queueIterator = initialDarkeningQueue.iterator();
         while (nextItem()) {
             // Sets the light to 0 to only schedule once
             val cursorCurrentLightValue = getCursorCurrentLightValue(lightType);
@@ -509,9 +507,7 @@ public final class LightingEngine implements LumiLightingEngine {
 
     private boolean nextItem() {
         if (!queueIterator.hasNext()) {
-            queueIterator.finish();
             queueIterator = null;
-
             return false;
         }
 

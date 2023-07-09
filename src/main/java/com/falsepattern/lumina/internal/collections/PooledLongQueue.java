@@ -21,26 +21,44 @@
 
 package com.falsepattern.lumina.internal.collections;
 
+import lombok.*;
+import lombok.experimental.Accessors;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-//Implement own queue with pooled segments to reduce allocation costs and reduce idle memory footprint
-public class PooledLongQueue {
-    private static final int CACHED_QUEUE_SEGMENTS_COUNT = 1 << 12; // 4096
-    private static final int QUEUE_SEGMENT_SIZE = 1 << 10; // 1024
+import static lombok.AccessLevel.PRIVATE;
 
-    private final Pool pool;
+/**
+ * Implement own queue with pooled segments to reduce allocation costs and reduce idle memory footprint
+ */
+@RequiredArgsConstructor(access = PRIVATE)
+public final class PooledLongQueue {
+    /**
+     * Maximum number of segments which each pool will keep
+     */
+    private static final int LONG_SEGMENT_QUEUE_SIZE_LIMIT = 4096;
+    /**
+     * Size of the {@code long[]} in each segment.
+     */
+    private static final int LONG_SEGMENT_DATA_SIZE = 1024;
 
-    private Segment cur, last;
+    private final Pool queuePool;
+
+    private @Nullable Segment headSegment = null;
+    private @Nullable Segment tailSegment = null;
 
     private int size = 0;
 
-    // Stores whether the queue is empty. Updates to this field will be seen by all threads immediately. Writes
-    // to volatile fields are generally quite a bit more expensive, so we avoid repeatedly setting this flag to true.
+    /**
+     * Stores whether the queue is empty. Updates to this field will be seen by all threads immediately. Writes
+     * to volatile fields are generally quite a bit more expensive, so we avoid repeatedly setting this flag to true.
+     */
     private volatile boolean empty;
 
-    public PooledLongQueue(Pool pool) {
-        this.pool = pool;
+    public static Pool createPool() {
+        return new Pool();
     }
 
     /**
@@ -49,137 +67,155 @@ public class PooledLongQueue {
      * @return The number of encoded values present in this queue
      */
     public int size() {
-        return this.size;
+        return size;
     }
 
     /**
      * Thread-safe method to check whether this queue has work to do. Significantly cheaper than acquiring a lock.
+     *
      * @return True if the queue is empty, otherwise false
      */
     public boolean isEmpty() {
-        return this.empty;
+        return empty;
     }
 
     /**
-     * Not thread-safe! Adds an encoded long value into this queue.
-     * @param val The encoded value to add
+     * Not thread-safe! Adds a long value into this queue.
+     *
+     * @param value The long to add
      */
-    public void add(final long val) {
-        if (this.cur == null) {
+    public void add(long value) {
+        if (headSegment == null) {
+            val segment = queuePool.acquire();
+            this.headSegment = segment;
+            this.tailSegment = segment;
             this.empty = false;
-            this.cur = this.last = this.pool.acquire();
+        } else if (tailSegment.isFull()) {
+            val segment = queuePool.acquire();
+            tailSegment.nextSegment = segment;
+            tailSegment = segment;
         }
 
-        if (this.last.index == QUEUE_SEGMENT_SIZE) {
-            Segment ret = this.last.next = this.last.pool.acquire();
-            ret.longArray[ret.index++] = val;
-
-            this.last = ret;
-        } else {
-            this.last.longArray[this.last.index++] = val;
-        }
-
-        ++this.size;
+        tailSegment.data[tailSegment.index] = value;
+        tailSegment.index++;
+        size++;
     }
 
     /**
      * Not thread safe! Creates an iterator over the values in this queue. Values will be returned in a FIFO fashion.
+     *
      * @return The iterator
      */
     public LongQueueIterator iterator() {
-        return new LongQueueIterator(this.cur);
+        return new LongQueueIterator(headSegment);
     }
 
     private void clear() {
-        Segment segment = this.cur;
-
-        while (segment != null) {
-            Segment next = segment.next;
-            segment.release();
-            segment = next;
+        var currentSegment = headSegment;
+        while (currentSegment != null) {
+            val nextSegment = currentSegment.nextSegment;
+            currentSegment.release();
+            currentSegment = nextSegment;
         }
 
+        this.headSegment = null;
+        this.tailSegment = null;
         this.size = 0;
-        this.cur = null;
-        this.last = null;
         this.empty = true;
     }
 
-    public class LongQueueIterator {
-        private Segment cur;
-        private long[] curArray;
+    @NoArgsConstructor(access = PRIVATE)
+    public static final class Pool {
+        private final Deque<Segment> segments = new ArrayDeque<>();
 
-        private int index, capacity;
-
-        private LongQueueIterator(Segment cur) {
-            this.cur = cur;
-
-            if (this.cur != null) {
-                this.curArray = cur.longArray;
-                this.capacity = cur.index;
-            }
+        public PooledLongQueue createQueue() {
+            return new PooledLongQueue(this);
         }
-
-        public boolean hasNext() {
-            return this.cur != null;
-        }
-
-        public long next() {
-            final long ret = this.curArray[this.index++];
-
-            if (this.index == this.capacity) {
-                this.index = 0;
-
-                this.cur = this.cur.next;
-
-                if (this.cur != null) {
-                    this.curArray = this.cur.longArray;
-                    this.capacity = this.cur.index;
-                }
-            }
-
-            return ret;
-        }
-
-        public void finish() {
-            PooledLongQueue.this.clear();
-        }
-    }
-
-    public static class Pool {
-        private final Deque<Segment> segmentPool = new ArrayDeque<>();
 
         private Segment acquire() {
-            if (this.segmentPool.isEmpty()) {
+            if (segments.isEmpty())
                 return new Segment(this);
-            }
-
-            return this.segmentPool.pop();
+            return segments.pop();
         }
 
         private void release(Segment segment) {
-            if (this.segmentPool.size() < CACHED_QUEUE_SEGMENTS_COUNT) {
-                this.segmentPool.push(segment);
-            }
+            if (segments.size() < LONG_SEGMENT_QUEUE_SIZE_LIMIT)
+                segments.push(segment);
         }
     }
 
-    private static class Segment {
-        private final long[] longArray = new long[QUEUE_SEGMENT_SIZE];
-        private int index = 0;
-        private Segment next;
+    @RequiredArgsConstructor(access = PRIVATE)
+    private static final class Segment {
+        private final long[] data = new long[LONG_SEGMENT_DATA_SIZE];
         private final Pool pool;
 
-        private Segment(Pool pool) {
-            this.pool = pool;
-        }
+        private Segment nextSegment;
+        private int index = 0;
 
         private void release() {
-            this.index = 0;
-            this.next = null;
+            index = 0;
+            nextSegment = null;
+            pool.release(this);
+        }
 
-            this.pool.release(this);
+        private boolean isFull() {
+            return index >= LONG_SEGMENT_DATA_SIZE;
         }
     }
 
+    @Accessors(fluent = true, chain = false)
+    public final class LongQueueIterator {
+        private @Nullable Segment currentSegment;
+        private long @Nullable [] data;
+
+        private int capacity;
+        private int index;
+
+        @Getter
+        private boolean hasNext;
+
+        private LongQueueIterator(@Nullable Segment currentSegment) {
+            if (currentSegment != null) {
+                this.currentSegment = currentSegment;
+                this.data = currentSegment.data;
+                this.capacity = currentSegment.index;
+                this.index = 0;
+                this.hasNext = true;
+            } else {
+                this.currentSegment = null;
+                this.data = null;
+                this.capacity = 0;
+                this.index = 0;
+                this.hasNext = false;
+            }
+        }
+
+        public long next() {
+            if (!hasNext)
+                throw new IllegalStateException("Iterator has no more elements");
+
+            val value = data[index];
+            index++;
+
+            if (index >= capacity) {
+                val nextSegment = currentSegment.nextSegment;
+                if (nextSegment != null) {
+                    currentSegment = nextSegment;
+                    data = nextSegment.data;
+                    capacity = nextSegment.index;
+                    index = 0;
+                } else {
+                    clear();
+
+                    currentSegment = null;
+                    data = null;
+                    capacity = 0;
+                    index = 0;
+                    hasNext = false;
+                }
+            }
+
+            return value;
+        }
+    }
 }
