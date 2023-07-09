@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 FalsePattern
+ * Copyright (c) 2023 FalsePattern, Ven
  * All Rights Reserved
  *
  * The above copyright notice and this permission notice shall be included
