@@ -21,8 +21,8 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
+import com.falsepattern.lumina.internal.engine.LightingHooks;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
-import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
 import lombok.val;
 import lombok.var;
 import net.minecraft.block.Block;

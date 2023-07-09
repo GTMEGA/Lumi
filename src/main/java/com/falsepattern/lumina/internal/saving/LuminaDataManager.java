@@ -23,8 +23,8 @@ package com.falsepattern.lumina.internal.saving;
 
 import com.falsepattern.chunk.api.ChunkDataManager;
 import com.falsepattern.lumina.internal.Tags;
+import com.falsepattern.lumina.internal.engine.LightingHooks;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
-import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
 import lombok.val;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.Chunk;

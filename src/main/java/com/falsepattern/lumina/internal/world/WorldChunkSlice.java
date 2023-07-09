@@ -21,9 +21,10 @@
 
 package com.falsepattern.lumina.internal.world;
 
-import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
-import com.falsepattern.lumina.internal.world.lighting.LightingEngineHelpers;
+import com.falsepattern.lumina.api.world.LumiWorld;
+
+import static com.falsepattern.lumina.internal.engine.LightingHooks.getLoadedChunk;
 
 public class WorldChunkSlice {
     private static final int DIAMETER = 5;
@@ -39,7 +40,7 @@ public class WorldChunkSlice {
 
         for (int xDiff = -radius; xDiff <= radius; xDiff++) {
             for (int zDiff = -radius; zDiff <= radius; zDiff++) {
-                LumiChunk chunk = LightingEngineHelpers.getLoadedChunk(world, x + xDiff, z + zDiff);
+                LumiChunk chunk = getLoadedChunk(world, x + xDiff, z + zDiff);
                 this.chunks[((xDiff + radius) * DIAMETER) + (zDiff + radius)] = chunk;
             }
         }

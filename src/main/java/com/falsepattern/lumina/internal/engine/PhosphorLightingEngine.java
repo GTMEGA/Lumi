@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.world.lighting;
+package com.falsepattern.lumina.internal.engine;
 
 import com.falsepattern.lib.compat.BlockPos;
 import com.falsepattern.lib.internal.Share;
@@ -28,7 +28,7 @@ import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.engine.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
-import com.falsepattern.lumina.internal.collections.PooledLongQueue;
+import com.falsepattern.lumina.internal.collection.PooledLongQueue;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import lombok.NoArgsConstructor;
@@ -36,15 +36,17 @@ import lombok.val;
 import lombok.var;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.init.Blocks;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.EnumSkyBlock;
 
 import java.util.concurrent.locks.ReentrantLock;
 
-import static com.falsepattern.lumina.internal.world.lighting.LightingEngineHelpers.*;
+import static com.falsepattern.lumina.internal.engine.LightingHooks.getLoadedChunk;
 
-public final class LightingEngine implements LumiLightingEngine {
+
+public final class PhosphorLightingEngine implements LumiLightingEngine {
     private static final boolean ENABLE_ILLEGAL_THREAD_ACCESS_WARNINGS = true;
 
     private static final int MIN_LIGHT_VALUE = 0;
@@ -137,7 +139,7 @@ public final class LightingEngine implements LumiLightingEngine {
     private final LumiWorld world;
     private final Profiler profiler;
 
-    public LightingEngine(LumiWorld world) {
+    public PhosphorLightingEngine(LumiWorld world) {
         this.world = world;
         this.profiler = world.lumi$root().lumi$profiler();
 
@@ -563,6 +565,38 @@ public final class LightingEngine implements LumiLightingEngine {
         val chunkPosX = blockPos.getX() >> 4;
         val chunkPosZ = blockPos.getZ() >> 4;
         return getLoadedChunk(world, chunkPosX, chunkPosZ);
+    }
+
+    public static Block getBlockFromChunk(LumiChunk chunk, BlockPos blockPos) {
+        val chunkPosY = blockPos.getY() / 16;
+        val subChunk = chunk.lumi$subChunk(chunkPosY);
+        return getBlockFromSubChunk(subChunk, blockPos);
+    }
+
+    public static Block getBlockFromSubChunk(LumiSubChunk subChunk, BlockPos blockPos) {
+        if (subChunk == null)
+            return Blocks.air;
+
+        val subChunkPosX = blockPos.getX() & 15;
+        val subChunkPosY = blockPos.getY() & 15;
+        val subChunkPosZ = blockPos.getZ() & 15;
+        return subChunk.lumi$root().lumi$getBlock(subChunkPosX, subChunkPosY, subChunkPosZ);
+    }
+
+    public static int getBlockMetaFromChunk(LumiChunk chunk, BlockPos blockPos) {
+        val chunkPosY = blockPos.getY() / 16;
+        val subChunk = chunk.lumi$subChunk(chunkPosY);
+        return getBlockMetaFromSubChunk(subChunk, blockPos);
+    }
+
+    public static int getBlockMetaFromSubChunk(LumiSubChunk subChunk, BlockPos blockPos) {
+        if (subChunk == null)
+            return 0;
+
+        val subChunkPosX = blockPos.getX() & 15;
+        val subChunkPosY = blockPos.getY() & 15;
+        val subChunkPosZ = blockPos.getZ() & 15;
+        return subChunk.lumi$root().lumi$getBlockMeta(subChunkPosX, subChunkPosY, subChunkPosZ);
     }
 
     @NoArgsConstructor

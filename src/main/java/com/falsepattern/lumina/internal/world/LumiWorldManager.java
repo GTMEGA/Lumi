@@ -23,7 +23,7 @@ package com.falsepattern.lumina.internal.world;
 
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldProvider;
-import com.falsepattern.lumina.internal.world.lighting.LightingEngine;
+import com.falsepattern.lumina.internal.engine.PhosphorLightingEngine;
 import lombok.val;
 import net.minecraft.world.World;
 
@@ -67,7 +67,7 @@ public class LumiWorldManager {
         for (int i = 0, providersLength = providers.length; i < providersLength; i++) {
             LumiWorldProvider provider = providers[i];
             val lWorld = provider.lumi$wrap(world);
-            lWorld.lumi$lightingEngine(new LightingEngine(lWorld));
+            lWorld.lumi$lightingEngine(new PhosphorLightingEngine(lWorld));
         }
     }
 

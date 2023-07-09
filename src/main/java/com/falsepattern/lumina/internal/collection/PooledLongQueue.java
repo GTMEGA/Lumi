@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.collections;
+package com.falsepattern.lumina.internal.collection;
 
 import lombok.*;
 import lombok.experimental.Accessors;

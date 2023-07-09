@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.world.lighting;
+package com.falsepattern.lumina.internal.engine;
 
 import com.falsepattern.lib.compat.BlockPos;
 import com.falsepattern.lib.internal.Share;
@@ -37,10 +37,9 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagShort;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.EnumSkyBlock;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
-
-import static com.falsepattern.lumina.internal.world.lighting.LightingEngineHelpers.getLoadedChunk;
 
 @SuppressWarnings("unused")
 @UtilityClass
@@ -733,6 +732,15 @@ public final class LightingHooks {
                 if (lumiGetHeightValue(chunk, subChunkPosX, subChunkPosZ) <= maxPosY)
                     for (var posY = 0; posY < 16; posY++)
                         subChunk.lumi$setSkyLightValue(subChunkPosX, posY, subChunkPosZ, lightValue);
+    }
+
+    public static @Nullable LumiChunk getLoadedChunk(LumiWorld world, int chunkPosX, int chunkPosZ) {
+        val provider = world.lumi$root().lumi$chunkProvider();
+        if (!provider.chunkExists(chunkPosX, chunkPosZ))
+            return null;
+
+        val baseChunk = provider.provideChunk(chunkPosX, chunkPosZ);
+        return world.lumi$wrap(baseChunk);
     }
 
     private static AxisDirection getAxisDirection(EnumFacing in) {

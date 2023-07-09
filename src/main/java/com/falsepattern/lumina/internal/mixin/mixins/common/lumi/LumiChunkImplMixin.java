@@ -40,7 +40,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static com.falsepattern.lumina.internal.world.lighting.LightingHooks.FLAG_COUNT;
+import static com.falsepattern.lumina.internal.engine.LightingHooks.FLAG_COUNT;
 
 @Mixin(Chunk.class)
 public abstract class LumiChunkImplMixin implements LumiChunk {

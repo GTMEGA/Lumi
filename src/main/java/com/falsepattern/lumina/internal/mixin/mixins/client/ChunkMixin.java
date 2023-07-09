@@ -21,8 +21,8 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.client;
 
+import com.falsepattern.lumina.internal.engine.LightingHooks;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
-import com.falsepattern.lumina.internal.world.lighting.LightingHooks;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import lombok.val;
