@@ -564,8 +564,8 @@ public final class LightingEngine implements LumiLightingEngine {
     }
 
     private LumiChunk getChunk(BlockPos blockPos) {
-        val chunkPosX = blockPos.getX() / 16;
-        val chunkPosZ = blockPos.getZ() / 16;
+        val chunkPosX = blockPos.getX() >> 4;
+        val chunkPosZ = blockPos.getZ() >> 4;
         return getLoadedChunk(world, chunkPosX, chunkPosZ);
     }
 
