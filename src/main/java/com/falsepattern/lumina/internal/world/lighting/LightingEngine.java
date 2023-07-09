@@ -42,10 +42,9 @@ import net.minecraft.world.EnumSkyBlock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class LightingEngine implements LumiLightingEngine {
+    private static final int MAX_LIGHT = 15;
     private static final boolean ENABLE_ILLEGAL_THREAD_ACCESS_WARNINGS = true;
     private static final int MAX_SCHEDULED_COUNT = 1 << 22;
-
-    private static final int MAX_LIGHT = 15;
 
     private final Thread ownedThread = Thread.currentThread();
 
@@ -69,41 +68,38 @@ public class LightingEngine implements LumiLightingEngine {
 
     //Layout parameters
     //Length of bit segments
-    private static final int
-            lX = 26,
-            lY = 8,
-            lZ = 26,
-            lL = 4;
+    private static final int lX = 26;
+    private static final int lY = 8;
+    private static final int lZ = 26;
+    private static final int lL = 4;
 
     //Bit segment shifts/positions
-    private static final int
-            sZ = 0,
-            sX = sZ + lZ,
-            sY = sX + lX,
-            sL = sY + lY;
-
-    //Bit segment masks
-    private static final long
-            mX = (1L << lX) - 1,
-            mY = (1L << lY) - 1,
-            mZ = (1L << lZ) - 1,
-            mL = (1L << lL) - 1,
-            mPos = (mY << sY) | (mX << sX) | (mZ << sZ);
+    private static final int sZ = 0;
+    private static final int sX = sZ + lZ;
+    private static final int sY = sX + lX;
+    private static final int sL = sY + lY;
 
     //Bit to check whether y had overflow
     private static final long yCheck = 1L << (sY + lY);
 
+    //Bit segment masks
+    private static final long mX = (1L << lX) - 1;
+    private static final long mY = (1L << lY) - 1;
+    private static final long mZ = (1L << lZ) - 1;
+    private static final long mL = (1L << lL) - 1;
+
     private static final long[] neighborShifts = new long[6];
+    private static final long mPos = (mY << sY) | (mX << sX) | (mZ << sZ);
+
+    // Mask to extract chunk identifier
+    private static final long mChunk = ((mX >> 4) << (4 + sX)) | ((mZ >> 4) << (4 + sZ));
 
     static {
-        EnumFacing[] values = new EnumFacing[] { EnumFacing.DOWN, EnumFacing.UP, EnumFacing.NORTH, EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.EAST };
+        EnumFacing[] values = new EnumFacing[]{EnumFacing.DOWN, EnumFacing.UP, EnumFacing.NORTH, EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.EAST};
         for (int i = 0; i < 6; ++i) {
             neighborShifts[i] = ((long) values[i].getFrontOffsetY() << sY) | ((long) values[i].getFrontOffsetX() << sX) | ((long) values[i].getFrontOffsetZ() << sZ);
         }
     }
-
-    //Mask to extract chunk identifier
-    private static final long mChunk = ((mX >> 4) << (4 + sX)) | ((mZ >> 4) << (4 + sZ));
 
     //Iteration state data
     //Cache position to avoid allocation of new object each time
@@ -178,7 +174,6 @@ public class LightingEngine implements LumiLightingEngine {
 
     /**
      * Calls {@link LumiLightingEngine#processLightUpdatesForType(EnumSkyBlock)} for both light types
-     *
      */
     @Override
     public void processLightUpdates() {
@@ -230,16 +225,16 @@ public class LightingEngine implements LumiLightingEngine {
 
                 if (current != this.ownedThread) {
                     IllegalAccessException e = new IllegalAccessException(String.format("World is owned by '%s' (ID: %s)," +
-                                    " but was accessed from thread '%s' (ID: %s)",
-                            this.ownedThread.getName(), this.ownedThread.getId(), current.getName(), current.getId()));
+                                                                                        " but was accessed from thread '%s' (ID: %s)",
+                                                                                        this.ownedThread.getName(), this.ownedThread.getId(), current.getName(), current.getId()));
 
                     Share.LOG.warn(
                             "Something (likely another mod) has attempted to modify the world's state from the wrong thread!\n" +
-                                    "This is *bad practice* and can cause severe issues in your game. Phosphor has done as best as it can to mitigate this violation," +
-                                    " but it may negatively impact performance or introduce stalls.\nIn a future release, this violation may result in a hard crash instead" +
-                                    " of the current soft warning. You should report this issue to our issue tracker with the following stacktrace information.\n(If you are" +
-                                    " aware you have misbehaving mods and cannot resolve this issue, you can safely disable this warning by setting" +
-                                    " `enable_illegal_thread_access_warnings` to `false` in Phosphor's configuration file for the time being.)", e);
+                            "This is *bad practice* and can cause severe issues in your game. Phosphor has done as best as it can to mitigate this violation," +
+                            " but it may negatively impact performance or introduce stalls.\nIn a future release, this violation may result in a hard crash instead" +
+                            " of the current soft warning. You should report this issue to our issue tracker with the following stacktrace information.\n(If you are" +
+                            " aware you have misbehaving mods and cannot resolve this issue, you can safely disable this warning by setting" +
+                            " `enable_illegal_thread_access_warnings` to `false` in Phosphor's configuration file for the time being.)", e);
 
                 }
 
