@@ -23,6 +23,7 @@ package com.falsepattern.lumina.internal.world.lighting;
 
 import com.falsepattern.lib.compat.BlockPos;
 import com.falsepattern.lib.internal.Share;
+import com.falsepattern.lib.util.MathUtil;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.engine.LumiLightingEngine;
@@ -37,18 +38,20 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.MathHelper;
 import net.minecraft.world.EnumSkyBlock;
 
 import java.util.concurrent.locks.ReentrantLock;
 
 import static com.falsepattern.lumina.internal.world.lighting.LightingEngineHelpers.*;
 
-public class LightingEngine implements LumiLightingEngine {
+public final class LightingEngine implements LumiLightingEngine {
     private static final boolean ENABLE_ILLEGAL_THREAD_ACCESS_WARNINGS = true;
 
     private static final int MIN_LIGHT_VALUE = 0;
     private static final int MAX_LIGHT_VALUE = 15;
+
+    private static final int MIN_BLOCK_OPACITY = 1;
+    private static final int MAX_BLOCK_OPACITY = 15;
 
     private static final int MAX_SCHEDULED_COUNT = 1 << 22;
 
@@ -414,7 +417,7 @@ public class LightingEngine implements LumiLightingEngine {
         return chunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);
     }
 
-    private int getCursorUpdatedLightValue(final EnumSkyBlock lightType) {
+    private int getCursorUpdatedLightValue(EnumSkyBlock lightType) {
         val block = getBlockFromChunk(cursorChunk, cursorBlockPos);
         val blockMeta = getBlockMetaFromChunk(cursorChunk, cursorBlockPos);
 
@@ -549,21 +552,21 @@ public class LightingEngine implements LumiLightingEngine {
         }
 
         val cursorBlockLightValueVal = world.lumi$getBlockBrightness(cursorBlock, cursorBlockMeta, posX, posY, posZ);
-        return MathHelper.clamp_int(cursorBlockLightValueVal, MIN_LIGHT_VALUE, MAX_LIGHT_VALUE);
+        return MathUtil.clamp(cursorBlockLightValueVal, MIN_LIGHT_VALUE, MAX_LIGHT_VALUE);
     }
 
-    private int getBlockOpacity(BlockPos blockPos, Block block, int meta) {
+    private int getBlockOpacity(BlockPos blockPos, Block block, int blockMeta) {
         val posX = blockPos.getX();
         val posY = blockPos.getY();
         val posZ = blockPos.getZ();
-        val blockOpacity = world.lumi$getBlockOpacity(block, meta, posX, posY, posZ);
-        return MathHelper.clamp_int(blockOpacity, 1, MAX_LIGHT_VALUE);//TODO: This is clamping between (1, 15) because some other math is messed up.
+        val blockOpacity = world.lumi$getBlockOpacity(block, blockMeta, posX, posY, posZ);
+        return MathUtil.clamp(blockOpacity, MIN_BLOCK_OPACITY, MAX_BLOCK_OPACITY);
     }
 
-    private LumiChunk getChunk(final BlockPos pos) {
-        final int chunkX = pos.getX() >> 4;
-        final int chunkZ = pos.getZ() >> 4;
-        return getLoadedChunk(world, chunkX, chunkZ);
+    private LumiChunk getChunk(BlockPos blockPos) {
+        val chunkPosX = blockPos.getX() / 16;
+        val chunkPosZ = blockPos.getZ() / 16;
+        return getLoadedChunk(world, chunkPosX, chunkPosZ);
     }
 
     @NoArgsConstructor
