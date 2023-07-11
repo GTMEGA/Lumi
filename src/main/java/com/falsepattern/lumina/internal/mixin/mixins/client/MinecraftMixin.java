@@ -55,7 +55,7 @@ public abstract class MinecraftMixin {
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(theWorld, i);
             val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.processLightUpdates();
+            lightingEngine.processLightUpdate();
         }
     }
 }

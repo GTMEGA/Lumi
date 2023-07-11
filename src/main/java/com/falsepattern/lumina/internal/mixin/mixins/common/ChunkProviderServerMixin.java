@@ -50,7 +50,7 @@ public abstract class ChunkProviderServerMixin {
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(worldObj, i);
             val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.processLightUpdates();
+            lightingEngine.processLightUpdate();
         }
     }
 
@@ -67,7 +67,7 @@ public abstract class ChunkProviderServerMixin {
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(worldObj, i);
             val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.processLightUpdates();
+            lightingEngine.processLightUpdate();
         }
     }
 }

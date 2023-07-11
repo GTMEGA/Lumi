@@ -43,7 +43,7 @@ public abstract class AnvilChunkLoaderMixin {
             val world = LumiWorldManager.getWorld(baseWorld, i);
             val chunk = world.lumi$wrap(baseChunk);
             val lightingEngine = chunk.lumi$lightingEngine();
-            lightingEngine.processLightUpdates();
+            lightingEngine.processLightUpdate();
         }
     }
 }

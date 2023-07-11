@@ -75,7 +75,7 @@ public abstract class ChunkMixin {
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(worldObj, i);
             val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.processLightUpdates();
+            lightingEngine.processLightUpdate();
         }
     }
 
@@ -146,7 +146,7 @@ public abstract class ChunkMixin {
             val world = LumiWorldManager.getWorld(worldObj, i);
             val chunk = world.lumi$wrap(thiz());
             val lightingEngine = chunk.lumi$lightingEngine();
-            lightingEngine.processLightUpdatesForType(lightType);
+            lightingEngine.processLightUpdate(lightType);
 
             val chunkLightValue = chunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);
             lightValue = Math.max(lightValue, chunkLightValue);

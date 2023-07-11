@@ -26,7 +26,7 @@ import net.minecraft.world.EnumSkyBlock;
 public interface LumiLightingEngine {
     void scheduleLightUpdate(EnumSkyBlock lightType, int posX, int posY, int posZ);
 
-    void processLightUpdates();
+    void processLightUpdate();
 
-    void processLightUpdatesForType(EnumSkyBlock lightType);
+    void processLightUpdate(EnumSkyBlock lightType);
 }

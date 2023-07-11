@@ -46,7 +46,7 @@ public abstract class S21PacketChunkDataMixin {
             val world = LumiWorldManager.getWorld(baseWorld, i);
             val chunk = world.lumi$wrap(baseChunk);
             val lightingEngine = chunk.lumi$lightingEngine();
-            lightingEngine.processLightUpdates();
+            lightingEngine.processLightUpdate();
         }
     }
 }

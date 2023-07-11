@@ -28,10 +28,11 @@ import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.engine.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.internal.collections.PooledLongQueue;
-import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import lombok.NoArgsConstructor;
 import lombok.val;
+import lombok.var;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.profiler.Profiler;
@@ -42,171 +43,159 @@ import net.minecraft.world.EnumSkyBlock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class LightingEngine implements LumiLightingEngine {
-    private static final int MAX_LIGHT = 15;
     private static final boolean ENABLE_ILLEGAL_THREAD_ACCESS_WARNINGS = true;
+
+    private static final int MIN_LIGHT_VALUE = 0;
+    private static final int MAX_LIGHT_VALUE = 15;
+
     private static final int MAX_SCHEDULED_COUNT = 1 << 22;
 
-    private final Thread ownedThread = Thread.currentThread();
+    private static final int POS_Z_BIT_SIZE = 26;
+    private static final int POS_X_BIT_SIZE = 8;
+    private static final int POS_Y_BIT_SIZE = 26;
+    private static final int LIGHT_VALUE_BIT_SIZE = 4;
 
-    private final LumiWorld world;
+    private static final int POS_Z_BIT_SHIFT = 0;
+    private static final int POS_X_BIT_SHIFT = POS_Z_BIT_SHIFT + POS_Y_BIT_SIZE;
+    private static final int POS_Y_BIT_SHIFT = POS_X_BIT_SHIFT + POS_Z_BIT_SIZE;
+    private static final int LIGHT_VALUE_BIT_SHIFT = POS_Y_BIT_SHIFT + POS_X_BIT_SIZE;
 
-    private final Profiler profiler;
+    private static final long yCheck = 1L << (POS_Y_BIT_SHIFT + POS_X_BIT_SIZE);
 
-    //Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
-    private final PooledLongQueue[] queuedLightUpdates = new PooledLongQueue[EnumSkyBlock.values().length];
+    private static final long POS_X_BIT_MASK = (1L << POS_Z_BIT_SIZE) - 1;
+    private static final long POS_Y_BIT_MASK = (1L << POS_X_BIT_SIZE) - 1;
+    private static final long POS_Z_BIT_MASK = (1L << POS_Y_BIT_SIZE) - 1;
+    private static final long LIGHT_VALUE_BIT_MASK = (1L << LIGHT_VALUE_BIT_SIZE) - 1;
 
-    //Layout of longs: see above
-    private final PooledLongQueue[] queuedDarkenings = new PooledLongQueue[MAX_LIGHT + 1];
-    private final PooledLongQueue[] queuedBrightenings = new PooledLongQueue[MAX_LIGHT + 1];
+    private static final long BLOCK_POS_MASK = (POS_Y_BIT_MASK << POS_Y_BIT_SHIFT) |
+                                               (POS_X_BIT_MASK << POS_X_BIT_SHIFT) |
+                                               (POS_Z_BIT_MASK << POS_Z_BIT_SHIFT);
+    private static final long CHUNK_POS_MASK = ((POS_X_BIT_MASK >> 4) << (4 + POS_X_BIT_SHIFT)) |
+                                               ((POS_Z_BIT_MASK >> 4) << (4 + POS_Z_BIT_SHIFT));
 
-    //Layout of longs: [newLight(4)] [pos(60)]
-    private final PooledLongQueue initialBrightenings;
-    //Layout of longs: [padding(4)] [pos(60)]
-    private final PooledLongQueue initialDarkenings;
-
-    private boolean updating = false;
-
-    //Layout parameters
-    //Length of bit segments
-    private static final int lX = 26;
-    private static final int lY = 8;
-    private static final int lZ = 26;
-    private static final int lL = 4;
-
-    //Bit segment shifts/positions
-    private static final int sZ = 0;
-    private static final int sX = sZ + lZ;
-    private static final int sY = sX + lX;
-    private static final int sL = sY + lY;
-
-    //Bit to check whether y had overflow
-    private static final long yCheck = 1L << (sY + lY);
-
-    //Bit segment masks
-    private static final long mX = (1L << lX) - 1;
-    private static final long mY = (1L << lY) - 1;
-    private static final long mZ = (1L << lZ) - 1;
-    private static final long mL = (1L << lL) - 1;
-
-    private static final long[] neighborShifts = new long[6];
-    private static final long mPos = (mY << sY) | (mX << sX) | (mZ << sZ);
-
-    // Mask to extract chunk identifier
-    private static final long mChunk = ((mX >> 4) << (4 + sX)) | ((mZ >> 4) << (4 + sZ));
+    private static final long[] BLOCK_SIDE_BIT_OFFSET;
 
     static {
-        EnumFacing[] values = new EnumFacing[]{EnumFacing.DOWN, EnumFacing.UP, EnumFacing.NORTH, EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.EAST};
-        for (int i = 0; i < 6; ++i) {
-            neighborShifts[i] = ((long) values[i].getFrontOffsetY() << sY) | ((long) values[i].getFrontOffsetX() << sX) | ((long) values[i].getFrontOffsetZ() << sZ);
+        BLOCK_SIDE_BIT_OFFSET = new long[6];
+
+        val sides = EnumFacing.values();
+        val sideCount = sides.length;
+        for (var i = 0; i < sideCount; i++) {
+            val side = sides[i];
+            val offsetX = (long) side.getFrontOffsetX();
+            val offsetY = (long) side.getFrontOffsetY();
+            val offsetZ = (long) side.getFrontOffsetZ();
+
+            BLOCK_SIDE_BIT_OFFSET[i] = (offsetX << POS_X_BIT_SHIFT) |
+                                       (offsetY << POS_Y_BIT_SHIFT) |
+                                       (offsetZ << POS_Z_BIT_SHIFT);
         }
     }
 
-    //Iteration state data
-    //Cache position to avoid allocation of new object each time
-    private final BlockPos.MutableBlockPos curPos = new BlockPos.MutableBlockPos();
-    private LumiChunk curChunk;
-    private long curChunkIdentifier;
-    private long curData;
-    static boolean isDynamicLightsLoaded;
-
-    //Cached data about neighboring blocks (of tempPos)
-    private boolean isNeighborDataValid = false;
-
-    private final NeighborInfo[] neighborInfos = new NeighborInfo[6];
-    private PooledLongQueue.LongQueueIterator queueIt;
-
+    private final Thread updateThread = Thread.currentThread();
     private final ReentrantLock lock = new ReentrantLock();
 
-    public LightingEngine(final LumiWorld world) {
+    /**
+     * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
+     */
+    private final PooledLongQueue[] updateQueues = new PooledLongQueue[EnumSkyBlock.values().length];
+    /**
+     * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
+     */
+    private final PooledLongQueue[] brighteningQueues = new PooledLongQueue[MAX_LIGHT_VALUE + 1];
+    /**
+     * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
+     */
+    private final PooledLongQueue[] darkeningQueues = new PooledLongQueue[MAX_LIGHT_VALUE + 1];
+    /**
+     * Layout of longs: [newLight(4)] [y(8)] [x(26)] [z(26)]
+     */
+    private final PooledLongQueue initialBrighteningQueue;
+    /**
+     * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
+     */
+    private final PooledLongQueue initialDarkeningsQueue;
+
+    private PooledLongQueue.LongQueueIterator queueIterator = null;
+
+    private final BlockPos.MutableBlockPos cursorBlockPos = new BlockPos.MutableBlockPos();
+    private LumiChunk cursorChunk;
+    private long cursorChunkPosLong;
+    private long cursorData;
+
+    private final NeighborBlock[] neighborBlocks = new NeighborBlock[6];
+    private boolean areNeighboursBlocksValid = false;
+
+    private boolean isUpdating = false;
+
+    private final LumiWorld world;
+    private final Profiler profiler;
+
+    public LightingEngine(LumiWorld world) {
         this.world = world;
         this.profiler = world.lumi$root().lumi$profiler();
-        isDynamicLightsLoaded = Loader.isModLoaded("DynamicLights");
 
-        PooledLongQueue.Pool pool = new PooledLongQueue.Pool();
+        val queuePool = new PooledLongQueue.Pool();
+        this.initialDarkeningsQueue = new PooledLongQueue(queuePool);
+        this.initialBrighteningQueue = new PooledLongQueue(queuePool);
+        for (var i = 0; i < updateQueues.length; i++)
+            updateQueues[i] = new PooledLongQueue(queuePool);
+        for (var i = 0; i < brighteningQueues.length; i++)
+            brighteningQueues[i] = new PooledLongQueue(queuePool);
+        for (var i = 0; i < darkeningQueues.length; i++)
+            darkeningQueues[i] = new PooledLongQueue(queuePool);
 
-        this.initialBrightenings = new PooledLongQueue(pool);
-        this.initialDarkenings = new PooledLongQueue(pool);
-
-        for (int i = 0; i < EnumSkyBlock.values().length; ++i) {
-            this.queuedLightUpdates[i] = new PooledLongQueue(pool);
-        }
-
-        for (int i = 0; i < this.queuedDarkenings.length; ++i) {
-            this.queuedDarkenings[i] = new PooledLongQueue(pool);
-        }
-
-        for (int i = 0; i < this.queuedBrightenings.length; ++i) {
-            this.queuedBrightenings[i] = new PooledLongQueue(pool);
-        }
-
-        for (int i = 0; i < this.neighborInfos.length; ++i) {
-            this.neighborInfos[i] = new NeighborInfo();
-        }
+        for (var i = 0; i < neighborBlocks.length; i++)
+            neighborBlocks[i] = new NeighborBlock();
     }
 
-    /**
-     * Schedules a light update for the specified light type and position to be processed later by {@link LumiLightingEngine#processLightUpdatesForType(EnumSkyBlock)}
-     */
     @Override
-    public void scheduleLightUpdate(final EnumSkyBlock lightType, final int posX, final int posY, final int posZ) {
-        this.acquireLock();
+    public void scheduleLightUpdate(EnumSkyBlock lightType, int posX, int posY, int posZ) {
+        acquireLock();
 
         try {
-            this.scheduleLightUpdate(lightType, encodeWorldCoord(posX, posY, posZ));
+            scheduleLightUpdate(lightType, encodeWorldCoord(posX, posY, posZ));
         } finally {
-            this.releaseLock();
+            releaseLock();
         }
     }
 
-    /**
-     * Schedules a light update for the specified light type and position to be processed later by {@link LumiLightingEngine#processLightUpdates()}
-     */
-    private void scheduleLightUpdate(final EnumSkyBlock lightType, final long pos) {
-        final PooledLongQueue queue = this.queuedLightUpdates[lightType.ordinal()];
-
-        queue.add(pos);
-
-        //make sure there are not too many queued light updates
-        if (queue.size() >= MAX_SCHEDULED_COUNT) {
-            this.processLightUpdatesForType(lightType);
-        }
+    @Override
+    public void processLightUpdate() {
+        processLightUpdate(EnumSkyBlock.Sky);
+        processLightUpdate(EnumSkyBlock.Block);
     }
 
-    /**
-     * Calls {@link LumiLightingEngine#processLightUpdatesForType(EnumSkyBlock)} for both light types
-     */
     @Override
-    public void processLightUpdates() {
-        this.processLightUpdatesForType(EnumSkyBlock.Sky);
-        this.processLightUpdatesForType(EnumSkyBlock.Block);
-    }
-
-    /**
-     * Processes light updates of the given light type
-     */
-    @Override
-    public void processLightUpdatesForType(final EnumSkyBlock lightType) {
+    public void processLightUpdate(EnumSkyBlock lightType) {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
-        if (this.world.lumi$root().lumi$isClientSide() && !this.isCallingFromMainThread()) {
+        if (world.lumi$root().lumi$isClientSide() && !isCallingFromMainThread()) {
             return;
         }
-
-        final PooledLongQueue queue = this.queuedLightUpdates[lightType.ordinal()];
 
         // Quickly check if the queue is empty before we acquire a more expensive lock.
-        if (queue.isEmpty()) {
+        val queue = updateQueues[lightType.ordinal()];
+        if (queue.isEmpty())
             return;
-        }
 
-        this.acquireLock();
+        acquireLock();
 
         try {
-            this.processLightUpdatesForTypeInner(lightType, queue);
+            processLightUpdateQueue(lightType, queue);
         } finally {
-            this.releaseLock();
+            releaseLock();
         }
+    }
+
+    private void scheduleLightUpdate(EnumSkyBlock lightType, long posLong) {
+        val queue = updateQueues[lightType.ordinal()];
+        queue.add(posLong);
+
+        //make sure there are not too many queued light updates
+        if (queue.size() >= MAX_SCHEDULED_COUNT)
+            processLightUpdate(lightType);
     }
 
     @SideOnly(Side.CLIENT)
@@ -215,18 +204,18 @@ public class LightingEngine implements LumiLightingEngine {
     }
 
     private void acquireLock() {
-        if (!this.lock.tryLock()) {
+        if (!lock.tryLock()) {
             // If we cannot lock, something has gone wrong... Only one thread should ever acquire the lock.
             // Validate that we're on the right thread immediately so we can gather information.
             // It is NEVER valid to call World methods from a thread other than the owning thread of the world instance.
             // Users can safely disable this warning, however it will not resolve the issue.
             if (ENABLE_ILLEGAL_THREAD_ACCESS_WARNINGS) {
-                Thread current = Thread.currentThread();
+                final Thread current = Thread.currentThread();
 
-                if (current != this.ownedThread) {
-                    IllegalAccessException e = new IllegalAccessException(String.format("World is owned by '%s' (ID: %s)," +
-                                                                                        " but was accessed from thread '%s' (ID: %s)",
-                                                                                        this.ownedThread.getName(), this.ownedThread.getId(), current.getName(), current.getId()));
+                if (current != updateThread) {
+                    final IllegalAccessException e = new IllegalAccessException(String.format("World is owned by '%s' (ID: %s)," +
+                                                                                              " but was accessed from thread '%s' (ID: %s)",
+                                                                                              updateThread.getName(), updateThread.getId(), current.getName(), current.getId()));
 
                     Share.LOG.warn(
                             "Something (likely another mod) has attempted to modify the world's state from the wrong thread!\n" +
@@ -241,33 +230,33 @@ public class LightingEngine implements LumiLightingEngine {
             }
 
             // Wait for the lock to be released. This will likely introduce unwanted stalls, but will mitigate the issue.
-            this.lock.lock();
+            lock.lock();
         }
     }
 
     private void releaseLock() {
-        this.lock.unlock();
+        lock.unlock();
     }
 
-    private void processLightUpdatesForTypeInner(final EnumSkyBlock lightType, final PooledLongQueue queue) {
+    private void processLightUpdateQueue(final EnumSkyBlock lightType, final PooledLongQueue queue) {
         //avoid nested calls
-        if (this.updating) {
+        if (this.isUpdating) {
             throw new IllegalStateException("Already processing updates!");
         }
 
-        this.updating = true;
+        this.isUpdating = true;
 
-        this.curChunkIdentifier = -1; //reset chunk cache
+        this.cursorChunkPosLong = -1; //reset chunk cache
 
         this.profiler.startSection("lighting");
 
         this.profiler.startSection("checking");
 
-        this.queueIt = queue.iterator();
+        this.queueIterator = queue.iterator();
 
         //process the queued updates and enqueue them for further processing
         while (this.nextItem()) {
-            if (this.curChunk == null) {
+            if (this.cursorChunk == null) {
                 continue;
             }
 
@@ -276,42 +265,42 @@ public class LightingEngine implements LumiLightingEngine {
 
             if (oldLight < newLight) {
                 //don't enqueue directly for brightening in order to avoid duplicate scheduling
-                this.initialBrightenings.add(((long) newLight << sL) | this.curData);
+                this.initialBrighteningQueue.add(((long) newLight << LIGHT_VALUE_BIT_SHIFT) | this.cursorData);
             } else if (oldLight > newLight) {
                 //don't enqueue directly for darkening in order to avoid duplicate scheduling
-                this.initialDarkenings.add(this.curData);
+                this.initialDarkeningsQueue.add(this.cursorData);
             }
         }
 
-        this.queueIt = this.initialBrightenings.iterator();
+        this.queueIterator = this.initialBrighteningQueue.iterator();
 
         while (this.nextItem()) {
-            final int newLight = (int) (this.curData >> sL & mL);
+            final int newLight = (int) (this.cursorData >> LIGHT_VALUE_BIT_SHIFT & LIGHT_VALUE_BIT_MASK);
 
             if (newLight > this.getCursorCachedLight(lightType)) {
                 //Sets the light to newLight to only schedule once. Clear leading bits of curData for later
-                this.enqueueBrightening(this.curPos, this.curData & mPos, newLight, this.curChunk, lightType);
+                this.enqueueBrightening(this.cursorBlockPos, this.cursorData & BLOCK_POS_MASK, newLight, this.cursorChunk, lightType);
             }
         }
 
-        this.queueIt = this.initialDarkenings.iterator();
+        this.queueIterator = this.initialDarkeningsQueue.iterator();
 
         while (this.nextItem()) {
             final int oldLight = this.getCursorCachedLight(lightType);
 
             if (oldLight != 0) {
                 //Sets the light to 0 to only schedule once
-                this.enqueueDarkening(this.curPos, this.curData, oldLight, this.curChunk, lightType);
+                this.enqueueDarkening(this.cursorBlockPos, this.cursorData, oldLight, this.cursorChunk, lightType);
             }
         }
 
         this.profiler.endSection();
 
         //Iterate through enqueued updates (brightening and darkening in parallel) from brightest to darkest so that we only need to iterate once
-        for (int curLight = MAX_LIGHT; curLight >= 0; --curLight) {
+        for (int curLight = MAX_LIGHT_VALUE; curLight >= 0; --curLight) {
             this.profiler.startSection("darkening");
 
-            this.queueIt = this.queuedDarkenings[curLight].iterator();
+            this.queueIterator = this.brighteningQueues[curLight].iterator();
 
             while (this.nextItem()) {
                 if (this.getCursorCachedLight(lightType) >= curLight) //don't darken if we got brighter due to some other change
@@ -319,15 +308,15 @@ public class LightingEngine implements LumiLightingEngine {
                     continue;
                 }
 
-                final Block block = LightingEngineHelpers.getBlockFromChunk(this.curChunk, this.curPos);
-                final int meta = LightingEngineHelpers.getBlockMetaFromChunk(this.curChunk, this.curPos);
+                final Block block = LightingEngineHelpers.getBlockFromChunk(this.cursorChunk, this.cursorBlockPos);
+                final int meta = LightingEngineHelpers.getBlockMetaFromChunk(this.cursorChunk, this.cursorBlockPos);
                 final int luminosity = this.getCursorLuminosity(block, meta, lightType);
                 final int opacity; //if luminosity is high enough, opacity is irrelevant
 
-                if (luminosity >= MAX_LIGHT - 1) {
+                if (luminosity >= MAX_LIGHT_VALUE - 1) {
                     opacity = 1;
                 } else {
-                    opacity = this.getPosOpacity(this.curPos, block, meta);
+                    opacity = this.getPosOpacity(this.cursorBlockPos, block, meta);
                 }
 
                 //only darken neighbors if we indeed became darker
@@ -337,24 +326,24 @@ public class LightingEngine implements LumiLightingEngine {
 
                     this.fetchNeighborDataFromCursor(lightType);
 
-                    for (NeighborInfo info : this.neighborInfos) {
+                    for (NeighborBlock info : this.neighborBlocks) {
                         final LumiChunk nChunk = info.chunk;
 
                         if (nChunk == null) {
                             continue;
                         }
 
-                        final int nLight = info.light;
+                        final int nLight = info.lightValue;
 
                         if (nLight == 0) {
                             continue;
                         }
 
-                        final BlockPos.MutableBlockPos nPos = info.pos;
+                        final BlockPos.MutableBlockPos nPos = info.blockPos;
 
-                        if (curLight - this.getPosOpacity(nPos, LightingEngineHelpers.getBlockFromSubChunk(info.section, nPos), LightingEngineHelpers.getBlockMetaFromSubChunk(info.section, nPos)) >= nLight) //schedule neighbor for darkening if we possibly light it
+                        if (curLight - this.getPosOpacity(nPos, LightingEngineHelpers.getBlockFromSubChunk(info.subChunk, nPos), LightingEngineHelpers.getBlockMetaFromSubChunk(info.subChunk, nPos)) >= nLight) //schedule neighbor for darkening if we possibly light it
                         {
-                            this.enqueueDarkening(nPos, info.key, nLight, nChunk, lightType);
+                            this.enqueueDarkening(nPos, info.posLong, nLight, nChunk, lightType);
                         } else //only use for new light calculation if not
                         {
                             //if we can't darken the neighbor, no one else can (because of processing order) -> safe to let us be illuminated by it
@@ -372,14 +361,14 @@ public class LightingEngine implements LumiLightingEngine {
 
             this.profiler.endStartSection("brightening");
 
-            this.queueIt = this.queuedBrightenings[curLight].iterator();
+            this.queueIterator = this.darkeningQueues[curLight].iterator();
 
             while (this.nextItem()) {
                 final int oldLight = this.getCursorCachedLight(lightType);
 
                 if (oldLight == curLight) //only process this if nothing else has happened at this position since scheduling
                 {
-                    this.world.lumi$root().lumi$markBlockForRenderUpdate(this.curPos.getX(), this.curPos.getY(), this.curPos.getZ());
+                    this.world.lumi$root().lumi$markBlockForRenderUpdate(this.cursorBlockPos.getX(), this.cursorBlockPos.getY(), this.cursorBlockPos.getZ());
 
                     if (curLight > 1) {
                         this.spreadLightFromCursor(curLight, lightType);
@@ -392,7 +381,7 @@ public class LightingEngine implements LumiLightingEngine {
 
         this.profiler.endSection();
 
-        this.updating = false;
+        this.isUpdating = false;
     }
 
     /**
@@ -400,29 +389,29 @@ public class LightingEngine implements LumiLightingEngine {
      */
     private void fetchNeighborDataFromCursor(final EnumSkyBlock lightType) {
         //only update if curPos was changed
-        if (this.isNeighborDataValid) {
+        if (this.areNeighboursBlocksValid) {
             return;
         }
 
-        this.isNeighborDataValid = true;
+        this.areNeighboursBlocksValid = true;
 
-        for (int i = 0; i < this.neighborInfos.length; ++i) {
-            NeighborInfo info = this.neighborInfos[i];
+        for (int i = 0; i < this.neighborBlocks.length; ++i) {
+            NeighborBlock info = this.neighborBlocks[i];
 
-            final long nLongPos = info.key = this.curData + neighborShifts[i];
+            final long nLongPos = info.posLong = this.cursorData + BLOCK_SIDE_BIT_OFFSET[i];
 
             if ((nLongPos & yCheck) != 0) {
                 info.chunk = null;
-                info.section = null;
+                info.subChunk = null;
                 continue;
             }
 
-            final BlockPos.MutableBlockPos nPos = decodeWorldCoord(info.pos, nLongPos);
+            final BlockPos.MutableBlockPos nPos = decodeWorldCoord(info.blockPos, nLongPos);
 
             final LumiChunk nChunk;
 
-            if ((nLongPos & mChunk) == this.curChunkIdentifier) {
-                nChunk = info.chunk = this.curChunk;
+            if ((nLongPos & CHUNK_POS_MASK) == this.cursorChunkPosLong) {
+                nChunk = info.chunk = this.cursorChunk;
             } else {
                 nChunk = info.chunk = this.getChunk(nPos);
             }
@@ -430,8 +419,8 @@ public class LightingEngine implements LumiLightingEngine {
             if (nChunk != null) {
                 LumiSubChunk nSection = nChunk.lumi$subChunk(nPos.getY() >> 4);
 
-                info.light = getCachedLightFor(nChunk, nSection, nPos, lightType);
-                info.section = nSection;
+                info.lightValue = getCachedLightFor(nChunk, nSection, nPos, lightType);
+                info.subChunk = nSection;
             }
         }
     }
@@ -465,23 +454,23 @@ public class LightingEngine implements LumiLightingEngine {
 
 
     private int calculateNewLightFromCursor(final EnumSkyBlock lightType) {
-        final Block block = LightingEngineHelpers.getBlockFromChunk(this.curChunk, this.curPos);
-        final int meta = LightingEngineHelpers.getBlockMetaFromChunk(this.curChunk, this.curPos);
+        final Block block = LightingEngineHelpers.getBlockFromChunk(this.cursorChunk, this.cursorBlockPos);
+        final int meta = LightingEngineHelpers.getBlockMetaFromChunk(this.cursorChunk, this.cursorBlockPos);
 
         final int luminosity = this.getCursorLuminosity(block, meta, lightType);
         final int opacity;
 
-        if (luminosity >= MAX_LIGHT - 1) {
+        if (luminosity >= MAX_LIGHT_VALUE - 1) {
             opacity = 1;
         } else {
-            opacity = this.getPosOpacity(this.curPos, block, meta);
+            opacity = this.getPosOpacity(this.cursorBlockPos, block, meta);
         }
 
         return this.calculateNewLightFromCursor(luminosity, opacity, lightType);
     }
 
     private int calculateNewLightFromCursor(final int luminosity, final int opacity, final EnumSkyBlock lightType) {
-        if (luminosity >= MAX_LIGHT - opacity) {
+        if (luminosity >= MAX_LIGHT_VALUE - opacity) {
             return luminosity;
         }
 
@@ -489,12 +478,12 @@ public class LightingEngine implements LumiLightingEngine {
 
         this.fetchNeighborDataFromCursor(lightType);
 
-        for (NeighborInfo info : this.neighborInfos) {
+        for (NeighborBlock info : this.neighborBlocks) {
             if (info.chunk == null) {
                 continue;
             }
 
-            final int nLight = info.light;
+            final int nLight = info.lightValue;
 
             newLight = Math.max(nLight - opacity, newLight);
         }
@@ -505,30 +494,30 @@ public class LightingEngine implements LumiLightingEngine {
     private void spreadLightFromCursor(final int curLight, final EnumSkyBlock lightType) {
         this.fetchNeighborDataFromCursor(lightType);
 
-        for (NeighborInfo info : this.neighborInfos) {
+        for (NeighborBlock info : this.neighborBlocks) {
             final LumiChunk nChunk = info.chunk;
 
             if (nChunk == null) {
                 continue;
             }
 
-            final int newLight = curLight - this.getPosOpacity(info.pos, LightingEngineHelpers.getBlockFromSubChunk(info.section, info.pos), LightingEngineHelpers.getBlockMetaFromSubChunk(info.section, info.pos));
+            final int newLight = curLight - this.getPosOpacity(info.blockPos, LightingEngineHelpers.getBlockFromSubChunk(info.subChunk, info.blockPos), LightingEngineHelpers.getBlockMetaFromSubChunk(info.subChunk, info.blockPos));
 
-            if (newLight > info.light) {
-                this.enqueueBrightening(info.pos, info.key, newLight, nChunk, lightType);
+            if (newLight > info.lightValue) {
+                this.enqueueBrightening(info.blockPos, info.posLong, newLight, nChunk, lightType);
             }
         }
     }
 
     private void enqueueBrighteningFromCursor(final int newLight, final EnumSkyBlock lightType) {
-        this.enqueueBrightening(this.curPos, this.curData, newLight, this.curChunk, lightType);
+        this.enqueueBrightening(this.cursorBlockPos, this.cursorData, newLight, this.cursorChunk, lightType);
     }
 
     /**
      * Enqueues the pos for brightening and sets its light value to <code>newLight</code>
      */
     private void enqueueBrightening(BlockPos blockPos, long posLong, int newLight, LumiChunk chunk, EnumSkyBlock lightType) {
-        this.queuedBrightenings[newLight].add(posLong);
+        this.darkeningQueues[newLight].add(posLong);
 
         val posY = blockPos.getY();
         val subChunkPosX = blockPos.getX() & 15;
@@ -540,7 +529,7 @@ public class LightingEngine implements LumiLightingEngine {
      * Enqueues the pos for darkening and sets its light value to 0
      */
     private void enqueueDarkening(BlockPos blockPos, long posLong, int oldLight, LumiChunk chunk, EnumSkyBlock lightType) {
-        this.queuedDarkenings[oldLight].add(posLong);
+        this.brighteningQueues[oldLight].add(posLong);
 
         val posY = blockPos.getY();
         val subChunkPosX = blockPos.getX() & 15;
@@ -549,15 +538,15 @@ public class LightingEngine implements LumiLightingEngine {
     }
 
     private static BlockPos.MutableBlockPos decodeWorldCoord(final BlockPos.MutableBlockPos pos, final long longPos) {
-        final int posX = (int) (longPos >> sX & mX) - (1 << lX - 1);
-        final int posY = (int) (longPos >> sY & mY);
-        final int posZ = (int) (longPos >> sZ & mZ) - (1 << lZ - 1);
+        final int posX = (int) (longPos >> POS_X_BIT_SHIFT & POS_X_BIT_MASK) - (1 << POS_Z_BIT_SIZE - 1);
+        final int posY = (int) (longPos >> POS_Y_BIT_SHIFT & POS_Y_BIT_MASK);
+        final int posZ = (int) (longPos >> POS_Z_BIT_SHIFT & POS_Z_BIT_MASK) - (1 << POS_Y_BIT_SIZE - 1);
 
         return pos.setPos(posX, posY, posZ);
     }
 
     private static long encodeWorldCoord(final long x, final long y, final long z) {
-        return (y << sY) | (x + (1 << lX - 1) << sX) | (z + (1 << lZ - 1) << sZ);
+        return (y << POS_Y_BIT_SHIFT) | (x + (1 << POS_Z_BIT_SIZE - 1) << POS_X_BIT_SHIFT) | (z + (1 << POS_Y_BIT_SIZE - 1) << POS_Z_BIT_SHIFT);
     }
 
     private static int ITEMS_PROCESSED = 0, CHUNKS_FETCHED = 0;
@@ -568,23 +557,23 @@ public class LightingEngine implements LumiLightingEngine {
      * @return If there was an item to poll
      */
     private boolean nextItem() {
-        if (!this.queueIt.hasNext()) {
-            this.queueIt.finish();
-            this.queueIt = null;
+        if (!this.queueIterator.hasNext()) {
+            this.queueIterator.finish();
+            this.queueIterator = null;
 
             return false;
         }
 
-        this.curData = this.queueIt.next();
-        this.isNeighborDataValid = false;
+        this.cursorData = this.queueIterator.next();
+        this.areNeighboursBlocksValid = false;
 
-        decodeWorldCoord(this.curPos, this.curData);
+        decodeWorldCoord(this.cursorBlockPos, this.cursorData);
 
-        final long chunkIdentifier = this.curData & mChunk;
+        final long chunkIdentifier = this.cursorData & CHUNK_POS_MASK;
 
-        if (this.curChunkIdentifier != chunkIdentifier) {
-            this.curChunk = this.getChunk(this.curPos);
-            this.curChunkIdentifier = chunkIdentifier;
+        if (this.cursorChunkPosLong != chunkIdentifier) {
+            this.cursorChunk = this.getChunk(this.cursorBlockPos);
+            this.cursorChunkPosLong = chunkIdentifier;
             CHUNKS_FETCHED++;
         }
 
@@ -594,10 +583,10 @@ public class LightingEngine implements LumiLightingEngine {
     }
 
     private int getCursorCachedLight(EnumSkyBlock lightType) {
-        val posY = curPos.getY();
-        val subChunkPosX = curPos.getX() & 15;
-        val subChunkPosZ = curPos.getZ() & 15;
-        return curChunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);
+        val posY = cursorBlockPos.getY();
+        val subChunkPosX = cursorBlockPos.getX() & 15;
+        val subChunkPosZ = cursorBlockPos.getZ() & 15;
+        return cursorChunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);
     }
 
     /**
@@ -605,18 +594,18 @@ public class LightingEngine implements LumiLightingEngine {
      */
     private int getCursorLuminosity(final Block block, final int meta, final EnumSkyBlock lightType) {
         if (lightType == EnumSkyBlock.Sky) {
-            if (LightingHooks.lumiCanBlockSeeTheSky(this.curChunk, this.curPos.getX() & 15, this.curPos.getY(), this.curPos.getZ() & 15)) {
+            if (LightingHooks.lumiCanBlockSeeTheSky(this.cursorChunk, this.cursorBlockPos.getX() & 15, this.cursorBlockPos.getY(), this.cursorBlockPos.getZ() & 15)) {
                 return EnumSkyBlock.Sky.defaultLightValue;
             } else {
                 return 0;
             }
         }
 
-        return MathHelper.clamp_int(world.lumi$getBlockBrightness(block, meta, this.curPos.getX(), this.curPos.getY(), this.curPos.getZ()), 0, MAX_LIGHT);
+        return MathHelper.clamp_int(world.lumi$getBlockBrightness(block, meta, this.cursorBlockPos.getX(), this.cursorBlockPos.getY(), this.cursorBlockPos.getZ()), 0, MAX_LIGHT_VALUE);
     }
 
     private int getPosOpacity(final BlockPos pos, final Block block, final int meta) {
-        return MathHelper.clamp_int(world.lumi$getBlockOpacity(block, meta, pos.getX(), pos.getY(), pos.getZ()), 1, MAX_LIGHT);
+        return MathHelper.clamp_int(world.lumi$getBlockOpacity(block, meta, pos.getX(), pos.getY(), pos.getZ()), 1, MAX_LIGHT_VALUE);
     }
 
     private LumiChunk getChunk(final BlockPos pos) {
@@ -625,15 +614,16 @@ public class LightingEngine implements LumiLightingEngine {
         return LightingEngineHelpers.getLoadedChunk(world, chunkX, chunkZ);
     }
 
-    private static class NeighborInfo {
-        LumiChunk chunk;
-        LumiSubChunk section;
+    @NoArgsConstructor
+    private static class NeighborBlock {
+        private final BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos();
 
-        int light;
+        private long posLong;
 
-        long key;
+        private LumiChunk chunk;
+        private LumiSubChunk subChunk;
 
-        final BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        private int lightValue;
     }
 }
 
