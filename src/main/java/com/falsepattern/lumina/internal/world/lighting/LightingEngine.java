@@ -62,7 +62,7 @@ public class LightingEngine implements LumiLightingEngine {
     private static final int POS_Y_BIT_SHIFT = POS_X_BIT_SHIFT + POS_Z_BIT_SIZE;
     private static final int LIGHT_VALUE_BIT_SHIFT = POS_Y_BIT_SHIFT + POS_X_BIT_SIZE;
 
-    private static final long yCheck = 1L << (POS_Y_BIT_SHIFT + POS_X_BIT_SIZE);
+    private static final long Y_POS_OVERFLOW_CHECK_BIT_MASK = 1L << (POS_Y_BIT_SHIFT + POS_X_BIT_SIZE);
 
     private static final long POS_X_BIT_MASK = (1L << POS_Z_BIT_SIZE) - 1;
     private static final long POS_Y_BIT_MASK = (1L << POS_X_BIT_SIZE) - 1;
@@ -386,72 +386,50 @@ public class LightingEngine implements LumiLightingEngine {
         this.isUpdating = false;
     }
 
-    /**
-     * Gets data for neighbors of <code>curPos</code> and saves the results into neighbor state data members. If a neighbor can't be accessed/doesn't exist, the corresponding entry in <code>neighborChunks</code> is <code>null</code> - others are not reset
-     */
-    private void updateNeighborBlocks(final EnumSkyBlock lightType) {
-        //only update if curPos was changed
-        if (this.areNeighboursBlocksValid) {
+    private void updateNeighborBlocks(EnumSkyBlock lightType) {
+        if (areNeighboursBlocksValid)
             return;
-        }
+        areNeighboursBlocksValid = true;
 
-        this.areNeighboursBlocksValid = true;
+        for (var i = 0; i < neighborBlocks.length; ++i) {
+            val neighbor = neighborBlocks[i];
 
-        for (int i = 0; i < this.neighborBlocks.length; ++i) {
-            NeighborBlock info = this.neighborBlocks[i];
-
-            final long nLongPos = info.posLong = this.cursorData + BLOCK_SIDE_BIT_OFFSET[i];
-
-            if ((nLongPos & yCheck) != 0) {
-                info.chunk = null;
-                info.subChunk = null;
+            neighbor.posLong = cursorData + BLOCK_SIDE_BIT_OFFSET[i];
+            if ((neighbor.posLong & Y_POS_OVERFLOW_CHECK_BIT_MASK) != 0) {
+                neighbor.chunk = null;
+                neighbor.subChunk = null;
                 continue;
             }
 
-            final BlockPos.MutableBlockPos nPos = blockPosFromPosLong(info.blockPos, nLongPos);
-
-            final LumiChunk nChunk;
-
-            if ((nLongPos & CHUNK_POS_MASK) == this.cursorChunkPosLong) {
-                nChunk = info.chunk = this.cursorChunk;
+            blockPosFromPosLong(neighbor.blockPos, neighbor.posLong);
+            if ((neighbor.posLong & CHUNK_POS_MASK) == cursorChunkPosLong) {
+                neighbor.chunk = cursorChunk;
             } else {
-                nChunk = info.chunk = this.getChunk(nPos);
+                neighbor.chunk = getChunk(neighbor.blockPos);
             }
 
-            if (nChunk != null) {
-                LumiSubChunk nSection = nChunk.lumi$subChunk(nPos.getY() >> 4);
+            if (neighbor.chunk == null)
+                continue;
 
-                info.lightValue = getCachedLightFor(nChunk, nSection, nPos, lightType);
-                info.subChunk = nSection;
-            }
+            val chunkPosY = neighbor.blockPos.getY() / 16;
+            neighbor.subChunk = neighbor.chunk.lumi$subChunk(chunkPosY);
+            neighbor.lightValue = getCachedLightFor(neighbor.chunk, neighbor.subChunk, lightType, neighbor.blockPos);
         }
     }
 
+    private static int getCachedLightFor(LumiChunk chunk,
+                                         LumiSubChunk subChunk,
+                                         EnumSkyBlock lightType,
+                                         BlockPos blockPos) {
+        val posY = blockPos.getY();
+        val subChunkPosX = blockPos.getX() & 15;
+        val subChunkPosZ = blockPos.getZ() & 15;
 
-    private static int getCachedLightFor(LumiChunk chunk, LumiSubChunk storage, BlockPos pos, EnumSkyBlock type) {
-        int i = pos.getX() & 15;
-        int j = pos.getY();
-        int k = pos.getZ() & 15;
-
-        if (storage == null) {
-            if (type == EnumSkyBlock.Sky && LightingHooks.lumiCanBlockSeeTheSky(chunk, i, j, k)) {
-                return type.defaultLightValue;
-            } else {
-                return 0;
-            }
-        } else if (type == EnumSkyBlock.Sky) {
-            if (!chunk.lumi$world().lumi$root().lumi$hasSky()) {
-                return 0;
-            } else {
-                return storage.lumi$getSkyLightValue(i, j & 15, k);
-            }
-        } else {
-            if (type == EnumSkyBlock.Block) {
-                return storage.lumi$getBlockLightValue(i, j & 15, k);
-            } else {
-                return type.defaultLightValue;
-            }
+        if (subChunk != null) {
+            val subChunkPosY = posY & 15;
+            return subChunk.lumi$getLightValue(lightType, subChunkPosX, subChunkPosY, subChunkPosZ);
         }
+        return chunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);
     }
 
     private int getCursorUpdatedLightValue(final EnumSkyBlock lightType) {
