@@ -301,72 +301,66 @@ public class LightingEngine implements LumiLightingEngine {
                 if (getCursorCurrentLightValue(lightType) >= queueIndex)
                     continue;
 
-                final Block block = LightingEngineHelpers.getBlockFromChunk(this.cursorChunk, this.cursorBlockPos);
-                final int meta = LightingEngineHelpers.getBlockMetaFromChunk(this.cursorChunk, this.cursorBlockPos);
-                final int luminosity = this.getCursorBlockLightValue(block, meta, lightType);
-                final int opacity; //if luminosity is high enough, opacity is irrelevant
+                val cursorBlock = getBlockFromChunk(cursorChunk, cursorBlockPos);
+                val cursorBlockMeta = getBlockMetaFromChunk(cursorChunk, cursorBlockPos);
+                val cursorBlockLightValue = getCursorBlockLightValue(cursorBlock, cursorBlockMeta, lightType);
 
-                if (luminosity >= MAX_LIGHT_VALUE - 1) {
-                    opacity = 1;
+                // If luminosity is high enough, opacity is irrelevant
+                final int cursorBlockOpacity;
+                if (cursorBlockLightValue >= MAX_LIGHT_VALUE - 1) {
+                    cursorBlockOpacity = 1;
                 } else {
-                    opacity = this.getBlockOpacity(this.cursorBlockPos, block, meta);
+                    cursorBlockOpacity = getBlockOpacity(cursorBlockPos, cursorBlock, cursorBlockMeta);
                 }
 
-                //only darken neighbors if we indeed became darker
-                if (this.getCursorUpdatedLightValue(luminosity, opacity, lightType) < queueIndex) {
-                    //need to calculate new light value from neighbors IGNORING neighbors which are scheduled for darkening
-                    int newLight = luminosity;
+                // Only darken neighbors if we indeed became darker
+                // If we didn't become darker, so we need to re-set our initial light value (was set to 0) and notify neighbors
+                if (getCursorUpdatedLightValue(cursorBlockLightValue, cursorBlockOpacity, lightType) >= queueIndex) {
+                    // Do not spread to neighbors immediately to avoid scheduling multiple times
+                    enqueueBrighteningFromCursor(queueIndex, lightType);
+                    continue;
+                }
 
-                    this.updateNeighborBlocks(lightType);
+                // Need to calculate new light value from neighbors IGNORING neighbors which are scheduled for darkening
+                var newLightValue = cursorBlockLightValue;
+                updateNeighborBlocks(lightType);
+                for (val neighbor : neighborBlocks) {
+                    if (neighbor.chunk == null)
+                        continue;
+                    if (neighbor.lightValue == 0)
+                        continue;
 
-                    for (NeighborBlock info : this.neighborBlocks) {
-                        final LumiChunk nChunk = info.chunk;
+                    val neighborBlock = getBlockFromSubChunk(neighbor.subChunk, neighbor.blockPos);
+                    val neighborBlockMeta = getBlockMetaFromSubChunk(neighbor.subChunk, neighbor.blockPos);
+                    val neighborBlockOpacity = getBlockOpacity(neighbor.blockPos, neighborBlock, neighborBlockMeta);
 
-                        if (nChunk == null) {
-                            continue;
-                        }
-
-                        final int nLight = info.lightValue;
-
-                        if (nLight == 0) {
-                            continue;
-                        }
-
-                        final BlockPos.MutableBlockPos nPos = info.blockPos;
-
-                        if (queueIndex - this.getBlockOpacity(nPos, getBlockFromSubChunk(info.subChunk, nPos), getBlockMetaFromSubChunk(info.subChunk, nPos)) >= nLight) //schedule neighbor for darkening if we possibly light it
-                        {
-                            this.enqueueDarkening(nPos, info.posLong, nLight, nChunk, lightType);
-                        } else //only use for new light calculation if not
-                        {
-                            //if we can't darken the neighbor, no one else can (because of processing order) -> safe to let us be illuminated by it
-                            newLight = Math.max(newLight, nLight - opacity);
-                        }
+                    // If we can't darken the neighbor, no one else can (because of processing order) -> safe to let us be illuminated by it
+                    if (queueIndex - neighborBlockOpacity >= neighbor.lightValue) {
+                        // Schedule neighbor for darkening if we possibly light it
+                        enqueueDarkening(neighbor.blockPos, neighbor.posLong, neighbor.lightValue, neighbor.chunk, lightType);
+                    } else {
+                        // Only use for new light calculation if not
+                        newLightValue = Math.max(newLightValue, neighbor.lightValue - cursorBlockOpacity);
                     }
-
-                    //schedule brightening since light level was set to 0
-                    this.enqueueBrighteningFromCursor(newLight, lightType);
-                } else //we didn't become darker, so we need to re-set our initial light value (was set to 0) and notify neighbors
-                {
-                    this.enqueueBrighteningFromCursor(queueIndex, lightType); //do not spread to neighbors immediately to avoid scheduling multiple times
                 }
+
+                // Schedule brightening since light level was set to 0
+                enqueueBrighteningFromCursor(newLightValue, lightType);
             }
 
             profiler.endStartSection("brightening");
             queueIterator = darkeningQueues[queueIndex].iterator();
             while (nextItem()) {
-                final int oldLight = getCursorCurrentLightValue(lightType);
-
-                if (oldLight == queueIndex) //only process this if nothing else has happened at this position since scheduling
-                {
-                    world.lumi$root().lumi$markBlockForRenderUpdate(this.cursorBlockPos.getX(), this.cursorBlockPos.getY(), this.cursorBlockPos.getZ());
-
-                    if (queueIndex > 1) {
+                // Only process this if nothing else has happened at this position since scheduling
+                if (getCursorCurrentLightValue(lightType) == queueIndex) {
+                    val posX = cursorBlockPos.getX();
+                    val posY = cursorBlockPos.getY();
+                    val posZ = cursorBlockPos.getZ();
+                    rootWorld.lumi$markBlockForRenderUpdate(posX, posY, posZ);
+                    if (queueIndex > 1)
                         spreadLightFromCursor(queueIndex, lightType);
-                    }
                 }
             }
-
             profiler.endSection();
         }
 
