@@ -260,7 +260,7 @@ public class LightingEngine implements LumiLightingEngine {
                 continue;
             }
 
-            final int oldLight = this.getCursorCachedLight(lightType);
+            final int oldLight = this.getCursorCurrentLightValue(lightType);
             final int newLight = this.calculateNewLightFromCursor(lightType);
 
             if (oldLight < newLight) {
@@ -277,7 +277,7 @@ public class LightingEngine implements LumiLightingEngine {
         while (this.nextItem()) {
             final int newLight = (int) (this.cursorData >> LIGHT_VALUE_BIT_SHIFT & LIGHT_VALUE_BIT_MASK);
 
-            if (newLight > this.getCursorCachedLight(lightType)) {
+            if (newLight > this.getCursorCurrentLightValue(lightType)) {
                 //Sets the light to newLight to only schedule once. Clear leading bits of curData for later
                 this.enqueueBrightening(this.cursorBlockPos, this.cursorData & BLOCK_POS_MASK, newLight, this.cursorChunk, lightType);
             }
@@ -286,7 +286,7 @@ public class LightingEngine implements LumiLightingEngine {
         this.queueIterator = this.initialDarkeningsQueue.iterator();
 
         while (this.nextItem()) {
-            final int oldLight = this.getCursorCachedLight(lightType);
+            final int oldLight = this.getCursorCurrentLightValue(lightType);
 
             if (oldLight != 0) {
                 //Sets the light to 0 to only schedule once
@@ -303,20 +303,20 @@ public class LightingEngine implements LumiLightingEngine {
             this.queueIterator = this.brighteningQueues[curLight].iterator();
 
             while (this.nextItem()) {
-                if (this.getCursorCachedLight(lightType) >= curLight) //don't darken if we got brighter due to some other change
+                if (this.getCursorCurrentLightValue(lightType) >= curLight) //don't darken if we got brighter due to some other change
                 {
                     continue;
                 }
 
                 final Block block = LightingEngineHelpers.getBlockFromChunk(this.cursorChunk, this.cursorBlockPos);
                 final int meta = LightingEngineHelpers.getBlockMetaFromChunk(this.cursorChunk, this.cursorBlockPos);
-                final int luminosity = this.getCursorLuminosity(block, meta, lightType);
+                final int luminosity = this.getCursorBlockLightValue(block, meta, lightType);
                 final int opacity; //if luminosity is high enough, opacity is irrelevant
 
                 if (luminosity >= MAX_LIGHT_VALUE - 1) {
                     opacity = 1;
                 } else {
-                    opacity = this.getPosOpacity(this.cursorBlockPos, block, meta);
+                    opacity = this.getBlockOpacity(this.cursorBlockPos, block, meta);
                 }
 
                 //only darken neighbors if we indeed became darker
@@ -341,7 +341,7 @@ public class LightingEngine implements LumiLightingEngine {
 
                         final BlockPos.MutableBlockPos nPos = info.blockPos;
 
-                        if (curLight - this.getPosOpacity(nPos, LightingEngineHelpers.getBlockFromSubChunk(info.subChunk, nPos), LightingEngineHelpers.getBlockMetaFromSubChunk(info.subChunk, nPos)) >= nLight) //schedule neighbor for darkening if we possibly light it
+                        if (curLight - this.getBlockOpacity(nPos, LightingEngineHelpers.getBlockFromSubChunk(info.subChunk, nPos), LightingEngineHelpers.getBlockMetaFromSubChunk(info.subChunk, nPos)) >= nLight) //schedule neighbor for darkening if we possibly light it
                         {
                             this.enqueueDarkening(nPos, info.posLong, nLight, nChunk, lightType);
                         } else //only use for new light calculation if not
@@ -364,7 +364,7 @@ public class LightingEngine implements LumiLightingEngine {
             this.queueIterator = this.darkeningQueues[curLight].iterator();
 
             while (this.nextItem()) {
-                final int oldLight = this.getCursorCachedLight(lightType);
+                final int oldLight = this.getCursorCurrentLightValue(lightType);
 
                 if (oldLight == curLight) //only process this if nothing else has happened at this position since scheduling
                 {
@@ -406,7 +406,7 @@ public class LightingEngine implements LumiLightingEngine {
                 continue;
             }
 
-            final BlockPos.MutableBlockPos nPos = decodeWorldCoord(info.blockPos, nLongPos);
+            final BlockPos.MutableBlockPos nPos = blockPosFromPosLong(info.blockPos, nLongPos);
 
             final LumiChunk nChunk;
 
@@ -457,13 +457,13 @@ public class LightingEngine implements LumiLightingEngine {
         final Block block = LightingEngineHelpers.getBlockFromChunk(this.cursorChunk, this.cursorBlockPos);
         final int meta = LightingEngineHelpers.getBlockMetaFromChunk(this.cursorChunk, this.cursorBlockPos);
 
-        final int luminosity = this.getCursorLuminosity(block, meta, lightType);
+        final int luminosity = this.getCursorBlockLightValue(block, meta, lightType);
         final int opacity;
 
         if (luminosity >= MAX_LIGHT_VALUE - 1) {
             opacity = 1;
         } else {
-            opacity = this.getPosOpacity(this.cursorBlockPos, block, meta);
+            opacity = this.getBlockOpacity(this.cursorBlockPos, block, meta);
         }
 
         return this.calculateNewLightFromCursor(luminosity, opacity, lightType);
@@ -501,7 +501,7 @@ public class LightingEngine implements LumiLightingEngine {
                 continue;
             }
 
-            final int newLight = curLight - this.getPosOpacity(info.blockPos, LightingEngineHelpers.getBlockFromSubChunk(info.subChunk, info.blockPos), LightingEngineHelpers.getBlockMetaFromSubChunk(info.subChunk, info.blockPos));
+            final int newLight = curLight - this.getBlockOpacity(info.blockPos, LightingEngineHelpers.getBlockFromSubChunk(info.subChunk, info.blockPos), LightingEngineHelpers.getBlockMetaFromSubChunk(info.subChunk, info.blockPos));
 
             if (newLight > info.lightValue) {
                 this.enqueueBrightening(info.blockPos, info.posLong, newLight, nChunk, lightType);
@@ -537,7 +537,7 @@ public class LightingEngine implements LumiLightingEngine {
         chunk.lumi$setLightValue(lightType, subChunkPosX, posY, subChunkPosZ, 0);
     }
 
-    private static BlockPos.MutableBlockPos decodeWorldCoord(final BlockPos.MutableBlockPos pos, final long longPos) {
+    private static BlockPos.MutableBlockPos blockPosFromPosLong(final BlockPos.MutableBlockPos pos, final long longPos) {
         final int posX = (int) (longPos >> POS_X_BIT_SHIFT & POS_X_BIT_MASK) - (1 << POS_Z_BIT_SIZE - 1);
         final int posY = (int) (longPos >> POS_Y_BIT_SHIFT & POS_Y_BIT_MASK);
         final int posZ = (int) (longPos >> POS_Z_BIT_SHIFT & POS_Z_BIT_MASK) - (1 << POS_Y_BIT_SIZE - 1);
@@ -549,62 +549,55 @@ public class LightingEngine implements LumiLightingEngine {
         return (y << POS_Y_BIT_SHIFT) | (x + (1 << POS_Z_BIT_SIZE - 1) << POS_X_BIT_SHIFT) | (z + (1 << POS_Y_BIT_SIZE - 1) << POS_Z_BIT_SHIFT);
     }
 
-    private static int ITEMS_PROCESSED = 0, CHUNKS_FETCHED = 0;
-
-    /**
-     * Polls a new item from <code>curQueue</code> and fills in state data members
-     *
-     * @return If there was an item to poll
-     */
     private boolean nextItem() {
-        if (!this.queueIterator.hasNext()) {
-            this.queueIterator.finish();
-            this.queueIterator = null;
+        if (!queueIterator.hasNext()) {
+            queueIterator.finish();
+            queueIterator = null;
 
             return false;
         }
 
-        this.cursorData = this.queueIterator.next();
-        this.areNeighboursBlocksValid = false;
+        cursorData = queueIterator.next();
+        areNeighboursBlocksValid = false;
 
-        decodeWorldCoord(this.cursorBlockPos, this.cursorData);
+        blockPosFromPosLong(cursorBlockPos, cursorData);
 
-        final long chunkIdentifier = this.cursorData & CHUNK_POS_MASK;
-
-        if (this.cursorChunkPosLong != chunkIdentifier) {
-            this.cursorChunk = this.getChunk(this.cursorBlockPos);
-            this.cursorChunkPosLong = chunkIdentifier;
-            CHUNKS_FETCHED++;
+        val chunkPosLong = cursorData & CHUNK_POS_MASK;
+        if (cursorChunkPosLong != chunkPosLong) {
+            cursorChunk = getChunk(cursorBlockPos);
+            cursorChunkPosLong = chunkPosLong;
         }
-
-        ITEMS_PROCESSED++;
 
         return true;
     }
 
-    private int getCursorCachedLight(EnumSkyBlock lightType) {
+    private int getCursorCurrentLightValue(EnumSkyBlock lightType) {
         val posY = cursorBlockPos.getY();
         val subChunkPosX = cursorBlockPos.getX() & 15;
         val subChunkPosZ = cursorBlockPos.getZ() & 15;
         return cursorChunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);
     }
 
-    /**
-     * Calculates the luminosity for <code>curPos</code>, taking into account <code>lightType</code>
-     */
-    private int getCursorLuminosity(final Block block, final int meta, final EnumSkyBlock lightType) {
+    private int getCursorBlockLightValue(Block cursorBlock, int cursorBlockMeta, EnumSkyBlock lightType) {
+        val posX = cursorBlockPos.getX();
+        val posY = cursorBlockPos.getY();
+        val posZ = cursorBlockPos.getZ();
+
         if (lightType == EnumSkyBlock.Sky) {
-            if (LightingHooks.lumiCanBlockSeeTheSky(this.cursorChunk, this.cursorBlockPos.getX() & 15, this.cursorBlockPos.getY(), this.cursorBlockPos.getZ() & 15)) {
+            val subChunkPosX = posX & 15;
+            val subChunkPosZ = posZ & 15;
+            if (LightingHooks.lumiCanBlockSeeTheSky(cursorChunk, subChunkPosX, posY, subChunkPosZ)) {
                 return EnumSkyBlock.Sky.defaultLightValue;
             } else {
                 return 0;
             }
         }
 
-        return MathHelper.clamp_int(world.lumi$getBlockBrightness(block, meta, this.cursorBlockPos.getX(), this.cursorBlockPos.getY(), this.cursorBlockPos.getZ()), 0, MAX_LIGHT_VALUE);
+        val cursorBlockLightValueVal = world.lumi$getBlockBrightness(cursorBlock, cursorBlockMeta, posX, posY, posZ);
+        return MathHelper.clamp_int(cursorBlockLightValueVal, MIN_LIGHT_VALUE, MAX_LIGHT_VALUE);
     }
 
-    private int getPosOpacity(final BlockPos pos, final Block block, final int meta) {
+    private int getBlockOpacity(final BlockPos pos, final Block block, final int meta) {
         return MathHelper.clamp_int(world.lumi$getBlockOpacity(block, meta, pos.getX(), pos.getY(), pos.getZ()), 1, MAX_LIGHT_VALUE);
     }
 
