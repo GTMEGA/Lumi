@@ -21,29 +21,31 @@
 
 package com.falsepattern.lumina.internal.engine;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+
+@Getter
+@Accessors(fluent = true, chain = false)
+@RequiredArgsConstructor
 public enum AxisDirection {
     POSITIVE(1),
     NEGATIVE(-1);
 
-    private final int off;
-    private AxisDirection opposite;
+    @Getter
+    private final int sign;
 
-    AxisDirection(int off) {
-        this.off = off;
+    public AxisDirection opposite() {
+        return opposite(this);
     }
 
-    public int getOffset() {
-        return off;
-    }
-
-    public AxisDirection getOpposite() {
-        if (opposite == null) {
-            if (this == POSITIVE) {
-                opposite = NEGATIVE;
-            } else {
-                opposite = POSITIVE;
-            }
+    private static AxisDirection opposite(AxisDirection axisDirection) {
+        switch (axisDirection) {
+            case POSITIVE:
+                return NEGATIVE;
+            default:
+            case NEGATIVE:
+                return POSITIVE;
         }
-        return opposite;
     }
 }
