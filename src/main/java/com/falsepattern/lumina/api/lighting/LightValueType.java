@@ -19,33 +19,32 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.lighting;
+package com.falsepattern.lumina.api.lighting;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.minecraft.world.EnumSkyBlock;
 
 @Getter
 @Accessors(fluent = true, chain = false)
-@RequiredArgsConstructor
-public enum AxisDirection {
-    POSITIVE(1),
-    NEGATIVE(-1);
+public enum LightValueType {
+    BLOCK_LIGHT_VALUE(EnumSkyBlock.Block),
+    SKY_LIGHT_VALUE(EnumSkyBlock.Sky),
+    ;
 
-    @Getter
-    private final int sign;
+    private final int defaultLightValue;
 
-    public AxisDirection opposite() {
-        return opposite(this);
+    LightValueType(EnumSkyBlock baseLightType) {
+        defaultLightValue = baseLightType.defaultLightValue;
     }
 
-    private static AxisDirection opposite(AxisDirection axisDirection) {
-        switch (axisDirection) {
-            case POSITIVE:
-                return NEGATIVE;
+    public static LightValueType of(EnumSkyBlock baseLightType) {
+        switch (baseLightType) {
             default:
-            case NEGATIVE:
-                return POSITIVE;
+            case Block:
+                return BLOCK_LIGHT_VALUE;
+            case Sky:
+                return SKY_LIGHT_VALUE;
         }
     }
 }

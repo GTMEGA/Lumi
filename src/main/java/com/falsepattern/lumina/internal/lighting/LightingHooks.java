@@ -25,6 +25,8 @@ import com.falsepattern.lib.compat.BlockPos;
 import com.falsepattern.lib.internal.Share;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
+import com.falsepattern.lumina.api.coordinate.DirectionSign;
+import com.falsepattern.lumina.api.coordinate.FacingDirection;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.internal.world.WorldChunkSlice;
 import cpw.mods.fml.relauncher.Side;
@@ -112,7 +114,7 @@ public final class LightingHooks {
                                            EnumSkyBlock.Sky,
                                            direction,
                                            axisDirection,
-                                           BoundaryFacing.OUT);
+                                           FacingDirection.OUTPUT);
                 continue;
             }
 
@@ -433,7 +435,7 @@ public final class LightingHooks {
                                                 BlockPos blockPos,
                                                 EnumSkyBlock lightType,
                                                 EnumFacing facing,
-                                                BoundaryFacing boundaryFacing) {
+                                                FacingDirection boundaryFacing) {
         val posX = blockPos.getX();
         val posZ = blockPos.getZ();
         val chunkPosY = blockPos.getY() / 16;
@@ -447,27 +449,27 @@ public final class LightingHooks {
                                                   short subChunkMask,
                                                   EnumSkyBlock lightType,
                                                   EnumFacing facing,
-                                                  AxisDirection axisDirection,
-                                                  BoundaryFacing boundaryFacing) {
-        val flagIndex = getFlagIndex(lightType, facing, axisDirection, boundaryFacing);
+                                                  DirectionSign directionSign,
+                                                  FacingDirection boundaryFacing) {
+        val flagIndex = getFlagIndex(lightType, facing, directionSign, boundaryFacing);
         chunk.lumi$neighborLightCheckFlags()[flagIndex] |= subChunkMask;
         chunk.lumi$root().lumi$markDirty();
     }
 
     public static int getFlagIndex(EnumSkyBlock lightType,
                                    EnumFacing facing,
-                                   AxisDirection axisDirection,
-                                   BoundaryFacing boundaryFacing) {
+                                   DirectionSign directionSign,
+                                   FacingDirection boundaryFacing) {
         val facingOffsetX = facing.getFrontOffsetX();
         val facingOffsetZ = facing.getFrontOffsetZ();
-        return getFlagIndex(lightType, facingOffsetX, facingOffsetZ, axisDirection, boundaryFacing);
+        return getFlagIndex(lightType, facingOffsetX, facingOffsetZ, directionSign, boundaryFacing);
     }
 
     public static int getFlagIndex(EnumSkyBlock lightType,
                                    int facingOffsetX,
                                    int facingOffsetZ,
-                                   AxisDirection axisDirection,
-                                   BoundaryFacing boundaryFacing) {
+                                   DirectionSign directionSign,
+                                   FacingDirection boundaryFacing) {
         final int lightTypeBits;
         switch (lightType) {
             default:
@@ -481,7 +483,7 @@ public final class LightingHooks {
 
         val facingOffsetXBits = (facingOffsetX + 1) << 2;
         val facingOffsetZBits = (facingOffsetZ + 1) << 1;
-        val axisDirectionOffsetBits = axisDirection.sign() + 1;
+        val axisDirectionOffsetBits = directionSign.sign() + 1;
         val boundaryFacingBits = boundaryFacing.ordinal();
 
         return lightTypeBits |
@@ -491,18 +493,18 @@ public final class LightingHooks {
                boundaryFacingBits;
     }
 
-    public static AxisDirection axisDirectionFromFacing(EnumFacing facing, int facingOffsetX, int facingOffsetZ) {
+    public static DirectionSign axisDirectionFromFacing(EnumFacing facing, int facingOffsetX, int facingOffsetZ) {
         val subChunkPosX = facingOffsetX & 15;
         val subChunkPosZ = facingOffsetZ & 15;
 
         if (facing == EnumFacing.EAST || facing == EnumFacing.WEST) {
             if (subChunkPosZ < 8)
-                return AxisDirection.NEGATIVE;
+                return DirectionSign.NEGATIVE;
         } else {
             if (subChunkPosX < 8)
-                return AxisDirection.NEGATIVE;
+                return DirectionSign.NEGATIVE;
         }
-        return AxisDirection.POSITIVE;
+        return DirectionSign.POSITIVE;
     }
 
     public static void scheduleRelightChecksForChunkBoundaries(LumiWorld world, LumiChunk chunk) {
@@ -519,7 +521,7 @@ public final class LightingHooks {
                 continue;
 
             for (val lightType : EnumSkyBlock.values()) {
-                for (val axisDirection : AxisDirection.values()) {
+                for (val axisDirection : DirectionSign.values()) {
                     //Merge flags upon loading of a chunk. This ensures that all flags are always already on the IN boundary below
                     mergeFlags(lightType, chunk, nChunk, direction, axisDirection);
                     mergeFlags(lightType, nChunk, chunk, oppositeFacing(direction), axisDirection);
@@ -547,12 +549,12 @@ public final class LightingHooks {
                                   LumiChunk inChunk,
                                   LumiChunk outChunk,
                                   EnumFacing facing,
-                                  AxisDirection axisDirection) {
+                                  DirectionSign directionSign) {
         if (outChunk.lumi$neighborLightCheckFlags() == null)
             return;
 
-        val inIndex = getFlagIndex(lightType, facing, axisDirection, BoundaryFacing.IN);
-        val outIndex = getFlagIndex(lightType, oppositeFacing(facing), axisDirection, BoundaryFacing.OUT);
+        val inIndex = getFlagIndex(lightType, facing, directionSign, FacingDirection.INPUT);
+        val outIndex = getFlagIndex(lightType, oppositeFacing(facing), directionSign, FacingDirection.OUTPUT);
 
         inChunk.lumi$neighborLightCheckFlags()[inIndex] |= outChunk.lumi$neighborLightCheckFlags()[outIndex];
         // no need to call Chunk.setModified() since checks are not deleted from outChunk
@@ -565,9 +567,9 @@ public final class LightingHooks {
                                                         EnumSkyBlock lightType,
                                                         int xOffset,
                                                         int zOffset,
-                                                        AxisDirection axisDirection) {
+                                                        DirectionSign directionSign) {
         // OUT checks from neighbor are already merged
-        val inFlagIndex = getFlagIndex(lightType, xOffset, zOffset, axisDirection, BoundaryFacing.IN);
+        val inFlagIndex = getFlagIndex(lightType, xOffset, zOffset, directionSign, FacingDirection.INPUT);
         val flags = chunk.lumi$neighborLightCheckFlags()[inFlagIndex];
 
         if (flags == 0)
@@ -582,15 +584,15 @@ public final class LightingHooks {
         }
 
         if (sChunk == null) {
-            val chunkPosX = chunk.lumi$chunkPosX() + (zOffset != 0 ? axisDirection.sign() : 0);
-            val chunkPosZ = chunk.lumi$chunkPosZ() + (xOffset != 0 ? axisDirection.sign() : 0);
+            val chunkPosX = chunk.lumi$chunkPosX() + (zOffset != 0 ? directionSign.sign() : 0);
+            val chunkPosZ = chunk.lumi$chunkPosZ() + (xOffset != 0 ? directionSign.sign() : 0);
 
             sChunk = getLoadedChunk(world, chunkPosX, chunkPosZ);
             if (sChunk == null)
                 return;
         }
 
-        val outFlagIndex = getFlagIndex(lightType, -xOffset, -zOffset, axisDirection, BoundaryFacing.OUT);
+        val outFlagIndex = getFlagIndex(lightType, -xOffset, -zOffset, directionSign, FacingDirection.OUTPUT);
         chunk.lumi$neighborLightCheckFlags()[inFlagIndex] = 0;
         nChunk.lumi$neighborLightCheckFlags()[outFlagIndex] = 0; //Clear only now that it's clear that the checks are processed
 
@@ -609,7 +611,7 @@ public final class LightingHooks {
         }
 
         // shift to other half if necessary (shift perpendicular to dir)
-        if (axisDirection == AxisDirection.POSITIVE) {
+        if (directionSign == DirectionSign.POSITIVE) {
             minPosX += (zOffset & 1) * 8; //x & 1 is same as abs(x) for x=-1,0,1
             minPosZ += (xOffset & 1) * 8;
         }
@@ -749,17 +751,17 @@ public final class LightingHooks {
         return world.lumi$wrap(baseChunk);
     }
 
-    public static AxisDirection axisDirectionFromFacing(EnumFacing facing) {
+    public static DirectionSign axisDirectionFromFacing(EnumFacing facing) {
         switch (facing) {
             default:
             case UP:
             case SOUTH:
             case EAST:
-                return AxisDirection.POSITIVE;
+                return DirectionSign.POSITIVE;
             case DOWN:
             case NORTH:
             case WEST:
-                return AxisDirection.NEGATIVE;
+                return DirectionSign.NEGATIVE;
         }
     }
 
@@ -779,9 +781,5 @@ public final class LightingHooks {
             case UP:
                 return EnumFacing.DOWN;
         }
-    }
-
-    public enum BoundaryFacing {
-        IN, OUT;
     }
 }
