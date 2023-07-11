@@ -241,74 +241,65 @@ public class LightingEngine implements LumiLightingEngine {
     }
 
     private void processLightUpdateQueue(final EnumSkyBlock lightType, final PooledLongQueue queue) {
-        //avoid nested calls
-        if (this.isUpdating) {
-            throw new IllegalStateException("Already processing updates!");
-        }
+        if (isUpdating)
+            return;
+        isUpdating = true;
 
-        this.isUpdating = true;
+        // Reset chunk cache
+        cursorChunkPosLong = -1;
 
-        this.cursorChunkPosLong = -1; //reset chunk cache
+        profiler.startSection("lighting");
+        profiler.startSection("checking");
 
-        this.profiler.startSection("lighting");
-
-        this.profiler.startSection("checking");
-
-        this.queueIterator = queue.iterator();
-
-        //process the queued updates and enqueue them for further processing
-        while (this.nextItem()) {
-            if (this.cursorChunk == null) {
+        // Process the queued updates and enqueue them for further processing
+        queueIterator = queue.iterator();
+        while (nextItem()) {
+            if (cursorChunk == null)
                 continue;
-            }
 
-            final int oldLight = this.getCursorCurrentLightValue(lightType);
-            final int newLight = this.getCursorUpdatedLightValue(lightType);
-
-            if (oldLight < newLight) {
-                //don't enqueue directly for brightening in order to avoid duplicate scheduling
-                this.initialBrighteningQueue.add(((long) newLight << LIGHT_VALUE_BIT_SHIFT) | this.cursorData);
-            } else if (oldLight > newLight) {
-                //don't enqueue directly for darkening in order to avoid duplicate scheduling
-                this.initialDarkeningsQueue.add(this.cursorData);
-            }
-        }
-
-        this.queueIterator = this.initialBrighteningQueue.iterator();
-
-        while (this.nextItem()) {
-            final int newLight = (int) (this.cursorData >> LIGHT_VALUE_BIT_SHIFT & LIGHT_VALUE_BIT_MASK);
-
-            if (newLight > this.getCursorCurrentLightValue(lightType)) {
-                //Sets the light to newLight to only schedule once. Clear leading bits of curData for later
-                this.enqueueBrightening(this.cursorBlockPos, this.cursorData & BLOCK_POS_MASK, newLight, this.cursorChunk, lightType);
+            val cursorCurrentLightValue = getCursorCurrentLightValue(lightType);
+            val cursorUpdatedLightValue = getCursorUpdatedLightValue(lightType);
+            if (cursorCurrentLightValue < cursorUpdatedLightValue) {
+                // Don't enqueue directly for brightening in order to avoid duplicate scheduling
+                val newData = ((long) cursorUpdatedLightValue << LIGHT_VALUE_BIT_SHIFT) | cursorData;
+                initialBrighteningQueue.add(newData);
+            } else if (cursorCurrentLightValue > cursorUpdatedLightValue) {
+                // Don't enqueue directly for darkening in order to avoid duplicate scheduling
+                initialDarkeningsQueue.add(cursorData);
             }
         }
 
-        this.queueIterator = this.initialDarkeningsQueue.iterator();
-
-        while (this.nextItem()) {
-            final int oldLight = this.getCursorCurrentLightValue(lightType);
-
-            if (oldLight != 0) {
-                //Sets the light to 0 to only schedule once
-                this.enqueueDarkening(this.cursorBlockPos, this.cursorData, oldLight, this.cursorChunk, lightType);
+        queueIterator = initialBrighteningQueue.iterator();
+        while (nextItem()) {
+            // Sets the light to newLight to only schedule once. Clear leading bits of curData for later
+            val cursorDataLightValue = (int) (cursorData >> LIGHT_VALUE_BIT_SHIFT & LIGHT_VALUE_BIT_MASK);
+            if (cursorDataLightValue > getCursorCurrentLightValue(lightType)) {
+                val posLong = cursorData & BLOCK_POS_MASK;
+                enqueueBrightening(cursorBlockPos, posLong, cursorDataLightValue, cursorChunk, lightType);
             }
         }
 
-        this.profiler.endSection();
+        queueIterator = initialDarkeningsQueue.iterator();
+        while (nextItem()) {
+            // Sets the light to 0 to only schedule once
+            val cursorCurrentLightValue = getCursorCurrentLightValue(lightType);
+            if (cursorCurrentLightValue != 0)
+                enqueueDarkening(cursorBlockPos, cursorData, cursorCurrentLightValue, cursorChunk, lightType);
+        }
 
-        //Iterate through enqueued updates (brightening and darkening in parallel) from brightest to darkest so that we only need to iterate once
-        for (int curLight = MAX_LIGHT_VALUE; curLight >= 0; --curLight) {
-            this.profiler.startSection("darkening");
+        profiler.endSection();
+        val rootWorld = world.lumi$root();
 
-            this.queueIterator = this.brighteningQueues[curLight].iterator();
+        // Iterate through enqueued updates (brightening and darkening in parallel)
+        // from brightest to darkest so that we only need to iterate once
+        for (var queueIndex = MAX_LIGHT_VALUE; queueIndex >= 0; queueIndex--) {
+            profiler.startSection("darkening");
 
-            while (this.nextItem()) {
-                if (this.getCursorCurrentLightValue(lightType) >= curLight) //don't darken if we got brighter due to some other change
-                {
+            queueIterator = brighteningQueues[queueIndex].iterator();
+            while (nextItem()) {
+                // Don't darken if we got brighter due to some other change
+                if (getCursorCurrentLightValue(lightType) >= queueIndex)
                     continue;
-                }
 
                 final Block block = LightingEngineHelpers.getBlockFromChunk(this.cursorChunk, this.cursorBlockPos);
                 final int meta = LightingEngineHelpers.getBlockMetaFromChunk(this.cursorChunk, this.cursorBlockPos);
@@ -322,7 +313,7 @@ public class LightingEngine implements LumiLightingEngine {
                 }
 
                 //only darken neighbors if we indeed became darker
-                if (this.getCursorUpdatedLightValue(luminosity, opacity, lightType) < curLight) {
+                if (this.getCursorUpdatedLightValue(luminosity, opacity, lightType) < queueIndex) {
                     //need to calculate new light value from neighbors IGNORING neighbors which are scheduled for darkening
                     int newLight = luminosity;
 
@@ -343,7 +334,7 @@ public class LightingEngine implements LumiLightingEngine {
 
                         final BlockPos.MutableBlockPos nPos = info.blockPos;
 
-                        if (curLight - this.getBlockOpacity(nPos, getBlockFromSubChunk(info.subChunk, nPos), getBlockMetaFromSubChunk(info.subChunk, nPos)) >= nLight) //schedule neighbor for darkening if we possibly light it
+                        if (queueIndex - this.getBlockOpacity(nPos, getBlockFromSubChunk(info.subChunk, nPos), getBlockMetaFromSubChunk(info.subChunk, nPos)) >= nLight) //schedule neighbor for darkening if we possibly light it
                         {
                             this.enqueueDarkening(nPos, info.posLong, nLight, nChunk, lightType);
                         } else //only use for new light calculation if not
@@ -357,33 +348,30 @@ public class LightingEngine implements LumiLightingEngine {
                     this.enqueueBrighteningFromCursor(newLight, lightType);
                 } else //we didn't become darker, so we need to re-set our initial light value (was set to 0) and notify neighbors
                 {
-                    this.enqueueBrighteningFromCursor(curLight, lightType); //do not spread to neighbors immediately to avoid scheduling multiple times
+                    this.enqueueBrighteningFromCursor(queueIndex, lightType); //do not spread to neighbors immediately to avoid scheduling multiple times
                 }
             }
 
-            this.profiler.endStartSection("brightening");
+            profiler.endStartSection("brightening");
+            queueIterator = darkeningQueues[queueIndex].iterator();
+            while (nextItem()) {
+                final int oldLight = getCursorCurrentLightValue(lightType);
 
-            this.queueIterator = this.darkeningQueues[curLight].iterator();
-
-            while (this.nextItem()) {
-                final int oldLight = this.getCursorCurrentLightValue(lightType);
-
-                if (oldLight == curLight) //only process this if nothing else has happened at this position since scheduling
+                if (oldLight == queueIndex) //only process this if nothing else has happened at this position since scheduling
                 {
-                    this.world.lumi$root().lumi$markBlockForRenderUpdate(this.cursorBlockPos.getX(), this.cursorBlockPos.getY(), this.cursorBlockPos.getZ());
+                    world.lumi$root().lumi$markBlockForRenderUpdate(this.cursorBlockPos.getX(), this.cursorBlockPos.getY(), this.cursorBlockPos.getZ());
 
-                    if (curLight > 1) {
-                        this.spreadLightFromCursor(curLight, lightType);
+                    if (queueIndex > 1) {
+                        spreadLightFromCursor(queueIndex, lightType);
                     }
                 }
             }
 
-            this.profiler.endSection();
+            profiler.endSection();
         }
 
-        this.profiler.endSection();
-
-        this.isUpdating = false;
+        profiler.endSection();
+        isUpdating = false;
     }
 
     private void updateNeighborBlocks(EnumSkyBlock lightType) {
