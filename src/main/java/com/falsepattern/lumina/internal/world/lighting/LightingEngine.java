@@ -42,6 +42,8 @@ import net.minecraft.world.EnumSkyBlock;
 
 import java.util.concurrent.locks.ReentrantLock;
 
+import static com.falsepattern.lumina.internal.world.lighting.LightingEngineHelpers.*;
+
 public class LightingEngine implements LumiLightingEngine {
     private static final boolean ENABLE_ILLEGAL_THREAD_ACCESS_WARNINGS = true;
 
@@ -154,7 +156,7 @@ public class LightingEngine implements LumiLightingEngine {
         acquireLock();
 
         try {
-            scheduleLightUpdate(lightType, encodeWorldCoord(posX, posY, posZ));
+            scheduleLightUpdate(lightType, posLongFromPosXYZ(posX, posY, posZ));
         } finally {
             releaseLock();
         }
@@ -324,7 +326,7 @@ public class LightingEngine implements LumiLightingEngine {
                     //need to calculate new light value from neighbors IGNORING neighbors which are scheduled for darkening
                     int newLight = luminosity;
 
-                    this.fetchNeighborDataFromCursor(lightType);
+                    this.updateNeighborBlocks(lightType);
 
                     for (NeighborBlock info : this.neighborBlocks) {
                         final LumiChunk nChunk = info.chunk;
@@ -341,7 +343,7 @@ public class LightingEngine implements LumiLightingEngine {
 
                         final BlockPos.MutableBlockPos nPos = info.blockPos;
 
-                        if (curLight - this.getBlockOpacity(nPos, LightingEngineHelpers.getBlockFromSubChunk(info.subChunk, nPos), LightingEngineHelpers.getBlockMetaFromSubChunk(info.subChunk, nPos)) >= nLight) //schedule neighbor for darkening if we possibly light it
+                        if (curLight - this.getBlockOpacity(nPos, getBlockFromSubChunk(info.subChunk, nPos), getBlockMetaFromSubChunk(info.subChunk, nPos)) >= nLight) //schedule neighbor for darkening if we possibly light it
                         {
                             this.enqueueDarkening(nPos, info.posLong, nLight, nChunk, lightType);
                         } else //only use for new light calculation if not
@@ -387,7 +389,7 @@ public class LightingEngine implements LumiLightingEngine {
     /**
      * Gets data for neighbors of <code>curPos</code> and saves the results into neighbor state data members. If a neighbor can't be accessed/doesn't exist, the corresponding entry in <code>neighborChunks</code> is <code>null</code> - others are not reset
      */
-    private void fetchNeighborDataFromCursor(final EnumSkyBlock lightType) {
+    private void updateNeighborBlocks(final EnumSkyBlock lightType) {
         //only update if curPos was changed
         if (this.areNeighboursBlocksValid) {
             return;
@@ -476,7 +478,7 @@ public class LightingEngine implements LumiLightingEngine {
 
         int newLight = luminosity;
 
-        this.fetchNeighborDataFromCursor(lightType);
+        this.updateNeighborBlocks(lightType);
 
         for (NeighborBlock info : this.neighborBlocks) {
             if (info.chunk == null) {
@@ -492,7 +494,7 @@ public class LightingEngine implements LumiLightingEngine {
     }
 
     private void spreadLightFromCursor(final int curLight, final EnumSkyBlock lightType) {
-        this.fetchNeighborDataFromCursor(lightType);
+        updateNeighborBlocks(lightType);
 
         for (NeighborBlock info : this.neighborBlocks) {
             final LumiChunk nChunk = info.chunk;
@@ -537,16 +539,17 @@ public class LightingEngine implements LumiLightingEngine {
         chunk.lumi$setLightValue(lightType, subChunkPosX, posY, subChunkPosZ, 0);
     }
 
-    private static BlockPos.MutableBlockPos blockPosFromPosLong(final BlockPos.MutableBlockPos pos, final long longPos) {
-        final int posX = (int) (longPos >> POS_X_BIT_SHIFT & POS_X_BIT_MASK) - (1 << POS_Z_BIT_SIZE - 1);
-        final int posY = (int) (longPos >> POS_Y_BIT_SHIFT & POS_Y_BIT_MASK);
-        final int posZ = (int) (longPos >> POS_Z_BIT_SHIFT & POS_Z_BIT_MASK) - (1 << POS_Y_BIT_SIZE - 1);
-
-        return pos.setPos(posX, posY, posZ);
+    private static BlockPos.MutableBlockPos blockPosFromPosLong(BlockPos.MutableBlockPos blockPos, long longPos) {
+        val posX = (int) (longPos >> POS_X_BIT_SHIFT & POS_X_BIT_MASK) - (1 << POS_X_BIT_SIZE - 1);
+        val posY = (int) (longPos >> POS_Y_BIT_SHIFT & POS_Y_BIT_MASK);
+        val posZ = (int) (longPos >> POS_Z_BIT_SHIFT & POS_Z_BIT_MASK) - (1 << POS_Z_BIT_SIZE - 1);
+        return blockPos.setPos(posX, posY, posZ);
     }
 
-    private static long encodeWorldCoord(final long x, final long y, final long z) {
-        return (y << POS_Y_BIT_SHIFT) | (x + (1 << POS_Z_BIT_SIZE - 1) << POS_X_BIT_SHIFT) | (z + (1 << POS_Y_BIT_SIZE - 1) << POS_Z_BIT_SHIFT);
+    private static long posLongFromPosXYZ(long posX, long posY, long posZ) {
+        return (posY << POS_Y_BIT_SHIFT) |
+               (posX + (1 << POS_X_BIT_SIZE - 1) << POS_X_BIT_SHIFT) |
+               (posZ + (1 << POS_Z_BIT_SIZE - 1) << POS_Z_BIT_SHIFT);
     }
 
     private boolean nextItem() {
@@ -597,14 +600,18 @@ public class LightingEngine implements LumiLightingEngine {
         return MathHelper.clamp_int(cursorBlockLightValueVal, MIN_LIGHT_VALUE, MAX_LIGHT_VALUE);
     }
 
-    private int getBlockOpacity(final BlockPos pos, final Block block, final int meta) {
-        return MathHelper.clamp_int(world.lumi$getBlockOpacity(block, meta, pos.getX(), pos.getY(), pos.getZ()), 1, MAX_LIGHT_VALUE);
+    private int getBlockOpacity(BlockPos blockPos, Block block, int meta) {
+        val posX = blockPos.getX();
+        val posY = blockPos.getY();
+        val posZ = blockPos.getZ();
+        val blockOpacity = world.lumi$getBlockOpacity(block, meta, posX, posY, posZ);
+        return MathHelper.clamp_int(blockOpacity, 1, MAX_LIGHT_VALUE);//TODO: This is clamping between (1, 15) because some other math is messed up.
     }
 
     private LumiChunk getChunk(final BlockPos pos) {
-        int chunkX = pos.getX() >> 4;
-        int chunkZ = pos.getZ() >> 4;
-        return LightingEngineHelpers.getLoadedChunk(world, chunkX, chunkZ);
+        final int chunkX = pos.getX() >> 4;
+        final int chunkZ = pos.getZ() >> 4;
+        return getLoadedChunk(world, chunkX, chunkZ);
     }
 
     @NoArgsConstructor
