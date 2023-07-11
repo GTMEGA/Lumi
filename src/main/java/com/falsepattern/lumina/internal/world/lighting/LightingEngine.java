@@ -263,7 +263,7 @@ public class LightingEngine implements LumiLightingEngine {
             }
 
             final int oldLight = this.getCursorCurrentLightValue(lightType);
-            final int newLight = this.calculateNewLightFromCursor(lightType);
+            final int newLight = this.getCursorUpdatedLightValue(lightType);
 
             if (oldLight < newLight) {
                 //don't enqueue directly for brightening in order to avoid duplicate scheduling
@@ -322,7 +322,7 @@ public class LightingEngine implements LumiLightingEngine {
                 }
 
                 //only darken neighbors if we indeed became darker
-                if (this.calculateNewLightFromCursor(luminosity, opacity, lightType) < curLight) {
+                if (this.getCursorUpdatedLightValue(luminosity, opacity, lightType) < curLight) {
                     //need to calculate new light value from neighbors IGNORING neighbors which are scheduled for darkening
                     int newLight = luminosity;
 
@@ -454,89 +454,81 @@ public class LightingEngine implements LumiLightingEngine {
         }
     }
 
+    private int getCursorUpdatedLightValue(final EnumSkyBlock lightType) {
+        val block = getBlockFromChunk(cursorChunk, cursorBlockPos);
+        val blockMeta = getBlockMetaFromChunk(cursorChunk, cursorBlockPos);
 
-    private int calculateNewLightFromCursor(final EnumSkyBlock lightType) {
-        final Block block = LightingEngineHelpers.getBlockFromChunk(this.cursorChunk, this.cursorBlockPos);
-        final int meta = LightingEngineHelpers.getBlockMetaFromChunk(this.cursorChunk, this.cursorBlockPos);
-
-        final int luminosity = this.getCursorBlockLightValue(block, meta, lightType);
-        final int opacity;
-
-        if (luminosity >= MAX_LIGHT_VALUE - 1) {
-            opacity = 1;
+        val cursorBlockLightValue = getCursorBlockLightValue(block, blockMeta, lightType);
+        final int cursorBlockOpacity;
+        if (cursorBlockLightValue >= MAX_LIGHT_VALUE - 1) {
+            cursorBlockOpacity = 1;
         } else {
-            opacity = this.getBlockOpacity(this.cursorBlockPos, block, meta);
+            cursorBlockOpacity = getBlockOpacity(cursorBlockPos, block, blockMeta);
         }
 
-        return this.calculateNewLightFromCursor(luminosity, opacity, lightType);
+        return getCursorUpdatedLightValue(cursorBlockLightValue, cursorBlockOpacity, lightType);
     }
 
-    private int calculateNewLightFromCursor(final int luminosity, final int opacity, final EnumSkyBlock lightType) {
-        if (luminosity >= MAX_LIGHT_VALUE - opacity) {
-            return luminosity;
-        }
+    private int getCursorUpdatedLightValue(int cursorBlockLightValue, int cursorBlockOpacity, EnumSkyBlock lightType) {
+        if (cursorBlockLightValue >= MAX_LIGHT_VALUE - cursorBlockOpacity)
+            return cursorBlockLightValue;
 
-        int newLight = luminosity;
-
-        this.updateNeighborBlocks(lightType);
-
-        for (NeighborBlock info : this.neighborBlocks) {
-            if (info.chunk == null) {
+        updateNeighborBlocks(lightType);
+        var newCursorLightValue = cursorBlockLightValue;
+        for (val neighborBlock : neighborBlocks) {
+            if (neighborBlock.chunk == null)
                 continue;
-            }
-
-            final int nLight = info.lightValue;
-
-            newLight = Math.max(nLight - opacity, newLight);
+            val providedLightValue = neighborBlock.lightValue - cursorBlockOpacity;
+            newCursorLightValue = Math.max(providedLightValue, newCursorLightValue);
         }
-
-        return newLight;
+        return newCursorLightValue;
     }
 
-    private void spreadLightFromCursor(final int curLight, final EnumSkyBlock lightType) {
+    private void spreadLightFromCursor(int cursorLightValue, EnumSkyBlock lightType) {
         updateNeighborBlocks(lightType);
 
-        for (NeighborBlock info : this.neighborBlocks) {
-            final LumiChunk nChunk = info.chunk;
-
-            if (nChunk == null) {
+        for (val neighbor : neighborBlocks) {
+            if (neighbor.chunk == null)
                 continue;
-            }
 
-            final int newLight = curLight - this.getBlockOpacity(info.blockPos, LightingEngineHelpers.getBlockFromSubChunk(info.subChunk, info.blockPos), LightingEngineHelpers.getBlockMetaFromSubChunk(info.subChunk, info.blockPos));
+            val block = getBlockFromSubChunk(neighbor.subChunk, neighbor.blockPos);
+            val blockMeta = getBlockMetaFromSubChunk(neighbor.subChunk, neighbor.blockPos);
+            val blockOpacity = getBlockOpacity(neighbor.blockPos, block, blockMeta);
 
-            if (newLight > info.lightValue) {
-                this.enqueueBrightening(info.blockPos, info.posLong, newLight, nChunk, lightType);
-            }
+            val newLightValue = cursorLightValue - blockOpacity;
+            if (newLightValue > neighbor.lightValue)
+                enqueueBrightening(neighbor.blockPos, neighbor.posLong, newLightValue, neighbor.chunk, lightType);
         }
     }
 
-    private void enqueueBrighteningFromCursor(final int newLight, final EnumSkyBlock lightType) {
-        this.enqueueBrightening(this.cursorBlockPos, this.cursorData, newLight, this.cursorChunk, lightType);
+    private void enqueueBrighteningFromCursor(int lightValue, EnumSkyBlock lightType) {
+        enqueueBrightening(cursorBlockPos, cursorData, lightValue, cursorChunk, lightType);
     }
 
-    /**
-     * Enqueues the pos for brightening and sets its light value to <code>newLight</code>
-     */
-    private void enqueueBrightening(BlockPos blockPos, long posLong, int newLight, LumiChunk chunk, EnumSkyBlock lightType) {
-        this.darkeningQueues[newLight].add(posLong);
+    private void enqueueBrightening(BlockPos blockPos,
+                                    long posLong,
+                                    int lightValue,
+                                    LumiChunk chunk,
+                                    EnumSkyBlock lightType) {
+        darkeningQueues[lightValue].add(posLong);
 
         val posY = blockPos.getY();
         val subChunkPosX = blockPos.getX() & 15;
         val subChunkPosZ = blockPos.getZ() & 15;
-        chunk.lumi$setLightValue(lightType, subChunkPosX, posY, subChunkPosZ, newLight);
+        chunk.lumi$setLightValue(lightType, subChunkPosX, posY, subChunkPosZ, lightValue);
     }
 
-    /**
-     * Enqueues the pos for darkening and sets its light value to 0
-     */
-    private void enqueueDarkening(BlockPos blockPos, long posLong, int oldLight, LumiChunk chunk, EnumSkyBlock lightType) {
-        this.brighteningQueues[oldLight].add(posLong);
+    private void enqueueDarkening(BlockPos blockPos,
+                                  long posLong,
+                                  int oldLightValue,
+                                  LumiChunk chunk,
+                                  EnumSkyBlock lightType) {
+        brighteningQueues[oldLightValue].add(posLong);
 
         val posY = blockPos.getY();
         val subChunkPosX = blockPos.getX() & 15;
         val subChunkPosZ = blockPos.getZ() & 15;
-        chunk.lumi$setLightValue(lightType, subChunkPosX, posY, subChunkPosZ, 0);
+        chunk.lumi$setLightValue(lightType, subChunkPosX, posY, subChunkPosZ, MIN_LIGHT_VALUE);
     }
 
     private static BlockPos.MutableBlockPos blockPosFromPosLong(BlockPos.MutableBlockPos blockPos, long longPos) {
