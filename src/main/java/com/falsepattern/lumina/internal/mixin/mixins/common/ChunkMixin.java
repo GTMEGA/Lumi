@@ -21,7 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
-import com.falsepattern.lumina.internal.engine.LightingHooks;
+import com.falsepattern.lumina.internal.lighting.LightingHooks;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import lombok.val;
 import lombok.var;

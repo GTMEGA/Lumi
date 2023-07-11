@@ -19,33 +19,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.engine;
+package com.falsepattern.lumina.api.lighting;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
-
-@Getter
-@Accessors(fluent = true, chain = false)
-@RequiredArgsConstructor
-public enum AxisDirection {
-    POSITIVE(1),
-    NEGATIVE(-1);
-
-    @Getter
-    private final int sign;
-
-    public AxisDirection opposite() {
-        return opposite(this);
-    }
-
-    private static AxisDirection opposite(AxisDirection axisDirection) {
-        switch (axisDirection) {
-            case POSITIVE:
-                return NEGATIVE;
-            default:
-            case NEGATIVE:
-                return POSITIVE;
-        }
-    }
+public interface LumiLightingEngineProvider {
+    LumiLightingEngine lightingEngine();
 }

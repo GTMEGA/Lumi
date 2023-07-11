@@ -23,7 +23,7 @@ package com.falsepattern.lumina.internal.world;
 
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldProvider;
-import com.falsepattern.lumina.internal.engine.PhosphorLightingEngine;
+import com.falsepattern.lumina.internal.lighting.PhosphorLightingEngine;
 import lombok.val;
 import net.minecraft.world.World;
 

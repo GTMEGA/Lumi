@@ -19,8 +19,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api.engine;
+package com.falsepattern.lumina.api.lighting;
 
-public interface LumiLightingEngineProvider {
-    LumiLightingEngine lightingEngine();
+import net.minecraft.world.EnumSkyBlock;
+
+public interface LumiLightingEngine {
+    void scheduleLightUpdate(EnumSkyBlock lightType, int posX, int posY, int posZ);
+
+    void processLightUpdate();
+
+    void processLightUpdate(EnumSkyBlock lightType);
 }

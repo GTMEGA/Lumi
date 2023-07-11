@@ -19,14 +19,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.engine;
+package com.falsepattern.lumina.internal.lighting;
 
 import com.falsepattern.lib.compat.BlockPos;
 import com.falsepattern.lib.internal.Share;
 import com.falsepattern.lib.util.MathUtil;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
-import com.falsepattern.lumina.api.engine.LumiLightingEngine;
+import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.internal.collection.PooledLongQueue;
 import cpw.mods.fml.relauncher.Side;
@@ -43,7 +43,7 @@ import net.minecraft.world.EnumSkyBlock;
 
 import java.util.concurrent.locks.ReentrantLock;
 
-import static com.falsepattern.lumina.internal.engine.LightingHooks.getLoadedChunk;
+import static com.falsepattern.lumina.internal.lighting.LightingHooks.getLoadedChunk;
 
 
 public final class PhosphorLightingEngine implements LumiLightingEngine {

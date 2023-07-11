@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.engine;
+package com.falsepattern.lumina.internal.lighting;
 
 import com.falsepattern.lib.compat.BlockPos;
 import com.falsepattern.lib.internal.Share;
@@ -783,19 +783,5 @@ public final class LightingHooks {
 
     public enum BoundaryFacing {
         IN, OUT;
-
-        public BoundaryFacing opposite() {
-            return opposite(this);
-        }
-
-        private static BoundaryFacing opposite(BoundaryFacing boundaryFacing) {
-            switch (boundaryFacing) {
-                case IN:
-                    return OUT;
-                default:
-                case OUT:
-                    return IN;
-            }
-        }
     }
 }

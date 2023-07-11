@@ -24,7 +24,7 @@ package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
-import com.falsepattern.lumina.api.engine.LumiLightingEngine;
+import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import lombok.val;
 import net.minecraft.block.Block;
@@ -40,7 +40,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static com.falsepattern.lumina.internal.engine.LightingHooks.FLAG_COUNT;
+import static com.falsepattern.lumina.internal.lighting.LightingHooks.FLAG_COUNT;
 
 @Mixin(Chunk.class)
 public abstract class LumiChunkImplMixin implements LumiChunk {

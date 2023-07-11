@@ -24,7 +24,7 @@ package com.falsepattern.lumina.internal.world;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.world.LumiWorld;
 
-import static com.falsepattern.lumina.internal.engine.LightingHooks.getLoadedChunk;
+import static com.falsepattern.lumina.internal.lighting.LightingHooks.getLoadedChunk;
 
 public class WorldChunkSlice {
     private static final int DIAMETER = 5;

@@ -21,7 +21,7 @@
 
 package com.falsepattern.lumina.api.chunk;
 
-import com.falsepattern.lumina.api.engine.LumiLightingEngine;
+import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import net.minecraft.block.Block;
 import net.minecraft.world.EnumSkyBlock;
