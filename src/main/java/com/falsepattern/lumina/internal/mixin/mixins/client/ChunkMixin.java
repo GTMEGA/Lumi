@@ -24,12 +24,17 @@ package com.falsepattern.lumina.internal.mixin.mixins.client;
 import com.falsepattern.lumina.internal.lighting.LightingHooks;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
+import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(Chunk.class)
 public abstract class ChunkMixin {
+    @Shadow
+    public World worldObj;
+
     /**
      * @author FalsePattern
      * @reason Fix
@@ -37,7 +42,7 @@ public abstract class ChunkMixin {
     @Overwrite
     @SideOnly(Side.CLIENT)
     public void generateHeightMap() {
-        LightingHooks.generateHeightMap(thiz());
+        LightingHooks.generateHeightMap(worldObj, thiz());
     }
 
     private Chunk thiz() {

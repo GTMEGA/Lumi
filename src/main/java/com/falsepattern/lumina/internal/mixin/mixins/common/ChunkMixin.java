@@ -63,7 +63,7 @@ public abstract class ChunkMixin {
             at = @At("RETURN"),
             require = 1)
     private void scheduleRelightOnLoad(CallbackInfo ci) {
-        LightingHooks.scheduleRelightChecksForChunkBoundaries(thiz());
+        LightingHooks.scheduleRelightChecksForChunkBoundaries(worldObj, thiz());
     }
 
     @Redirect(method = "setLightValue",
@@ -94,7 +94,7 @@ public abstract class ChunkMixin {
      */
     @Overwrite
     public void generateSkylightMap() {
-        LightingHooks.generateSkylightMap(thiz());
+        LightingHooks.generateSkylightMap(worldObj, thiz());
     }
 
     /**
@@ -103,7 +103,7 @@ public abstract class ChunkMixin {
      */
     @Overwrite
     public int getSavedLightValue(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ) {
-        return LightingHooks.getLightValue(thiz(), lightType, subChunkPosX, posY, subChunkPosZ);
+        return LightingHooks.getLightValue(worldObj, thiz(), lightType, subChunkPosX, posY, subChunkPosZ);
     }
 
     /**
@@ -113,7 +113,7 @@ public abstract class ChunkMixin {
     @Overwrite
     public void func_150809_p() {
         isTerrainPopulated = true;
-        isLightPopulated = LightingHooks.doesChunkHaveLighting(thiz());
+        isLightPopulated = LightingHooks.doesChunkHaveLighting(worldObj, thiz());
     }
 
     /**
@@ -122,21 +122,21 @@ public abstract class ChunkMixin {
      */
     @Overwrite
     private void recheckGaps(boolean onlyOne) {
-        LightingHooks.recheckLightingGaps(thiz(), onlyOne);
+        LightingHooks.recheckLightingGaps(worldObj, thiz(), onlyOne);
     }
 
     @Redirect(method = "func_150807_a(IIILnet/minecraft/block/Block;I)Z",
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;relightBlock(III)V"),
               require = 2)
-    private void skipBlockRelight(Chunk thiz, int posX, int posY, int posZ) {
+    private void skipBlockRelight(Chunk chunk, int posX, int posY, int posZ) {
     }
 
     @Redirect(method = "func_150807_a",
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;generateSkylightMap()V"),
               require = 1)
-    private void skipSkyLightGeneration(Chunk thiz) {
+    private void skipSkyLightGeneration(Chunk chunk) {
     }
 
     @Redirect(method = "func_150807_a",
@@ -184,7 +184,7 @@ public abstract class ChunkMixin {
                                                 int l1,
                                                 int i2,
                                                 int k2) {
-        LightingHooks.relightBlockIfCanSeeSky(thiz(), subChunkPosX, posY, subChunkPosZ);
+        LightingHooks.relightBlockIfCanSeeSky(worldObj, thiz(), subChunkPosX, posY, subChunkPosZ);
     }
 
     @Redirect(method = "func_150807_a",
@@ -203,7 +203,7 @@ public abstract class ChunkMixin {
      */
     @Overwrite
     public void enqueueRelightChecks() {
-        LightingHooks.randomLightUpdates(thiz());
+        LightingHooks.randomLightUpdates(worldObj, thiz());
     }
 
     private Chunk thiz() {

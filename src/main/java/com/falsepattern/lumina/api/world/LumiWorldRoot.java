@@ -29,6 +29,7 @@ import net.minecraft.world.chunk.IChunkProvider;
 public interface LumiWorldRoot {
     World lumi$base();
 
+    @Deprecated
     Profiler lumi$profiler();
 
     boolean lumi$isClientSide();

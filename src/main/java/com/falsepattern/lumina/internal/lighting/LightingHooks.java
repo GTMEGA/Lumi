@@ -34,9 +34,7 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 @UtilityClass
 public final class LightingHooks {
-    public static void generateHeightMap(Chunk baseChunk) {
-        val baseWorld = baseChunk.worldObj;
-
+    public static void generateHeightMap(World baseWorld, Chunk baseChunk) {
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
@@ -45,9 +43,7 @@ public final class LightingHooks {
         }
     }
 
-    public static void generateSkylightMap(Chunk baseChunk) {
-        val baseWorld = baseChunk.worldObj;
-
+    public static void generateSkylightMap(World baseWorld, Chunk baseChunk) {
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
@@ -56,13 +52,12 @@ public final class LightingHooks {
         }
     }
 
-    public static int getLightValue(Chunk baseChunk,
+    public static int getLightValue(World baseWorld,
+                                    Chunk baseChunk,
                                     EnumSkyBlock lightType,
                                     int subChunkPosX,
                                     int posY,
                                     int subChunkPosZ) {
-        val baseWorld = baseChunk.worldObj;
-
         var lightValue = 0;
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
@@ -98,9 +93,7 @@ public final class LightingHooks {
         }
     }
 
-    public static void recheckLightingGaps(Chunk baseChunk, boolean onlyOne) {
-        val baseWorld = baseChunk.worldObj;
-
+    public static void recheckLightingGaps(World baseWorld, Chunk baseChunk, boolean onlyOne) {
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
@@ -131,9 +124,11 @@ public final class LightingHooks {
         }
     }
 
-    public static void relightBlockIfCanSeeSky(Chunk baseChunk, int subChunkPosX, int posY, int subChunkPosZ) {
-        val baseWorld = baseChunk.worldObj;
-
+    public static void relightBlockIfCanSeeSky(World baseWorld,
+                                               Chunk baseChunk,
+                                               int subChunkPosX,
+                                               int posY,
+                                               int subChunkPosZ) {
         val index = subChunkPosX + (subChunkPosZ * 16);
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
@@ -146,9 +141,7 @@ public final class LightingHooks {
         }
     }
 
-    public static void scheduleRelightChecksForChunkBoundaries(Chunk baseChunk) {
-        val baseWorld = baseChunk.worldObj;
-
+    public static void scheduleRelightChecksForChunkBoundaries(World baseWorld, Chunk baseChunk) {
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
@@ -166,9 +159,7 @@ public final class LightingHooks {
         return chunk.lumi$getBrightnessAndLightValueMax(lightType, subChunkPosX, posY, subChunkPosZ);
     }
 
-    public static boolean doesChunkHaveLighting(Chunk baseChunk) {
-        val baseWorld = baseChunk.worldObj;
-
+    public static boolean doesChunkHaveLighting(World baseWorld, Chunk baseChunk) {
         var chunkHasLighting = true;
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
@@ -179,11 +170,9 @@ public final class LightingHooks {
         return chunkHasLighting;
     }
 
-    public static void randomLightUpdates(Chunk baseChunk) {
+    public static void randomLightUpdates(World baseWorld, Chunk baseChunk) {
         if (baseChunk.queuedLightChecks >= (16 * 16 * 16))
             return;
-
-        val baseWorld = baseChunk.worldObj;
 
         val chunkPosX = baseChunk.xPosition;
         val chunkPosZ = baseChunk.zPosition;
