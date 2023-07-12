@@ -22,7 +22,7 @@
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
-import com.falsepattern.lumina.internal.lighting.LightingHooks;
+import com.falsepattern.lumina.internal.lighting.LightingHooksOld;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import lombok.val;
 import net.minecraft.block.Block;
@@ -80,7 +80,7 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
             for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
                 val world = LumiWorldManager.getWorld(worldObj, i);
                 val lChunk = world.lumi$wrap((Chunk) (Object) this);
-                LightingHooks.initSkyLightForSubChunk(world, lChunk, lChunk.lumi$subChunk(chunkPosY));
+                LightingHooksOld.initSkyLightForSubChunk(world, lChunk, lChunk.lumi$subChunk(chunkPosY));
             }
         }
 

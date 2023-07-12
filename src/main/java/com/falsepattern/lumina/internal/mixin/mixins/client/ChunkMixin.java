@@ -21,7 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.client;
 
-import com.falsepattern.lumina.internal.lighting.LightingHooks;
+import com.falsepattern.lumina.internal.lighting.LightingHooksOld;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -49,7 +49,7 @@ public abstract class ChunkMixin {
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(worldObj, i);
             val chunk = world.lumi$wrap(thiz());
-            LightingHooks.generateHeightMap(chunk);
+            LightingHooksOld.generateHeightMap(chunk);
         }
     }
 

@@ -43,7 +43,7 @@ import net.minecraft.world.EnumSkyBlock;
 
 import java.util.concurrent.locks.ReentrantLock;
 
-import static com.falsepattern.lumina.internal.lighting.LightingHooks.getLoadedChunk;
+import static com.falsepattern.lumina.internal.lighting.LightingHooksOld.getLoadedChunk;
 
 
 public final class PhosphorLightingEngine implements LumiLightingEngine {
@@ -542,7 +542,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         if (lightType == EnumSkyBlock.Sky) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
-            if (LightingHooks.lumiCanBlockSeeTheSky(cursorChunk, subChunkPosX, posY, subChunkPosZ)) {
+            if (LightingHooksOld.lumiCanBlockSeeTheSky(cursorChunk, subChunkPosX, posY, subChunkPosZ)) {
                 return EnumSkyBlock.Sky.defaultLightValue;
             } else {
                 return 0;

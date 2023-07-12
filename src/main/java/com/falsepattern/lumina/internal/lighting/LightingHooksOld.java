@@ -43,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Arrays;
 
 @UtilityClass
-public final class LightingHooks {
+public final class LightingHooksOld {
     /**
      * 2 light types * 4 directions * 2 halves * (inwards + outwards)
      */

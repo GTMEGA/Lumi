@@ -23,7 +23,7 @@ package com.falsepattern.lumina.internal.saving;
 
 import com.falsepattern.chunk.api.ChunkDataManager;
 import com.falsepattern.lumina.internal.Tags;
-import com.falsepattern.lumina.internal.lighting.LightingHooks;
+import com.falsepattern.lumina.internal.lighting.LightingHooksOld;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import lombok.val;
 import net.minecraft.nbt.NBTTagCompound;
@@ -39,7 +39,7 @@ public class LuminaDataManager implements ChunkDataManager.ChunkNBTDataManager, 
             val lWorld = LumiWorldManager.getWorld(chunk.worldObj, i);
             val lChunk = lWorld.lumi$wrap(chunk);
             val subTag = new NBTTagCompound();
-            LightingHooks.writeNeighborLightChecksToNBT(lChunk, subTag);
+            LightingHooksOld.writeNeighborLightChecksToNBT(lChunk, subTag);
 
             subTag.setBoolean("LightPopulated", lChunk.lumi$hasLightInitialized());
             subTag.setIntArray("HeightMap", lChunk.lumi$skyLightHeights());
@@ -55,17 +55,17 @@ public class LuminaDataManager implements ChunkDataManager.ChunkNBTDataManager, 
             val lWorld = LumiWorldManager.getWorld(chunk.worldObj, i);
             val lChunk = lWorld.lumi$wrap(chunk);
             val subTag = nbt.getCompoundTag(lWorld.lumi$worldID());
-            LightingHooks.readNeighborLightChecksFromNBT(lChunk, subTag);
+            LightingHooksOld.readNeighborLightChecksFromNBT(lChunk, subTag);
             boolean lightPop = !forceRelight && subTag.getBoolean("LightPopulated");
             lChunk.lumi$hasLightInitialized(lightPop);
             if (!lightPop) {
-                LightingHooks.generateSkylightMap(lChunk);
+                LightingHooksOld.generateSkylightMap(lChunk);
             } else {
                 val heightMap = subTag.getIntArray("HeightMap");
                 if (heightMap != null && heightMap.length == 256) {
                     System.arraycopy(heightMap, 0, lChunk.lumi$skyLightHeights(), 0, 256);
                 } else {
-                    LightingHooks.generateSkylightMap(lChunk);
+                    LightingHooksOld.generateSkylightMap(lChunk);
                 }
             }
         }
