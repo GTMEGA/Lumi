@@ -39,10 +39,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.Arrays;
+
 import static com.falsepattern.lumina.internal.lighting.LightingHooksOld.FLAG_COUNT;
 
 @Mixin(Chunk.class)
 public abstract class LumiChunkImplMixin implements LumiChunk {
+    private static final int DEFAULT_PRECIPITATION_HEIGHT = -999;
+
     @Final
     @Shadow
     public int xPosition;
@@ -61,10 +65,12 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     @Shadow
     public int heightMapMinimum;
 
+    @Shadow
+    public int[] precipitationHeightMap;
     private LumiChunkRoot root;
     private LumiWorld world;
     private short[] neighborLightCheckFlags;
-    private boolean isLightInitialized;
+    private boolean lightingInitialized;
 
     @Inject(method = "<init>*",
             at = @At("RETURN"),
@@ -73,7 +79,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
         this.root = (LumiChunkRoot) this;
         this.world = (LumiWorld) worldObj;
         this.neighborLightCheckFlags = new short[FLAG_COUNT];
-        this.isLightInitialized = false;
+        this.lightingInitialized = false;
     }
 
     @Override
@@ -204,7 +210,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
 
         val subChunk = lumi$subChunk(chunkPosY);
         if (subChunk == null) {
-            if (lumi$isBlockOnTop(subChunkPosX, posY, subChunkPosZ))
+            if (lumi$canBlockSeeSky(subChunkPosX, posY, subChunkPosZ))
                 return EnumSkyBlock.Sky.defaultLightValue;
             return 0;
         }
@@ -242,20 +248,27 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public boolean lumi$isBlockOnTop(int subChunkPosX, int posY, int subChunkPosZ) {
-        val index = subChunkPosX + (subChunkPosZ * 16);
+    public boolean lumi$canBlockSeeSky(int subChunkPosX, int posY, int subChunkPosZ) {
+        val index = (subChunkPosX + (subChunkPosZ * 16)) % 255;
         val maxPosY = heightMap[index];
         return maxPosY <= posY;
     }
 
     @Override
-    public int[] lumi$skyLightHeights() {
-        return heightMap;
+    public void lumi$skyLightHeight(int subChunkPosX, int subChunkPosZ, int skyLightHeight) {
+        val index = (subChunkPosX + (subChunkPosZ * 16)) % 255;
+        heightMap[index] = skyLightHeight;
+    }
+
+    @Override
+    public int lumi$skyLightHeight(int subChunkPosX, int subChunkPosZ) {
+        val index = (subChunkPosX + (subChunkPosZ * 16)) % 255;
+        return heightMap[index];
     }
 
     @Override
     public void lumi$minSkyLightHeight(int minSkyLightHeight) {
-        heightMapMinimum = minSkyLightHeight;
+        this.heightMapMinimum = minSkyLightHeight;
     }
 
     @Override
@@ -264,8 +277,43 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public boolean[] lumi$outdatedSkyLightColumns() {
-        return updateSkylightColumns;
+    public void lumi$resetSkyLightHeightMap() {
+        Arrays.fill(heightMap, Integer.MAX_VALUE);
+        heightMapMinimum = Integer.MAX_VALUE;
+    }
+
+    @Override
+    public void lumi$precipitationHeight(int subChunkPosX, int subChunkPosZ, int precipitationHeight) {
+        val index = (subChunkPosX + (subChunkPosZ * 16)) % 255;
+        precipitationHeightMap[index] = precipitationHeight;
+    }
+
+    @Override
+    public int lumi$precipitationHeight(int subChunkPosX, int subChunkPosZ) {
+        val index = (subChunkPosX + (subChunkPosZ * 16)) % 255;
+        return precipitationHeightMap[index];
+    }
+
+    @Override
+    public void lumi$resetPrecipitationHeightMap() {
+        Arrays.fill(precipitationHeightMap, DEFAULT_PRECIPITATION_HEIGHT);
+    }
+
+    @Override
+    public void lumi$isHeightOutdated(int subChunkPosX, int subChunkPosZ, boolean height) {
+        val index = (subChunkPosX + (subChunkPosZ * 16)) % 255;
+        updateSkylightColumns[index] = height;
+    }
+
+    @Override
+    public boolean lumi$isHeightOutdated(int subChunkPosX, int subChunkPosZ) {
+        val index = (subChunkPosX + (subChunkPosZ * 16)) % 255;
+        return updateSkylightColumns[index];
+    }
+
+    @Override
+    public void lumi$resetOutdatedHeightFlags() {
+        Arrays.fill(updateSkylightColumns, true);
     }
 
     @Override
@@ -274,12 +322,12 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public void lumi$hasLightInitialized(boolean hasLightInitialized) {
-        this.isLightInitialized = hasLightInitialized;
+    public void lumi$lightingInitialized(boolean lightingInitialized) {
+        this.lightingInitialized = lightingInitialized;
     }
 
     @Override
-    public boolean lumi$hasLightInitialized() {
-        return isLightInitialized;
+    public boolean lumi$lightingInitialized() {
+        return lightingInitialized;
     }
 }

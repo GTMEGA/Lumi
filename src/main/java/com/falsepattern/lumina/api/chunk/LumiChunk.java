@@ -63,21 +63,33 @@ public interface LumiChunk {
 
     int lumi$getBlockOpacity(Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ);
 
-    boolean lumi$isBlockOnTop(int subChunkPosX, int posY, int subChunkPosZ);
+    boolean lumi$canBlockSeeSky(int subChunkPosX, int posY, int subChunkPosZ);
 
-    // TODO: Add skyLightHeight setter/getter
-    int[] lumi$skyLightHeights();
+    void lumi$skyLightHeight(int subChunkPosX, int subChunkPosZ, int skyLightHeight);
+
+    int lumi$skyLightHeight(int subChunkPosX, int subChunkPosZ);
 
     void lumi$minSkyLightHeight(int minSkyLightPosY);
 
     int lumi$minSkyLightHeight();
 
-    // TODO: Add outdatedSkylightColumn setter/getter
-    boolean[] lumi$outdatedSkyLightColumns();
+    void lumi$resetSkyLightHeightMap();
+
+    void lumi$precipitationHeight(int subChunkPosX, int subChunkPosZ, int precipitationHeight);
+
+    int lumi$precipitationHeight(int subChunkPosX, int subChunkPosZ);
+
+    void lumi$resetPrecipitationHeightMap();
+
+    void lumi$isHeightOutdated(int subChunkPosX, int subChunkPosZ, boolean isOutdated);
+
+    boolean lumi$isHeightOutdated(int subChunkPosX, int subChunkPosZ);
+
+    void lumi$resetOutdatedHeightFlags();
 
     short[] lumi$neighborLightCheckFlags();
 
-    void lumi$hasLightInitialized(boolean hasLightInitialized);
+    void lumi$lightingInitialized(boolean lightingInitialized);
 
-    boolean lumi$hasLightInitialized();
+    boolean lumi$lightingInitialized();
 }

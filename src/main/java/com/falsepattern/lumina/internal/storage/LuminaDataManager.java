@@ -36,49 +36,69 @@ import java.nio.ByteBuffer;
 @NoArgsConstructor
 public final class LuminaDataManager implements ChunkDataManager.ChunkNBTDataManager,
                                                 ChunkDataManager.PacketDataManager {
+    public static final String VERSION_NBT_TAG_NAME = Tags.MODID + "_version";
+    public static final String LIGHT_INITIALIZED_NBT_TAG_NAME = "lighting_initialized";
+    public static final String SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME = "sky_light_height_map";
+
     @Override
     public void writeChunkToNBT(Chunk baseChunk, NBTTagCompound output) {
-        output.setString(Tags.MODID + "_version", Tags.VERSION);
+        output.setString(VERSION_NBT_TAG_NAME, Tags.VERSION);
+
+        val skyLightHeightMap = new int[256];
         for (var i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
             val world = LumiWorldManager.getWorld(baseChunk.worldObj, i);
             val chunk = world.lumi$wrap(baseChunk);
             val subTag = new NBTTagCompound();
             LightingHooksOld.writeNeighborLightChecksToNBT(chunk, subTag);
 
-            subTag.setBoolean("LightPopulated", chunk.lumi$hasLightInitialized());
-            subTag.setIntArray("HeightMap", chunk.lumi$skyLightHeights());
+            subTag.setBoolean(LIGHT_INITIALIZED_NBT_TAG_NAME, chunk.lumi$lightingInitialized());
+            for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
+                for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
+                    val index = (subChunkPosX + (subChunkPosZ * 16)) % 255;
+                    val skyLightHeight = chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ);
+                    skyLightHeightMap[index] = skyLightHeight;
+                }
+            }
+            subTag.setIntArray(SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME, skyLightHeightMap);
             output.setTag(world.lumi$worldID(), subTag);
         }
     }
 
     @Override
     public void readChunkFromNBT(Chunk baseChunk, NBTTagCompound input) {
-        val version = input.getString(Tags.MODID + "_version");
+        val version = input.getString(VERSION_NBT_TAG_NAME);
         val forceRelight = !Tags.VERSION.equals(version);
+
         for (var i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
             val world = LumiWorldManager.getWorld(baseChunk.worldObj, i);
             val chunk = world.lumi$wrap(baseChunk);
             val subTag = input.getCompoundTag(world.lumi$worldID());
             LightingHooksOld.readNeighborLightChecksFromNBT(chunk, subTag);
 
-            skyLightMapValidCheck:
+            skyLightHeightMapValidCheck:
             {
                 if (forceRelight)
-                    break skyLightMapValidCheck;
-                if (!subTag.getBoolean("LightPopulated"))
-                    break skyLightMapValidCheck;
+                    break skyLightHeightMapValidCheck;
+                if (!subTag.getBoolean(LIGHT_INITIALIZED_NBT_TAG_NAME))
+                    break skyLightHeightMapValidCheck;
 
-                val heightMap = subTag.getIntArray("HeightMap");
-                if (heightMap == null || heightMap.length != 256)
-                    break skyLightMapValidCheck;
+                val skyLightHeights = subTag.getIntArray(SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME);
+                if (skyLightHeights == null || skyLightHeights.length != 256)
+                    break skyLightHeightMapValidCheck;
 
-                System.arraycopy(heightMap, 0, chunk.lumi$skyLightHeights(), 0, 256);
-                chunk.lumi$hasLightInitialized(true);
+                for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
+                    for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
+                        val index = (subChunkPosX + (subChunkPosZ * 16)) % 255;
+                        val skyLightHeight = skyLightHeights[index];
+                        chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ, skyLightHeight);
+                    }
+                }
+                chunk.lumi$lightingInitialized(true);
                 continue;
             }
 
-            chunk.lumi$hasLightInitialized(false);
-            LightingHooksOld.generateSkylightMap(chunk);
+            chunk.lumi$lightingInitialized(false);
+            LightingHooksOld.generateSkyLightHeightMap(chunk);
         }
     }
 
@@ -107,8 +127,8 @@ public final class LuminaDataManager implements ChunkDataManager.ChunkNBTDataMan
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
-            val subChunk = world.lumi$wrap(baseChunk);
-            subChunk.lumi$hasLightInitialized(true);
+            val chunk = world.lumi$wrap(baseChunk);
+            chunk.lumi$lightingInitialized(true);
         }
     }
 }

@@ -39,7 +39,7 @@ public final class LightingHooks {
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
             val chunk = world.lumi$wrap(baseChunk);
-            LightingHooksOld.generateHeightMap(chunk);
+            LightingHooksOld.generateClientSkyLightHeightMap(chunk);
         }
     }
 
@@ -48,7 +48,7 @@ public final class LightingHooks {
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
             val chunk = world.lumi$wrap(baseChunk);
-            LightingHooksOld.generateSkylightMap(chunk);
+            LightingHooksOld.generateSkyLightHeightMap(chunk);
         }
     }
 
@@ -127,17 +127,15 @@ public final class LightingHooks {
     public static void relightBlockIfCanSeeSky(World baseWorld,
                                                Chunk baseChunk,
                                                int subChunkPosX,
-                                               int posY,
+                                               int basePosY,
                                                int subChunkPosZ) {
-        val index = subChunkPosX + (subChunkPosZ * 16);
+        val posY = basePosY + 1;
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
             val chunk = world.lumi$wrap(baseChunk);
-
-            val maxPosY = chunk.lumi$skyLightHeights()[index];
-            if (posY >= maxPosY - 1)
-                LightingHooksOld.relightBlock(chunk, subChunkPosX, posY + 1, subChunkPosZ);
+            if (chunk.lumi$canBlockSeeSky(subChunkPosX, posY, subChunkPosZ))
+                LightingHooksOld.relightBlock(chunk, subChunkPosX, posY, subChunkPosZ);
         }
     }
 

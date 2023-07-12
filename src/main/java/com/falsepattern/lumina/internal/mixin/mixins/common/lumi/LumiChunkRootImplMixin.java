@@ -37,8 +37,6 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     @Shadow
     private ExtendedBlockStorage[] storageArrays;
     @Shadow
-    public int[] precipitationHeightMap;
-    @Shadow
     public World worldObj;
     @Shadow
     private boolean isGapLightingUpdated;
@@ -92,7 +90,7 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     }
 
     @Override
-    public int lumi$topPreparedSubChunkPosY() {
+    public int lumi$topPreparedSubChunkBasePosY() {
         return getTopFilledSegment();
     }
 

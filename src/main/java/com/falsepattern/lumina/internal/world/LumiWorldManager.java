@@ -46,8 +46,8 @@ public class LumiWorldManager {
     }
 
     //No bounds checking, because this is an internal method
-    public static LumiWorld getWorld(World world, int i) {
-        return providers[i].lumi$wrap(world);
+    public static LumiWorld getWorld(World world, int index) {
+        return providers[index].lumi$wrap(world);
     }
 
     //Synchronized just in case, only called during init anyway

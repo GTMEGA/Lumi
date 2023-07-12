@@ -35,7 +35,7 @@ public interface LumiChunkRoot {
 
     boolean lumi$isSubChunkPrepared(int chunkPosY);
 
-    int lumi$topPreparedSubChunkPosY();
+    int lumi$topPreparedSubChunkBasePosY();
 
     void lumi$shouldRecheckLightingGaps(boolean shouldRecheckLightingGaps);
 

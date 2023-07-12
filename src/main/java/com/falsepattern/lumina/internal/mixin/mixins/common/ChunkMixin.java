@@ -170,7 +170,7 @@ public abstract class ChunkMixin {
             locals = LocalCapture.CAPTURE_FAILHARD,
             require = 1)
     private void relightBlocksOnBlockMetaChange(int subChunkPosX,
-                                                int posY,
+                                                int basePosY,
                                                 int subChunkPosZ,
                                                 Block block,
                                                 int p_150807_5_,
@@ -184,7 +184,7 @@ public abstract class ChunkMixin {
                                                 int l1,
                                                 int i2,
                                                 int k2) {
-        LightingHooks.relightBlockIfCanSeeSky(worldObj, thiz(), subChunkPosX, posY, subChunkPosZ);
+        LightingHooks.relightBlockIfCanSeeSky(worldObj, thiz(), subChunkPosX, basePosY, subChunkPosZ);
     }
 
     @Redirect(method = "func_150807_a",

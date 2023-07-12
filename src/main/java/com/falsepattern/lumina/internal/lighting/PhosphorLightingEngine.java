@@ -542,7 +542,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         if (lightType == EnumSkyBlock.Sky) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
-            if (LightingHooksOld.lumiCanBlockSeeTheSky(cursorChunk, subChunkPosX, posY, subChunkPosZ)) {
+            if (cursorChunk.lumi$canBlockSeeSky(subChunkPosX, posY, subChunkPosZ)) {
                 return EnumSkyBlock.Sky.defaultLightValue;
             } else {
                 return 0;
