@@ -21,8 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.client;
 
-import com.falsepattern.lumina.api.chunk.LumiChunk;
-import lombok.val;
+import com.falsepattern.lumina.internal.lighting.LightingHooks;
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IBlockAccess;
@@ -42,7 +41,6 @@ public abstract class ChunkCacheMixin implements IBlockAccess {
                                               int subChunkPosX,
                                               int posY,
                                               int subChunkPosZ) {
-        val chunk = (LumiChunk) baseChunk;
-        return chunk.lumi$getBrightnessAndLightValueMax(lightType, subChunkPosX, posY, subChunkPosZ);
+        return LightingHooks.getBrightnessAndLightValueMax(baseChunk, lightType, subChunkPosX, posY, subChunkPosZ);
     }
 }

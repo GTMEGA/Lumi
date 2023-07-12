@@ -22,11 +22,10 @@
 package com.falsepattern.lumina.internal;
 
 import com.falsepattern.chunk.api.ChunkDataRegistry;
-import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.LumiWorldProviderRegistry;
-import com.falsepattern.lumina.internal.saving.LuminaDataManager;
+import com.falsepattern.lumina.api.world.LumiWorld;
+import com.falsepattern.lumina.internal.storage.LuminaDataManager;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
-
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
@@ -43,9 +42,9 @@ public class LUMINA {
     private static final AtomicBoolean hijacked = new AtomicBoolean(false);
     private static final AtomicBoolean hijackLocked = new AtomicBoolean(false);
     public static void hijack() {
-        if (hijackLocked.get()) {
+        if (hijackLocked.get())
             throw new IllegalStateException("Hijacking the default lighting engine is only possible during preInit!");
-        }
+
         hijacked.set(true);
     }
 
@@ -57,18 +56,18 @@ public class LUMINA {
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         hijackLocked.set(true);
-        if (!hijacked.get()) {
-            LumiWorldProviderRegistry.registerWorldProvider(world -> (LumiWorld)world);
-        }
+        if (!hijacked.get())
+            LumiWorldProviderRegistry.registerWorldProvider(world -> (LumiWorld) world);
+
         ChunkDataRegistry.registerDataManager(new LuminaDataManager());
     }
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
         LumiWorldManager.finishInit();
-        if (hijacked.get() && LumiWorldManager.lumiWorldCount() == 0) {
+        if (hijacked.get() && LumiWorldManager.lumiWorldCount() == 0)
             throw new IllegalStateException("Lumina was hijacked but no default world manager was registered!");
-        }
+
         ChunkDataRegistry.disableDataManager("minecraft", "lighting");
     }
 }

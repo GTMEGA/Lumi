@@ -229,15 +229,15 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
 
     @Override
     public int lumi$getBlockBrightness(Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ) {
-        val posX = (xPosition * 16) + subChunkPosX;
-        val posZ = (zPosition * 16) + subChunkPosZ;
+        val posX = (xPosition << 4) + subChunkPosX;
+        val posZ = (zPosition << 4) + subChunkPosZ;
         return world.lumi$getBlockBrightness(block, blockMeta, posX, posY, posZ);
     }
 
     @Override
     public int lumi$getBlockOpacity(Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ) {
-        val posX = (xPosition * 16) + subChunkPosX;
-        val posZ = (zPosition * 16) + subChunkPosZ;
+        val posX = (xPosition << 4) + subChunkPosX;
+        val posZ = (zPosition << 4) + subChunkPosZ;
         return world.lumi$getBlockOpacity(block, blockMeta, posX, posY, posZ);
     }
 

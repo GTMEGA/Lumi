@@ -21,9 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.client;
 
-import com.falsepattern.lumina.internal.world.LumiWorldManager;
-import lombok.val;
-import lombok.var;
+import com.falsepattern.lumina.internal.lighting.LightingHooks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.profiler.Profiler;
@@ -36,8 +34,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Minecraft.class)
 public abstract class MinecraftMixin {
-    @Shadow
     @Final
+    @Shadow
     public Profiler mcProfiler;
 
     @Shadow
@@ -51,11 +49,6 @@ public abstract class MinecraftMixin {
             require = 1)
     private void updateClientLighting(CallbackInfo ci) {
         mcProfiler.endStartSection("lighting");
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(theWorld, i);
-            val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.processLightUpdate();
-        }
+        LightingHooks.processLightUpdates(theWorld);
     }
 }

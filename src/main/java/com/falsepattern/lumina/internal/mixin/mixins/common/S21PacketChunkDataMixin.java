@@ -21,9 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
-import com.falsepattern.lumina.internal.world.LumiWorldManager;
-import lombok.val;
-import lombok.var;
+import com.falsepattern.lumina.internal.lighting.LightingHooks;
 import net.minecraft.network.play.server.S21PacketChunkData;
 import net.minecraft.world.chunk.Chunk;
 import org.spongepowered.asm.mixin.Mixin;
@@ -40,12 +38,6 @@ public abstract class S21PacketChunkDataMixin {
                                                      boolean hasSkyLight,
                                                      int changedSectionFilter,
                                                      CallbackInfoReturnable<S21PacketChunkData.Extracted> cir) {
-        val baseWorld = baseChunk.worldObj;
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(baseWorld, i);
-            val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.processLightUpdate();
-        }
+        LightingHooks.processLightUpdates(baseChunk.worldObj);
     }
 }

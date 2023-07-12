@@ -21,9 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
-import com.falsepattern.lumina.internal.world.LumiWorldManager;
-import lombok.val;
-import lombok.var;
+import com.falsepattern.lumina.internal.lighting.LightingHooks;
 import net.minecraft.util.IProgressUpdate;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.gen.ChunkProviderServer;
@@ -46,12 +44,7 @@ public abstract class ChunkProviderServerMixin {
             at = @At("HEAD"),
             require = 1)
     private void processLightUpdatesOnSave(boolean all, IProgressUpdate update, CallbackInfoReturnable<Boolean> cir) {
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(worldObj, i);
-            val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.processLightUpdate();
-        }
+        LightingHooks.processLightUpdates(worldObj);
     }
 
     @Inject(method = "unloadQueuedChunks",
@@ -63,11 +56,6 @@ public abstract class ChunkProviderServerMixin {
         if (chunksToUnload.isEmpty())
             return;
 
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(worldObj, i);
-            val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.processLightUpdate();
-        }
+        LightingHooks.processLightUpdates(worldObj);
     }
 }

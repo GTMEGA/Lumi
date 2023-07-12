@@ -166,13 +166,13 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public void processLightUpdate() {
-        processLightUpdate(EnumSkyBlock.Sky);
-        processLightUpdate(EnumSkyBlock.Block);
+    public void processLightUpdates() {
+        processLightUpdates(EnumSkyBlock.Sky);
+        processLightUpdates(EnumSkyBlock.Block);
     }
 
     @Override
-    public void processLightUpdate(EnumSkyBlock lightType) {
+    public void processLightUpdates(EnumSkyBlock lightType) {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
@@ -200,7 +200,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
         //make sure there are not too many queued light updates
         if (queue.size() >= MAX_SCHEDULED_COUNT)
-            processLightUpdate(lightType);
+            processLightUpdates(lightType);
     }
 
     @SideOnly(Side.CLIENT)

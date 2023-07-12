@@ -21,9 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
-import com.falsepattern.lumina.internal.world.LumiWorldManager;
-import lombok.val;
-import lombok.var;
+import com.falsepattern.lumina.internal.lighting.LightingHooks;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.AnvilChunkLoader;
@@ -38,11 +36,6 @@ public abstract class AnvilChunkLoaderMixin {
             at = @At("HEAD"),
             require = 1)
     private void processLightUpdatesOnSave(World baseWorld, Chunk baseChunk, CallbackInfo callbackInfo) {
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(baseWorld, i);
-            val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.processLightUpdate();
-        }
+        LightingHooks.processLightUpdates(baseWorld);
     }
 }

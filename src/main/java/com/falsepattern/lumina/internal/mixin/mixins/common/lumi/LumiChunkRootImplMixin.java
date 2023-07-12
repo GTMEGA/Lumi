@@ -22,9 +22,9 @@
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
-import com.falsepattern.lumina.internal.lighting.LightingHooksOld;
-import com.falsepattern.lumina.internal.world.LumiWorldManager;
+import com.falsepattern.lumina.internal.lighting.LightingHooks;
 import lombok.val;
+import lombok.var;
 import net.minecraft.block.Block;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
@@ -73,15 +73,12 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     @Override
     public void lumi$prepareSubChunk(int chunkPosY) {
         chunkPosY &= 15;
-        val subChunk = storageArrays[chunkPosY];
+        var baseSubChunk = storageArrays[chunkPosY];
 
-        if (subChunk == null) {
-            storageArrays[chunkPosY] = new ExtendedBlockStorage(chunkPosY * 16, !worldObj.provider.hasNoSky);
-            for (int i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
-                val world = LumiWorldManager.getWorld(worldObj, i);
-                val lChunk = world.lumi$wrap((Chunk) (Object) this);
-                LightingHooksOld.initSkyLightForSubChunk(world, lChunk, lChunk.lumi$subChunk(chunkPosY));
-            }
+        if (baseSubChunk == null) {
+            baseSubChunk = new ExtendedBlockStorage(chunkPosY * 16, !worldObj.provider.hasNoSky);
+            storageArrays[chunkPosY] = baseSubChunk;
+            LightingHooks.initSkyLightForSubChunk(worldObj, thiz(), baseSubChunk);
         }
 
         lumi$markDirty();
@@ -107,5 +104,9 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     @Override
     public void lumi$markDirty() {
         setChunkModified();
+    }
+
+    private Chunk thiz() {
+        return (Chunk) (Object) this;
     }
 }

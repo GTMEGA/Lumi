@@ -21,6 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
+import com.falsepattern.lumina.internal.lighting.LightingHooks;
 import com.falsepattern.lumina.internal.lighting.LightingHooksOld;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import lombok.val;
@@ -71,24 +72,14 @@ public abstract class ChunkMixin {
                                                int subChunkPosZ,
                                                int subtract,
                                                CallbackInfoReturnable<Integer> cir) {
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(worldObj, i);
-            val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.processLightUpdate();
-        }
+        LightingHooks.processLightUpdates(worldObj);
     }
 
     @Inject(method = "onChunkLoad",
             at = @At("RETURN"),
             require = 1)
     private void scheduleRelightOnLoad(CallbackInfo ci) {
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(worldObj, i);
-            val chunk = world.lumi$wrap(thiz());
-            LightingHooksOld.scheduleRelightChecksForChunkBoundaries(world, chunk);
-        }
+        LightingHooks.scheduleRelightChecksForChunkBoundaries(thiz());
     }
 
     @Redirect(method = "setLightValue",
@@ -101,15 +92,8 @@ public abstract class ChunkMixin {
                                            int posY,
                                            int subChunkPosZ,
                                            int value) {
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(worldObj, i);
-            val chunk = world.lumi$wrap(baseChunk);
-
-            val chunkPosY = posY / 16;
-            val subChunk = chunk.lumi$subChunk(chunkPosY);
-            LightingHooksOld.initSkyLightForSubChunk(world, chunk, subChunk);
-        }
+        val chunkPosY = posY / 16;
+        LightingHooks.initSkyLightForSubChunk(worldObj, thiz(), chunkPosY);
     }
 
     /**
@@ -117,7 +101,7 @@ public abstract class ChunkMixin {
      * @reason Blanking, this is not called anymore
      */
     @Overwrite
-    private void relightBlock(int x, int y, int z) {
+    private void relightBlock(int subChunkPosX, int posY, int subChunkPosZ) {
     }
 
     /**
@@ -126,12 +110,7 @@ public abstract class ChunkMixin {
      */
     @Overwrite
     public void generateSkylightMap() {
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(worldObj, i);
-            val chunk = world.lumi$wrap(thiz());
-            LightingHooksOld.generateSkylightMap(chunk);
-        }
+        LightingHooks.generateSkylightMap(thiz());
     }
 
     /**
@@ -140,19 +119,7 @@ public abstract class ChunkMixin {
      */
     @Overwrite
     public int getSavedLightValue(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ) {
-        var lightValue = 0;
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(worldObj, i);
-            val chunk = world.lumi$wrap(thiz());
-
-            val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.processLightUpdate(lightType);
-
-            val chunkLightValue = chunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);
-            lightValue = Math.max(lightValue, chunkLightValue);
-        }
-        return lightValue;
+        return LightingHooks.getLightValue(thiz(), lightType, subChunkPosX, posY, subChunkPosZ);
     }
 
     /**
@@ -162,14 +129,7 @@ public abstract class ChunkMixin {
     @Overwrite
     public void func_150809_p() {
         isTerrainPopulated = true;
-        isLightPopulated = true;
-
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(worldObj, i);
-            val chunk = world.lumi$wrap(thiz());
-            isLightPopulated &= LightingHooksOld.checkChunkLighting(world, chunk);
-        }
+        isLightPopulated = LightingHooks.doesChunkHaveLighting(thiz());
     }
 
     /**
@@ -178,12 +138,7 @@ public abstract class ChunkMixin {
      */
     @Overwrite
     private void recheckGaps(boolean onlyOne) {
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(worldObj, i);
-            val chunk = world.lumi$wrap(thiz());
-            LightingHooksOld.doRecheckGaps(chunk, onlyOne);
-        }
+        LightingHooks.recheckLightingGaps(thiz(), onlyOne);
     }
 
     @Redirect(method = "func_150807_a(IIILnet/minecraft/block/Block;I)Z",
@@ -263,17 +218,7 @@ public abstract class ChunkMixin {
               require = 1)
     private ExtendedBlockStorage createSubChunkWithInitializedSkyLight(int posY, boolean hasSky) {
         val baseSubChunk = new ExtendedBlockStorage(posY, hasSky);
-
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(worldObj, i);
-            val chunk = world.lumi$wrap(thiz());
-            val subChunk = world.lumi$wrap(baseSubChunk);
-            LightingHooksOld.initSkyLightForSubChunk(world, chunk, subChunk);
-
-            // TODO: Can we put a world reference in it too?
-        }
-
+        LightingHooks.initSkyLightForSubChunk(worldObj, thiz(), baseSubChunk);
         return baseSubChunk;
     }
 

@@ -21,42 +21,26 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.client;
 
-import com.falsepattern.lumina.api.chunk.LumiChunk;
-import lombok.val;
+import com.falsepattern.lumina.internal.lighting.LightingHooks;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(World.class)
 public abstract class WorldMixin implements IBlockAccess {
-    @Inject(method = "finishSetup",
-            at = @At("RETURN"),
-            remap = false,
-            require = 1)
-    private void initClientLumiWorld(CallbackInfo ci) {
-//        LumiWorldManager.initialize(thiz());
-    }
-
     @Redirect(method = {"getSkyBlockTypeBrightness", "getSavedLightValue"},
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;getSavedLightValue(Lnet/minecraft/world/EnumSkyBlock;III)I"),
-              require = 1)
+              require = 2)
     private int getBrightnessAndLightValueMax(Chunk baseChunk,
                                               EnumSkyBlock lightType,
                                               int subChunkPosX,
                                               int posY,
                                               int subChunkPosZ) {
-        val chunk = (LumiChunk) baseChunk;
-        return chunk.lumi$getBrightnessAndLightValueMax(lightType, subChunkPosX, posY, subChunkPosZ);
-    }
-
-    private World thiz() {
-        return (World) (Object) this;
+        return LightingHooks.getBrightnessAndLightValueMax(baseChunk, lightType, subChunkPosX, posY, subChunkPosZ);
     }
 }
