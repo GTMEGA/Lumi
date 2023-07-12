@@ -44,8 +44,7 @@ public abstract class S21PacketChunkDataMixin {
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
-            val chunk = world.lumi$wrap(baseChunk);
-            val lightingEngine = chunk.lumi$lightingEngine();
+            val lightingEngine = world.lumi$lightingEngine();
             lightingEngine.processLightUpdate();
         }
     }

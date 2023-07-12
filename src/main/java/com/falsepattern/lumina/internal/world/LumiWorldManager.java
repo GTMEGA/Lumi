@@ -21,6 +21,7 @@
 
 package com.falsepattern.lumina.internal.world;
 
+import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldProvider;
 import com.falsepattern.lumina.internal.lighting.PhosphorLightingEngine;
@@ -62,13 +63,8 @@ public class LumiWorldManager {
     }
 
     @SuppressWarnings("ForLoopReplaceableByForEach")
-    public static void initialize(World world) {
-        val providers = LumiWorldManager.providers;
-        for (int i = 0, providersLength = providers.length; i < providersLength; i++) {
-            LumiWorldProvider provider = providers[i];
-            val lWorld = provider.lumi$wrap(world);
-            lWorld.lumi$lightingEngine(new PhosphorLightingEngine(lWorld));
-        }
+    public static LumiLightingEngine createLightingEngine(LumiWorld world) {
+        return new PhosphorLightingEngine(world);
     }
 
     public static void startInit() {

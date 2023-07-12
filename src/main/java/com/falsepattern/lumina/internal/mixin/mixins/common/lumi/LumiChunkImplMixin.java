@@ -24,7 +24,6 @@ package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
-import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import lombok.val;
 import net.minecraft.block.Block;
@@ -64,7 +63,6 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
 
     private LumiChunkRoot root;
     private LumiWorld world;
-    private LumiLightingEngine lightingEngine;
     private short[] neighborLightCheckFlags;
     private boolean isLightInitialized;
 
@@ -74,7 +72,6 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     private void lumiChunkInit(CallbackInfo ci) {
         this.root = (LumiChunkRoot) this;
         this.world = (LumiWorld) worldObj;
-        this.lightingEngine = world.lumi$lightingEngine();
         this.neighborLightCheckFlags = new short[FLAG_COUNT];
         this.isLightInitialized = false;
     }
@@ -95,11 +92,6 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
         if (subChunk instanceof LumiSubChunk)
             return (LumiSubChunk) subChunk;
         return null;
-    }
-
-    @Override
-    public LumiLightingEngine lumi$lightingEngine() {
-        return lightingEngine;
     }
 
     @Override

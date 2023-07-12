@@ -22,7 +22,6 @@
 package com.falsepattern.lumina.internal.mixin.mixins.client;
 
 import com.falsepattern.lumina.api.chunk.LumiChunk;
-import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import lombok.val;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IBlockAccess;
@@ -41,7 +40,7 @@ public abstract class WorldMixin implements IBlockAccess {
             remap = false,
             require = 1)
     private void initClientLumiWorld(CallbackInfo ci) {
-        LumiWorldManager.initialize(thiz());
+//        LumiWorldManager.initialize(thiz());
     }
 
     @Redirect(method = {"getSkyBlockTypeBrightness", "getSavedLightValue"},

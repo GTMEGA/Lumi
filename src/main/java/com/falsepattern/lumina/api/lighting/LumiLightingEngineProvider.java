@@ -21,6 +21,8 @@
 
 package com.falsepattern.lumina.api.lighting;
 
+import com.falsepattern.lumina.api.world.LumiWorld;
+
 public interface LumiLightingEngineProvider {
-    LumiLightingEngine lightingEngine();
+    LumiLightingEngine createLightingEngine(LumiWorld world);
 }

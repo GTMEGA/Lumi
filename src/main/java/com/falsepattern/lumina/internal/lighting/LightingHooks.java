@@ -57,6 +57,8 @@ public final class LightingHooks {
                                              int subChunkPosZ,
                                              int startPosY,
                                              int endPosY) {
+        val lightingEngine = world.lumi$lightingEngine();
+
         {
             val minPosY = Math.min(startPosY, endPosY);
             val maxPosY = Math.max(startPosY, endPosY) - 1;
@@ -74,7 +76,6 @@ public final class LightingHooks {
 
         val bottomSubChunk = chunk.lumi$subChunk(minChunkPosY);
         if (bottomSubChunk == null && startPosY > 0) {
-            val lightingEngine = chunk.lumi$lightingEngine();
             val posY = startPosY - 1;
             lightingEngine.scheduleLightUpdate(EnumSkyBlock.Sky, basePosX, posY, basePosZ);
         }
@@ -279,8 +280,9 @@ public final class LightingHooks {
         if (!slice.isLoaded(posX, posZ, 16))
             return;
 
+        val lightingEngine = chunk.lumi$world().lumi$lightingEngine();
         for (var posY = minPosY; posY < maxPosY; posY++)
-            chunk.lumi$lightingEngine().scheduleLightUpdate(EnumSkyBlock.Sky, posX, posY, posZ);
+            lightingEngine.scheduleLightUpdate(EnumSkyBlock.Sky, posX, posY, posZ);
         chunk.lumi$root().lumi$markDirty();
     }
 

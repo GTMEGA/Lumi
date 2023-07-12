@@ -29,17 +29,22 @@ import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import com.falsepattern.lumina.internal.Tags;
 import lombok.val;
 import net.minecraft.block.Block;
-import net.minecraft.world.EnumSkyBlock;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
+import net.minecraft.profiler.Profiler;
+import net.minecraft.world.*;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import net.minecraft.world.storage.ISaveHandler;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import static com.falsepattern.lumina.internal.world.LumiWorldManager.createLightingEngine;
+
+@Unique
 @Mixin(World.class)
 public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     @Shadow
@@ -48,21 +53,31 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     @Shadow
     public abstract Chunk getChunkFromChunkCoords(int p_72964_1_, int p_72964_2_);
 
-    private LumiWorldRoot root;
+    private LumiWorldRoot lumi$root = null;
+    private LumiLightingEngine lumi$lightingEngine = null;
 
-    private LumiLightingEngine lightingEngine;
-
-    @Redirect(method = "<init>*",
-              at = @At(value = "INVOKE_ASSIGN",
-                       target = "Ljava/util/Random;nextInt(I)I"),
-              require = 1)
-    private void lumiWorldInit(World thiz, int ambientTickCountdown) {
-        this.root = (LumiWorldRoot) this;
+    @Inject(method = "<init>(" +
+                     "Lnet/minecraft/world/storage/ISaveHandler;" +
+                     "Ljava/lang/String;" +
+                     "Lnet/minecraft/world/WorldSettings;" +
+                     "Lnet/minecraft/world/WorldProvider;" +
+                     "Lnet/minecraft/profiler/Profiler;" +
+                     ")V",
+            at = @At("TAIL"),
+            require = 1)
+    private void lumiWorldInit(ISaveHandler saveHandler,
+                               String worldName,
+                               WorldSettings worldSettings,
+                               WorldProvider worldProvider,
+                               Profiler profiler,
+                               CallbackInfo ci) {
+        this.lumi$root = (LumiWorldRoot) this;
+        this.lumi$lightingEngine = createLightingEngine(this);
     }
 
     @Override
     public LumiWorldRoot lumi$root() {
-        return root;
+        return lumi$root;
     }
 
     @Override
@@ -98,12 +113,12 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
 
     @Override
     public void lumi$lightingEngine(LumiLightingEngine lightingEngine) {
-        this.lightingEngine = lightingEngine;
+        this.lumi$lightingEngine = lightingEngine;
     }
 
     @Override
     public LumiLightingEngine lumi$lightingEngine() {
-        return lightingEngine;
+        return lumi$lightingEngine;
     }
 
     @Override
@@ -223,13 +238,13 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
 
     @Override
     public int lumi$getBlockBrightness(int posX, int posY, int posZ) {
-        val block = root.lumi$getBlock(posX, posY, posZ);
+        val block = lumi$root.lumi$getBlock(posX, posY, posZ);
         return block.getLightValue(this, posX, posY, posZ);
     }
 
     @Override
     public int lumi$getBlockOpacity(int posX, int posY, int posZ) {
-        val block = root.lumi$getBlock(posX, posY, posZ);
+        val block = lumi$root.lumi$getBlock(posX, posY, posZ);
         return block.getLightOpacity(this, posX, posY, posZ);
     }
 

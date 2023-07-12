@@ -145,7 +145,8 @@ public abstract class ChunkMixin {
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(worldObj, i);
             val chunk = world.lumi$wrap(thiz());
-            val lightingEngine = chunk.lumi$lightingEngine();
+
+            val lightingEngine = world.lumi$lightingEngine();
             lightingEngine.processLightUpdate(lightType);
 
             val chunkLightValue = chunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);

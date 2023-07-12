@@ -21,7 +21,6 @@
 
 package com.falsepattern.lumina.api.chunk;
 
-import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import net.minecraft.block.Block;
 import net.minecraft.world.EnumSkyBlock;
@@ -33,8 +32,6 @@ public interface LumiChunk {
     LumiWorld lumi$world();
 
     @Nullable LumiSubChunk lumi$subChunk(int chunkPosY);
-
-    LumiLightingEngine lumi$lightingEngine();
 
     int lumi$chunkPosX();
 

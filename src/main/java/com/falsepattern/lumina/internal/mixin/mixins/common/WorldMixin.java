@@ -42,7 +42,7 @@ public abstract class WorldMixin implements IBlockAccess {
                        target = "Lnet/minecraft/world/storage/ISaveHandler;loadWorldInfo()Lnet/minecraft/world/storage/WorldInfo;"),
               require = 1)
     private WorldInfo initLumiWorld(ISaveHandler handler) {
-        LumiWorldManager.initialize(thiz());
+//        LumiWorldManager.initialize(thiz());
         return handler.loadWorldInfo();
     }
 
