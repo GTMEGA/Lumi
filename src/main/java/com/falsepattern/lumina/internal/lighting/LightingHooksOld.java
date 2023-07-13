@@ -51,9 +51,9 @@ public final class LightingHooksOld {
     public static final int FLAG_COUNT = 32;
     public static final String NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME = "neighbor_light_checks";
 
-    public static void relightBlock(LumiChunk chunk, int subChunkPosX, int posY, int subChunkPosZ) {
+    public static void updateSkyLightForBlock(LumiChunk chunk, int subChunkPosX, int posY, int subChunkPosZ) {
         var maxPosY = chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ) & 255;
-        var minPosY = Math.max(posY, maxPosY);
+        var minPosY = Math.max(posY & 255, maxPosY);
 
         while (minPosY > 0 && chunk.lumi$getBlockOpacity(subChunkPosX, minPosY - 1, subChunkPosZ) == 0)
             --minPosY;
@@ -73,16 +73,14 @@ public final class LightingHooksOld {
     }
 
     public static void initChunkSkyLight(LumiChunk chunk) {
-        chunk.lumi$resetSkyLightHeightMap();
-
         val rootWorld = chunk.lumi$world().lumi$root();
         val hasSky = rootWorld.lumi$hasSky();
 
         val rootChunk = chunk.lumi$root();
 
-        val basePosX = chunk.lumi$chunkPosX() * 16;
+        val basePosX = chunk.lumi$chunkPosX() << 4;
         val basePosY = rootChunk.lumi$topPreparedSubChunkBasePosY();
-        val basePosZ = chunk.lumi$chunkPosZ() * 16;
+        val basePosZ = chunk.lumi$chunkPosZ() << 4;
 
         val maxPosY = basePosY + 15;
 
@@ -149,8 +147,6 @@ public final class LightingHooksOld {
 
     @SideOnly(Side.CLIENT)
     public static void initClientChunkSkyLight(LumiChunk chunk) {
-        chunk.lumi$resetSkyLightHeightMap();
-
         val rootChunk = chunk.lumi$root();
 
         val basePosY = rootChunk.lumi$topPreparedSubChunkBasePosY();
@@ -158,7 +154,7 @@ public final class LightingHooksOld {
 
         var minSkyLightHeight = Integer.MAX_VALUE;
         for (int subChunkPosX = 0; subChunkPosX < 16; ++subChunkPosX) {
-            int subChunkPosZ = 0;
+            var subChunkPosZ = 0;
 
             while (subChunkPosZ < 16) {
                 var skyLightHeight = maxPosY;
@@ -175,7 +171,7 @@ public final class LightingHooksOld {
                         minSkyLightHeight = Math.min(minSkyLightHeight, skyLightHeight);
                     }
 
-                    ++subChunkPosZ;
+                    subChunkPosZ++;
                     break;
                 }
             }
@@ -190,8 +186,8 @@ public final class LightingHooksOld {
         val baseChunkPosZ = chunk.lumi$chunkPosZ();
 
         for (val direction : Direction.horizontalDirections()) {
-            val xOffset = direction.xOffset();
-            val zOffset = direction.zOffset();
+            val xOffset = direction.xOffset(); // -1, 0, +1
+            val zOffset = direction.zOffset(); // -1, 0, +1
 
             val neighbourChunkPosX = baseChunkPosX + xOffset;
             val neighbourChunkPosZ = baseChunkPosZ + zOffset;
@@ -201,7 +197,7 @@ public final class LightingHooksOld {
                 continue;
 
             for (val lightType : LightType.values()) {
-                for (val directionSign : DirectionSign.values()) {
+                for (val directionSign : DirectionSign.values()) { // -1, +1
                     // Merge flags upon loading of a chunk. This ensures that all flags are always already on the IN boundary below
                     mergeFlags(lightType, chunk, neighbourChunk, direction, directionSign);
                     mergeFlags(lightType, neighbourChunk, chunk, direction.opposite(), directionSign);
@@ -224,7 +220,6 @@ public final class LightingHooksOld {
             }
         }
     }
-
 
     public static boolean checkChunkLighting(LumiWorld world, LumiChunk chunk) {
         if (!chunk.lumi$lightingInitialized())
@@ -252,7 +247,7 @@ public final class LightingHooksOld {
             return;
 
         val maxPosY = subChunk.lumi$root().lumi$posY();
-        val lightValue = LightType.SKY_LIGHT_TYPE.defaultLightValue();
+        val lightValue = SKY_LIGHT_TYPE.defaultLightValue();
         for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
             for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
                 if (chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ) <= maxPosY) {
@@ -494,7 +489,7 @@ public final class LightingHooksOld {
                                                    short subChunkMask,
                                                    Direction direction,
                                                    DirectionSign directionSign) {
-        val flagIndex = getFlagIndex(LightType.SKY_LIGHT_TYPE, direction, directionSign, FacingDirection.OUTPUT);
+        val flagIndex = getFlagIndex(SKY_LIGHT_TYPE, direction, directionSign, FacingDirection.OUTPUT);
         chunk.lumi$neighborLightCheckFlags()[flagIndex] |= subChunkMask;
         chunk.lumi$root().lumi$markDirty();
     }
@@ -633,8 +628,8 @@ public final class LightingHooksOld {
     }
 
     private static void initChunkLighting(LumiWorld world, LumiChunk chunk) {
-        val basePosX = chunk.lumi$chunkPosX() * 16;
-        val basePosZ = chunk.lumi$chunkPosZ() * 16;
+        val basePosX = chunk.lumi$chunkPosX() << 4;
+        val basePosZ = chunk.lumi$chunkPosZ() << 4;
 
         val minPosX = basePosX - 16;
         val minPosY = 0;

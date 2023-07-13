@@ -123,18 +123,18 @@ public final class LightingHooks {
         }
     }
 
-    public static void relightBlockIfCanSeeSky(World baseWorld,
-                                               Chunk baseChunk,
-                                               int subChunkPosX,
-                                               int basePosY,
-                                               int subChunkPosZ) {
+    public static void updateSkyLightForBlock(World baseWorld,
+                                              Chunk baseChunk,
+                                              int subChunkPosX,
+                                              int basePosY,
+                                              int subChunkPosZ) {
         val posY = basePosY + 1;
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
             val chunk = world.lumi$wrap(baseChunk);
             if (chunk.lumi$canBlockSeeSky(subChunkPosX, posY, subChunkPosZ))
-                LightingHooksOld.relightBlock(chunk, subChunkPosX, posY, subChunkPosZ);
+                LightingHooksOld.updateSkyLightForBlock(chunk, subChunkPosX, posY, subChunkPosZ);
         }
     }
 
@@ -186,8 +186,8 @@ public final class LightingHooks {
             maxUpdateIterations = 32;
         }
 
-        val minPosX = chunkPosX * 16;
-        val minPosZ = chunkPosZ * 16;
+        val minPosX = chunkPosX << 4;
+        val minPosZ = chunkPosZ << 4;
 
         val worldCount = LumiWorldManager.lumiWorldCount();
 
@@ -202,7 +202,7 @@ public final class LightingHooks {
             val subChunkPosZ = baseChunk.queuedLightChecks / (16 * 16);
             baseChunk.queuedLightChecks++;
 
-            val minPosY = chunkPosY * 16;
+            val minPosY = chunkPosY << 4;
 
             val posX = minPosX + subChunkPosX;
             val posZ = minPosZ + subChunkPosZ;
@@ -216,14 +216,14 @@ public final class LightingHooks {
                 for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
                     val posY = minPosY + subChunkPosY;
 
-                    cornerCheck:
+                    notCornerCheck:
                     {
                         if (subChunkPosX != 0 && subChunkPosX != 15)
-                            break cornerCheck;
+                            break notCornerCheck;
                         if (subChunkPosY != 0 && subChunkPosY != 15)
-                            break cornerCheck;
+                            break notCornerCheck;
                         if (subChunkPosZ != 0 && subChunkPosZ != 15)
-                            break cornerCheck;
+                            break notCornerCheck;
 
                         // Perform a full lighting update
                         baseWorld.func_147451_t(posX, posY, posZ);

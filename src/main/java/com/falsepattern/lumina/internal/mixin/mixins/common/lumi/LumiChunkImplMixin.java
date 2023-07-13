@@ -165,7 +165,10 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     @Override
     public void lumi$setBlockLightValue(int subChunkPosX, int posY, int subChunkPosZ, int lightValue) {
         val chunkPosY = (posY & 255) / 16;
+
+        subChunkPosX &= 15;
         val subChunkPosY = posY & 15;
+        subChunkPosZ &= 15;
 
         lumi$root.lumi$prepareSubChunk(chunkPosY);
         val subChunk = lumi$subChunk(chunkPosY);
@@ -182,7 +185,10 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
         if (subChunk == null)
             return BLOCK_LIGHT_TYPE.defaultLightValue();
 
+        subChunkPosX &= 15;
         val subChunkPosY = posY & 15;
+        subChunkPosZ &= 15;
+
         return subChunk.lumi$getBlockLightValue(subChunkPosX, subChunkPosY, subChunkPosZ);
     }
 
@@ -192,7 +198,10 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
             return;
 
         val chunkPosY = (posY & 255) / 16;
+
+        subChunkPosX &= 15;
         val subChunkPosY = posY & 15;
+        subChunkPosZ &= 15;
 
         lumi$root.lumi$prepareSubChunk(chunkPosY);
         val subChunk = lumi$subChunk(chunkPosY);
@@ -206,7 +215,10 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
         if (!lumi$world.lumi$root().lumi$hasSky())
             return 0;
 
-        val chunkPosY = (posY & 255) / 16;
+        val chunkPosY = (posY & 255) >> 4;
+
+        subChunkPosX &= 15;
+        subChunkPosZ &= 15;
 
         val subChunk = lumi$subChunk(chunkPosY);
         if (subChunk == null) {
@@ -249,20 +261,26 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
 
     @Override
     public boolean lumi$canBlockSeeSky(int subChunkPosX, int posY, int subChunkPosZ) {
-        val index = (subChunkPosX + (subChunkPosZ * 16)) % 255;
+        subChunkPosX &= 15;
+        subChunkPosZ &= 15;
+        val index = subChunkPosX + (subChunkPosZ << 4);
         val maxPosY = heightMap[index];
         return maxPosY <= posY;
     }
 
     @Override
     public void lumi$skyLightHeight(int subChunkPosX, int subChunkPosZ, int skyLightHeight) {
-        val index = (subChunkPosX + (subChunkPosZ * 16)) % 255;
+        subChunkPosX &= 15;
+        subChunkPosZ &= 15;
+        val index = subChunkPosX + (subChunkPosZ << 4);
         heightMap[index] = skyLightHeight;
     }
 
     @Override
     public int lumi$skyLightHeight(int subChunkPosX, int subChunkPosZ) {
-        val index = (subChunkPosX + (subChunkPosZ * 16)) % 255;
+        subChunkPosX &= 15;
+        subChunkPosZ &= 15;
+        val index = subChunkPosX + (subChunkPosZ << 4);
         return heightMap[index];
     }
 
@@ -283,13 +301,17 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public void lumi$isHeightOutdated(int subChunkPosX, int subChunkPosZ, boolean height) {
-        val index = (subChunkPosX + (subChunkPosZ * 16)) % 255;
-        updateSkylightColumns[index] = height;
+    public void lumi$isHeightOutdated(int subChunkPosX, int subChunkPosZ, boolean isHeightOutdated) {
+        subChunkPosX &= 15;
+        subChunkPosZ &= 15;
+        val index = subChunkPosX + (subChunkPosZ << 4);
+        updateSkylightColumns[index] = isHeightOutdated;
     }
 
     @Override
     public boolean lumi$isHeightOutdated(int subChunkPosX, int subChunkPosZ) {
+        subChunkPosX &= 15;
+        subChunkPosZ &= 15;
         val index = (subChunkPosX + (subChunkPosZ * 16)) % 255;
         return updateSkylightColumns[index];
     }

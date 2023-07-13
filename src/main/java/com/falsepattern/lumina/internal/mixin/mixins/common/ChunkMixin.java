@@ -183,7 +183,7 @@ public abstract class ChunkMixin {
                                                 int l1,
                                                 int i2,
                                                 int k2) {
-        LightingHooks.relightBlockIfCanSeeSky(worldObj, thiz(), subChunkPosX, basePosY, subChunkPosZ);
+        LightingHooks.updateSkyLightForBlock(worldObj, thiz(), subChunkPosX, basePosY, subChunkPosZ);
     }
 
     @Redirect(method = "func_150807_a",

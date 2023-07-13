@@ -42,7 +42,7 @@ public interface LumiLightingEngine {
 
     void scheduleLightUpdate(LightType lightType, int posX, int posY, int posZ);
 
-    void processLightUpdatesForAllTypes();
-
     void processLightUpdatesForType(LightType lightType);
+
+    void processLightUpdatesForAllTypes();
 }
