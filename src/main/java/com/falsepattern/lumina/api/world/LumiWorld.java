@@ -23,9 +23,9 @@ package com.falsepattern.lumina.api.world;
 
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
+import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import net.minecraft.block.Block;
-import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.jetbrains.annotations.Nullable;
@@ -45,15 +45,15 @@ public interface LumiWorld {
 
     LumiLightingEngine lumi$lightingEngine();
 
-    int lumi$getBrightnessAndLightValueMax(EnumSkyBlock lightType, int posX, int posY, int posZ);
+    int lumi$getBrightnessAndLightValueMax(LightType lightType, int posX, int posY, int posZ);
 
     int lumi$getBrightnessAndBlockLightValueMax(int posX, int posY, int posZ);
 
     int lumi$getLightValueMax(int posX, int posY, int posZ);
 
-    void lumi$setLightValue(EnumSkyBlock lightType, int posX, int posY, int posZ, int lightValue);
+    void lumi$setLightValue(LightType lightType, int posX, int posY, int posZ, int lightValue);
 
-    int lumi$getLightValue(EnumSkyBlock lightType, int posX, int posY, int posZ);
+    int lumi$getLightValue(LightType lightType, int posX, int posY, int posZ);
 
     void lumi$setBlockLightValue(int posX, int posY, int posZ, int lightValue);
 

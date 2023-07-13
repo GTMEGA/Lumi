@@ -37,10 +37,10 @@ public abstract class ChunkCacheMixin implements IBlockAccess {
                        target = "Lnet/minecraft/world/chunk/Chunk;getSavedLightValue(Lnet/minecraft/world/EnumSkyBlock;III)I"),
               require = 1)
     private int getBrightnessAndLightValueMax(Chunk baseChunk,
-                                              EnumSkyBlock lightType,
+                                              EnumSkyBlock baseLightType,
                                               int subChunkPosX,
                                               int posY,
                                               int subChunkPosZ) {
-        return LightingHooks.getBrightnessAndLightValueMax(baseChunk, lightType, subChunkPosX, posY, subChunkPosZ);
+        return LightingHooks.getBrightnessAndLightValueMax(baseChunk, baseLightType, subChunkPosX, posY, subChunkPosZ);
     }
 }

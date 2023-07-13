@@ -26,7 +26,9 @@ import net.minecraft.block.Block;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 
+@Unique
 @Mixin(ExtendedBlockStorage.class)
 public abstract class LumiSubChunkRootImplMixin implements LumiSubChunkRoot {
     @Shadow

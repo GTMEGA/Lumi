@@ -28,6 +28,7 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -41,16 +42,18 @@ public abstract class ExtendedBlockStorageMixin {
     @Shadow
     private NibbleArray skylightArray;
 
-    private boolean isDirty;
-    private boolean isTrivial;
+    @Unique
+    private boolean lumi$isDirty;
+    @Unique
+    private boolean lumi$isTrivial;
 
     @Inject(method = "<init>*",
             at = @At(value = "RETURN",
                      target = "Ljava/util/Random;nextInt(I)I"),
             require = 1)
     private void lumiSubChunkInit(int posY, boolean hasSky, CallbackInfo ci) {
-        this.isDirty = true;
-        this.isTrivial = false;
+        this.lumi$isDirty = true;
+        this.lumi$isTrivial = false;
     }
 
     /**
@@ -60,7 +63,7 @@ public abstract class ExtendedBlockStorageMixin {
     @Overwrite
     public void setExtSkylightValue(int posX, int posY, int posZ, int lightValue) {
         skylightArray.set(posX, posY, posZ, lightValue);
-        isDirty = true;
+        lumi$isDirty = true;
     }
 
     /**
@@ -70,7 +73,7 @@ public abstract class ExtendedBlockStorageMixin {
     @Overwrite
     public void setExtBlocklightValue(int posX, int posY, int posZ, int lightValue) {
         blocklightArray.set(posX, posY, posZ, lightValue);
-        isDirty = true;
+        lumi$isDirty = true;
     }
 
     /**
@@ -80,7 +83,7 @@ public abstract class ExtendedBlockStorageMixin {
     @Overwrite
     public void setBlocklightArray(NibbleArray blockLightArray) {
         this.blocklightArray = blockLightArray;
-        isDirty = true;
+        lumi$isDirty = true;
     }
 
     /**
@@ -90,7 +93,7 @@ public abstract class ExtendedBlockStorageMixin {
     @Overwrite
     public void setSkylightArray(NibbleArray skyLightArray) {
         this.skylightArray = skyLightArray;
-        isDirty = true;
+        lumi$isDirty = true;
     }
 
     /**
@@ -102,21 +105,22 @@ public abstract class ExtendedBlockStorageMixin {
         if (blockRefCount != 0)
             return false;
 
-        if (isDirty) {
-            val blockLightEqual = checkLightArrayEqual(blocklightArray, EnumSkyBlock.Block);
-            val skyLightEqual = checkLightArrayEqual(skylightArray, EnumSkyBlock.Sky);
-            isTrivial = blockLightEqual && skyLightEqual;
-            isDirty = false;
+        if (lumi$isDirty) {
+            val blockLightEqual = lumi$checkLightArrayEqual(blocklightArray, EnumSkyBlock.Block);
+            val skyLightEqual = lumi$checkLightArrayEqual(skylightArray, EnumSkyBlock.Sky);
+            lumi$isTrivial = blockLightEqual && skyLightEqual;
+            lumi$isDirty = false;
         }
 
-        return isTrivial;
+        return lumi$isTrivial;
     }
 
-    private boolean checkLightArrayEqual(NibbleArray storage, EnumSkyBlock lightType) {
+    @Unique
+    private boolean lumi$checkLightArrayEqual(NibbleArray storage, EnumSkyBlock baseLightType) {
         if (storage == null)
             return true;
 
-        val expectedValue = (byte) lightType.defaultLightValue;
+        val expectedValue = (byte) baseLightType.defaultLightValue;
         val data = storage.data;
         for (val value : data)
             if (value != expectedValue)

@@ -27,6 +27,7 @@ import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.coordinate.Direction;
 import com.falsepattern.lumina.api.coordinate.DirectionSign;
 import com.falsepattern.lumina.api.coordinate.FacingDirection;
+import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.internal.world.WorldChunkSlice;
 import cpw.mods.fml.relauncher.Side;
@@ -37,8 +38,10 @@ import lombok.var;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagShort;
-import net.minecraft.world.EnumSkyBlock;
 import org.jetbrains.annotations.Nullable;
+
+import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
+import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 
 @UtilityClass
 public final class LightingHooksOld {
@@ -197,7 +200,7 @@ public final class LightingHooksOld {
             if (neighbourChunk == null)
                 continue;
 
-            for (val lightType : EnumSkyBlock.values()) {
+            for (val lightType : LightType.values()) {
                 for (val directionSign : DirectionSign.values()) {
                     // Merge flags upon loading of a chunk. This ensures that all flags are always already on the IN boundary below
                     mergeFlags(lightType, chunk, neighbourChunk, direction, directionSign);
@@ -249,7 +252,7 @@ public final class LightingHooksOld {
             return;
 
         val maxPosY = subChunk.lumi$root().lumi$posY();
-        val lightValue = EnumSkyBlock.Sky.defaultLightValue;
+        val lightValue = LightType.SKY_LIGHT_TYPE.defaultLightValue();
         for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
             for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
                 if (chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ) <= maxPosY) {
@@ -327,12 +330,12 @@ public final class LightingHooksOld {
         val minChunkPosY = startPosY / 16;
         val maxChunkPosY = endPosY / 16;
 
-        lightingEngine.scheduleLightUpdateForColumn(EnumSkyBlock.Sky, basePosX, basePosZ, startPosY, endPosY);
+        lightingEngine.scheduleLightUpdateForColumn(SKY_LIGHT_TYPE, basePosX, basePosZ, startPosY, endPosY);
 
         val bottomSubChunk = chunk.lumi$subChunk(minChunkPosY);
         if (bottomSubChunk == null && startPosY > 0) {
             val posY = startPosY - 1;
-            lightingEngine.scheduleLightUpdate(EnumSkyBlock.Sky, basePosX, posY, basePosZ);
+            lightingEngine.scheduleLightUpdate(SKY_LIGHT_TYPE, basePosX, posY, basePosZ);
         }
 
         short flags = 0;
@@ -377,7 +380,7 @@ public final class LightingHooksOld {
                 val posZ = basePosZ + zOffset;
                 val minPosY = chunkPosY * 16;
                 val maxPosY = minPosY + 15;
-                lightingEngine.scheduleLightUpdateForColumn(EnumSkyBlock.Sky, posX, posZ, minPosY, maxPosY);
+                lightingEngine.scheduleLightUpdateForColumn(SKY_LIGHT_TYPE, posX, posZ, minPosY, maxPosY);
             }
         }
     }
@@ -483,7 +486,7 @@ public final class LightingHooksOld {
 
         val lightingEngine = chunk.lumi$world().lumi$lightingEngine();
         for (var posY = minPosY; posY < maxPosY; posY++)
-            lightingEngine.scheduleLightUpdate(EnumSkyBlock.Sky, posX, posY, posZ);
+            lightingEngine.scheduleLightUpdate(SKY_LIGHT_TYPE, posX, posY, posZ);
         chunk.lumi$root().lumi$markDirty();
     }
 
@@ -491,12 +494,12 @@ public final class LightingHooksOld {
                                                    short subChunkMask,
                                                    Direction direction,
                                                    DirectionSign directionSign) {
-        val flagIndex = getFlagIndex(EnumSkyBlock.Sky, direction, directionSign, FacingDirection.OUTPUT);
+        val flagIndex = getFlagIndex(LightType.SKY_LIGHT_TYPE, direction, directionSign, FacingDirection.OUTPUT);
         chunk.lumi$neighborLightCheckFlags()[flagIndex] |= subChunkMask;
         chunk.lumi$root().lumi$markDirty();
     }
 
-    private static void mergeFlags(EnumSkyBlock lightType,
+    private static void mergeFlags(LightType lightType,
                                    LumiChunk destinationChunk,
                                    LumiChunk sourceChunk,
                                    Direction direction,
@@ -515,7 +518,7 @@ public final class LightingHooksOld {
                                                          LumiChunk chunk,
                                                          LumiChunk nChunk,
                                                          LumiChunk sChunk,
-                                                         EnumSkyBlock lightType,
+                                                         LightType lightType,
                                                          int xOffset,
                                                          int zOffset,
                                                          DirectionSign directionSign) {
@@ -592,7 +595,7 @@ public final class LightingHooksOld {
         }
     }
 
-    private static int getFlagIndex(EnumSkyBlock lightType,
+    private static int getFlagIndex(LightType lightType,
                                     Direction direction,
                                     DirectionSign directionSign,
                                     FacingDirection facingDirection) {
@@ -601,7 +604,7 @@ public final class LightingHooksOld {
         return getFlagIndex(lightType, xOffset, zOffset, directionSign, facingDirection);
     }
 
-    private static int getFlagIndex(EnumSkyBlock lightType,
+    private static int getFlagIndex(LightType lightType,
                                     int facingOffsetX,
                                     int facingOffsetZ,
                                     DirectionSign directionSign,
@@ -609,11 +612,11 @@ public final class LightingHooksOld {
         final int lightTypeBits;
         switch (lightType) {
             default:
-            case Sky:
-                lightTypeBits = 0x10;
-                break;
-            case Block:
+            case BLOCK_LIGHT_TYPE:
                 lightTypeBits = 0x00;
+                break;
+            case SKY_LIGHT_TYPE:
+                lightTypeBits = 0x10;
                 break;
         }
 
@@ -658,7 +661,7 @@ public final class LightingHooksOld {
                             val posX = basePosX + subChunkPosX;
                             val posY = basePosY + subChunkPosY;
                             val posZ = basePosZ + subChunkPosZ;
-                            world.lumi$lightingEngine().scheduleLightUpdate(EnumSkyBlock.Block, posX, posY, posZ);
+                            world.lumi$lightingEngine().scheduleLightUpdate(BLOCK_LIGHT_TYPE, posX, posY, posZ);
                         }
                     }
                 }

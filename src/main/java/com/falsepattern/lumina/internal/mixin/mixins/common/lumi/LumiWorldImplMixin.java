@@ -23,6 +23,7 @@ package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
+import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
@@ -30,7 +31,10 @@ import com.falsepattern.lumina.internal.Tags;
 import lombok.val;
 import net.minecraft.block.Block;
 import net.minecraft.profiler.Profiler;
-import net.minecraft.world.*;
+import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
+import net.minecraft.world.WorldProvider;
+import net.minecraft.world.WorldSettings;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraft.world.storage.ISaveHandler;
@@ -42,6 +46,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
+import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 import static com.falsepattern.lumina.internal.world.LumiWorldManager.createLightingEngine;
 
 @Unique
@@ -117,11 +123,11 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     }
 
     @Override
-    public int lumi$getBrightnessAndLightValueMax(EnumSkyBlock lightType, int posX, int posY, int posZ) {
+    public int lumi$getBrightnessAndLightValueMax(LightType lightType, int posX, int posY, int posZ) {
         switch (lightType) {
-            case Block:
+            case BLOCK_LIGHT_TYPE:
                 return lumi$getBrightnessAndBlockLightValueMax(posX, posY, posZ);
-            case Sky:
+            case SKY_LIGHT_TYPE:
                 return lumi$getSkyLightValue(posX, posY, posZ);
             default:
                 return 0;
@@ -137,7 +143,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
             return chunk.lumi$getBrightnessAndBlockLightValueMax(subChunkPosX, posY, subChunkPosZ);
         }
         val blockBrightness = lumi$getBlockBrightness(posX, posY, posZ);
-        return Math.max(blockBrightness, EnumSkyBlock.Block.defaultLightValue);
+        return Math.max(blockBrightness, BLOCK_LIGHT_TYPE.defaultLightValue());
     }
 
     @Override
@@ -148,11 +154,11 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
             val subChunkPosZ = posZ & 15;
             return chunk.lumi$getLightValueMax(subChunkPosX, posY, subChunkPosZ);
         }
-        return Math.max(EnumSkyBlock.Block.defaultLightValue, EnumSkyBlock.Sky.defaultLightValue);
+        return LightType.maxBaseLightValue();
     }
 
     @Override
-    public void lumi$setLightValue(EnumSkyBlock lightType, int posX, int posY, int posZ, int lightValue) {
+    public void lumi$setLightValue(LightType lightType, int posX, int posY, int posZ, int lightValue) {
         val chunk = lumi$getChunkFromBlockPos(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
@@ -162,7 +168,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     }
 
     @Override
-    public int lumi$getLightValue(EnumSkyBlock lightType, int posX, int posY, int posZ) {
+    public int lumi$getLightValue(LightType lightType, int posX, int posY, int posZ) {
         val chunk = lumi$getChunkFromBlockPos(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
@@ -172,11 +178,11 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
 
         switch (lightType) {
             default:
-            case Block:
-                return EnumSkyBlock.Block.defaultLightValue;
-            case Sky: {
+            case BLOCK_LIGHT_TYPE:
+                return BLOCK_LIGHT_TYPE.defaultLightValue();
+            case SKY_LIGHT_TYPE: {
                 if (lumi$root().lumi$hasSky())
-                    return EnumSkyBlock.Sky.defaultLightValue;
+                    return SKY_LIGHT_TYPE.defaultLightValue();
                 return 0;
             }
         }
@@ -200,7 +206,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
             val subChunkPosZ = posZ & 15;
             return chunk.lumi$getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
         }
-        return EnumSkyBlock.Block.defaultLightValue;
+        return BLOCK_LIGHT_TYPE.defaultLightValue();
     }
 
     @Override
@@ -228,7 +234,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
             return chunk.lumi$getSkyLightValue(subChunkPosX, posY, subChunkPosZ);
         }
 
-        return EnumSkyBlock.Sky.defaultLightValue;
+        return SKY_LIGHT_TYPE.defaultLightValue();
     }
 
     @Override

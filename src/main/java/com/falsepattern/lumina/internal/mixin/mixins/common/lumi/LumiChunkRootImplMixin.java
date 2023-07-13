@@ -31,15 +31,15 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 
+@Unique
 @Mixin(Chunk.class)
 public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     @Shadow
     private ExtendedBlockStorage[] storageArrays;
     @Shadow
     public World worldObj;
-    @Shadow
-    private boolean isGapLightingUpdated;
 
     @Shadow
     public abstract int getTopFilledSegment();

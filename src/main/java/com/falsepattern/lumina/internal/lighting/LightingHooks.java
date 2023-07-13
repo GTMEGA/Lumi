@@ -22,6 +22,7 @@
 package com.falsepattern.lumina.internal.lighting;
 
 import com.falsepattern.lumina.api.chunk.LumiChunk;
+import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import lombok.experimental.UtilityClass;
 import lombok.val;
@@ -60,10 +61,11 @@ public final class LightingHooks {
 
     public static int getMaxLightValue(World baseWorld,
                                        Chunk baseChunk,
-                                       EnumSkyBlock lightType,
+                                       EnumSkyBlock baseLightType,
                                        int subChunkPosX,
                                        int posY,
                                        int subChunkPosZ) {
+        val lightType = LightType.of(baseLightType);
         var lightValue = 0;
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
@@ -71,7 +73,7 @@ public final class LightingHooks {
             val chunk = world.lumi$wrap(baseChunk);
 
             val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.processLightUpdates(lightType);
+            lightingEngine.processLightUpdatesForType(lightType);
 
             val chunkLightValue = chunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);
             lightValue = Math.max(lightValue, chunkLightValue);
@@ -100,7 +102,7 @@ public final class LightingHooks {
     }
 
     public static void scheduleLightUpdates(World baseWorld,
-                                            EnumSkyBlock lightType,
+                                            EnumSkyBlock baseLightType,
                                             int posX,
                                             int posY,
                                             int posZ) {
@@ -108,7 +110,7 @@ public final class LightingHooks {
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
             val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.scheduleLightUpdate(lightType, posX, posY, posZ);
+            lightingEngine.scheduleLightUpdate(LightType.of(baseLightType), posX, posY, posZ);
         }
     }
 
@@ -117,7 +119,7 @@ public final class LightingHooks {
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
             val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.processLightUpdates();
+            lightingEngine.processLightUpdatesForAllTypes();
         }
     }
 
@@ -146,11 +148,12 @@ public final class LightingHooks {
     }
 
     public static int getBrightnessAndLightValueMax(Chunk baseChunk,
-                                                    EnumSkyBlock lightType,
+                                                    EnumSkyBlock baseLightType,
                                                     int subChunkPosX,
                                                     int posY,
                                                     int subChunkPosZ) {
         val chunk = (LumiChunk) baseChunk;
+        val lightType = LightType.of(baseLightType);
         return chunk.lumi$getBrightnessAndLightValueMax(lightType, subChunkPosX, posY, subChunkPosZ);
     }
 

@@ -21,14 +21,14 @@
 
 package com.falsepattern.lumina.api.chunk;
 
-import net.minecraft.world.EnumSkyBlock;
+import com.falsepattern.lumina.api.lighting.LightType;
 
 public interface LumiSubChunk {
     LumiSubChunkRoot lumi$root();
 
-    void lumi$setLightValue(EnumSkyBlock lightType, int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
+    void lumi$setLightValue(LightType lightType, int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
 
-    int lumi$getLightValue(EnumSkyBlock lightType, int subChunkPosX, int subChunkPosY, int subChunkPosZ);
+    int lumi$getLightValue(LightType lightType, int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 
     void lumi$setBlockLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
 

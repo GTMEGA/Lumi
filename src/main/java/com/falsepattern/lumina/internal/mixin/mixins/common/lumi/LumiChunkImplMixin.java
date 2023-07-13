@@ -24,10 +24,10 @@ package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
+import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import lombok.val;
 import net.minecraft.block.Block;
-import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
@@ -35,14 +35,18 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Arrays;
 
+import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
+import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 import static com.falsepattern.lumina.internal.lighting.LightingHooksOld.FLAG_COUNT;
 
+@Unique
 @Mixin(Chunk.class)
 public abstract class LumiChunkImplMixin implements LumiChunk {
     @Final
@@ -63,31 +67,29 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     @Shadow
     public int heightMapMinimum;
 
-    @Shadow
-    public int[] precipitationHeightMap;
-    private LumiChunkRoot root;
-    private LumiWorld world;
-    private short[] neighborLightCheckFlags;
-    private boolean lightingInitialized;
+    private LumiChunkRoot lumi$root;
+    private LumiWorld lumi$world;
+    private short[] lumi$neighborLightCheckFlags;
+    private boolean lumi$lightingInitialized;
 
     @Inject(method = "<init>*",
             at = @At("RETURN"),
             require = 1)
     private void lumiChunkInit(CallbackInfo ci) {
-        this.root = (LumiChunkRoot) this;
-        this.world = (LumiWorld) worldObj;
-        this.neighborLightCheckFlags = new short[FLAG_COUNT];
-        this.lightingInitialized = false;
+        this.lumi$root = (LumiChunkRoot) this;
+        this.lumi$world = (LumiWorld) worldObj;
+        this.lumi$neighborLightCheckFlags = new short[FLAG_COUNT];
+        this.lumi$lightingInitialized = false;
     }
 
     @Override
     public LumiChunkRoot lumi$root() {
-        return root;
+        return lumi$root;
     }
 
     @Override
     public LumiWorld lumi$world() {
-        return world;
+        return lumi$world;
     }
 
     @Override
@@ -109,11 +111,11 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public int lumi$getBrightnessAndLightValueMax(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ) {
+    public int lumi$getBrightnessAndLightValueMax(LightType lightType, int subChunkPosX, int posY, int subChunkPosZ) {
         switch (lightType) {
-            case Block:
+            case BLOCK_LIGHT_TYPE:
                 return lumi$getBrightnessAndBlockLightValueMax(subChunkPosX, posY, subChunkPosZ);
-            case Sky:
+            case SKY_LIGHT_TYPE:
                 return lumi$getSkyLightValue(subChunkPosX, posY, subChunkPosZ);
             default:
                 return 0;
@@ -135,12 +137,12 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public void lumi$setLightValue(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ, int lightValue) {
+    public void lumi$setLightValue(LightType lightType, int subChunkPosX, int posY, int subChunkPosZ, int lightValue) {
         switch (lightType) {
-            case Block:
+            case BLOCK_LIGHT_TYPE:
                 lumi$setBlockLightValue(subChunkPosX, posY, subChunkPosZ, lightValue);
                 break;
-            case Sky:
+            case SKY_LIGHT_TYPE:
                 lumi$setSkyLightValue(subChunkPosX, posY, subChunkPosZ, lightValue);
                 break;
             default:
@@ -149,11 +151,11 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public int lumi$getLightValue(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ) {
+    public int lumi$getLightValue(LightType lightType, int subChunkPosX, int posY, int subChunkPosZ) {
         switch (lightType) {
-            case Block:
+            case BLOCK_LIGHT_TYPE:
                 return lumi$getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
-            case Sky:
+            case SKY_LIGHT_TYPE:
                 return lumi$getSkyLightValue(subChunkPosX, posY, subChunkPosZ);
             default:
                 return 0;
@@ -165,11 +167,11 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
         val chunkPosY = (posY & 255) / 16;
         val subChunkPosY = posY & 15;
 
-        root.lumi$prepareSubChunk(chunkPosY);
+        lumi$root.lumi$prepareSubChunk(chunkPosY);
         val subChunk = lumi$subChunk(chunkPosY);
         subChunk.lumi$setBlockLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
 
-        root.lumi$markDirty();
+        lumi$root.lumi$markDirty();
     }
 
     @Override
@@ -178,7 +180,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
 
         val subChunk = lumi$subChunk(chunkPosY);
         if (subChunk == null)
-            return EnumSkyBlock.Block.defaultLightValue;
+            return BLOCK_LIGHT_TYPE.defaultLightValue();
 
         val subChunkPosY = posY & 15;
         return subChunk.lumi$getBlockLightValue(subChunkPosX, subChunkPosY, subChunkPosZ);
@@ -186,22 +188,22 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
 
     @Override
     public void lumi$setSkyLightValue(int subChunkPosX, int posY, int subChunkPosZ, int lightValue) {
-        if (!world.lumi$root().lumi$hasSky())
+        if (!lumi$world.lumi$root().lumi$hasSky())
             return;
 
         val chunkPosY = (posY & 255) / 16;
         val subChunkPosY = posY & 15;
 
-        root.lumi$prepareSubChunk(chunkPosY);
+        lumi$root.lumi$prepareSubChunk(chunkPosY);
         val subChunk = lumi$subChunk(chunkPosY);
         subChunk.lumi$setSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
 
-        root.lumi$markDirty();
+        lumi$root.lumi$markDirty();
     }
 
     @Override
     public int lumi$getSkyLightValue(int subChunkPosX, int posY, int subChunkPosZ) {
-        if (!world.lumi$root().lumi$hasSky())
+        if (!lumi$world.lumi$root().lumi$hasSky())
             return 0;
 
         val chunkPosY = (posY & 255) / 16;
@@ -209,7 +211,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
         val subChunk = lumi$subChunk(chunkPosY);
         if (subChunk == null) {
             if (lumi$canBlockSeeSky(subChunkPosX, posY, subChunkPosZ))
-                return EnumSkyBlock.Sky.defaultLightValue;
+                return SKY_LIGHT_TYPE.defaultLightValue();
             return 0;
         }
 
@@ -219,15 +221,15 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
 
     @Override
     public int lumi$getBlockBrightness(int subChunkPosX, int posY, int subChunkPosZ) {
-        val block = root.lumi$getBlock(subChunkPosX, posY, subChunkPosZ);
-        val blockMeta = root.lumi$getBlockMeta(subChunkPosX, posY, subChunkPosZ);
+        val block = lumi$root.lumi$getBlock(subChunkPosX, posY, subChunkPosZ);
+        val blockMeta = lumi$root.lumi$getBlockMeta(subChunkPosX, posY, subChunkPosZ);
         return lumi$getBlockBrightness(block, blockMeta, subChunkPosX, posY, subChunkPosZ);
     }
 
     @Override
     public int lumi$getBlockOpacity(int subChunkPosX, int posY, int subChunkPosZ) {
-        val block = root.lumi$getBlock(subChunkPosX, posY, subChunkPosZ);
-        val blockMeta = root.lumi$getBlockMeta(subChunkPosX, posY, subChunkPosZ);
+        val block = lumi$root.lumi$getBlock(subChunkPosX, posY, subChunkPosZ);
+        val blockMeta = lumi$root.lumi$getBlockMeta(subChunkPosX, posY, subChunkPosZ);
         return lumi$getBlockOpacity(block, blockMeta, subChunkPosX, posY, subChunkPosZ);
     }
 
@@ -235,14 +237,14 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     public int lumi$getBlockBrightness(Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ) {
         val posX = (xPosition << 4) + subChunkPosX;
         val posZ = (zPosition << 4) + subChunkPosZ;
-        return world.lumi$getBlockBrightness(block, blockMeta, posX, posY, posZ);
+        return lumi$world.lumi$getBlockBrightness(block, blockMeta, posX, posY, posZ);
     }
 
     @Override
     public int lumi$getBlockOpacity(Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ) {
         val posX = (xPosition << 4) + subChunkPosX;
         val posZ = (zPosition << 4) + subChunkPosZ;
-        return world.lumi$getBlockOpacity(block, blockMeta, posX, posY, posZ);
+        return lumi$world.lumi$getBlockOpacity(block, blockMeta, posX, posY, posZ);
     }
 
     @Override
@@ -299,16 +301,16 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
 
     @Override
     public short[] lumi$neighborLightCheckFlags() {
-        return neighborLightCheckFlags;
+        return lumi$neighborLightCheckFlags;
     }
 
     @Override
     public void lumi$lightingInitialized(boolean lightingInitialized) {
-        this.lightingInitialized = lightingInitialized;
+        this.lumi$lightingInitialized = lightingInitialized;
     }
 
     @Override
     public boolean lumi$lightingInitialized() {
-        return lightingInitialized;
+        return lumi$lightingInitialized;
     }
 }

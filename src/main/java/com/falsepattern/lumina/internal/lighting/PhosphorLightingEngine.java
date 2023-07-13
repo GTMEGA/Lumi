@@ -27,7 +27,7 @@ import com.falsepattern.lib.util.MathUtil;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.coordinate.Direction;
-import com.falsepattern.lumina.api.lighting.LightValueType;
+import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.internal.collection.PooledLongQueue;
@@ -40,12 +40,13 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.profiler.Profiler;
-import net.minecraft.world.EnumSkyBlock;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
+import static com.falsepattern.lumina.api.lighting.LightType.values;
 import static com.falsepattern.lumina.internal.lighting.LightingHooksOld.getLoadedChunk;
 
 
@@ -56,10 +57,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     private static final int MAX_LIGHT_VALUE = 15;
     private static final int LIGHT_VALUE_RANGE = (MAX_LIGHT_VALUE - MIN_LIGHT_VALUE) + 1;
 
-    private static final int LIGHT_VALUE_TYPES_COUNT = LightValueType.values().length;
-
-    private static final List<Direction> NEIGHBOUR_DIRECTIONS = Direction.validDirections();
-    private static final int NEIGHBOUR_COUNT = NEIGHBOUR_DIRECTIONS.size();
+    private static final int LIGHT_VALUE_TYPES_COUNT = values().length;
 
     private static final int MIN_BLOCK_OPACITY = 1;
     private static final int MAX_BLOCK_OPACITY = 15;
@@ -89,7 +87,11 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     private static final long CHUNK_POS_MASK = ((POS_X_BIT_MASK >> 4) << (4 + POS_X_BIT_SHIFT)) |
                                                ((POS_Z_BIT_MASK >> 4) << (4 + POS_Z_BIT_SHIFT));
 
+    private static final List<Direction> NEIGHBOUR_DIRECTIONS = Direction.validDirections();
+    private static final int NEIGHBOUR_COUNT = NEIGHBOUR_DIRECTIONS.size();
+
     private static final long[] BLOCK_SIDE_BIT_OFFSET;
+
     static {
         BLOCK_SIDE_BIT_OFFSET = new long[NEIGHBOUR_COUNT];
         for (var i = 0; i < NEIGHBOUR_COUNT; i++) {
@@ -171,7 +173,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public void scheduleLightUpdateForRange(EnumSkyBlock lightType, BlockPos minBlockPos, BlockPos maxBlockPos) {
+    public void scheduleLightUpdateForRange(LightType lightType, BlockPos minBlockPos, BlockPos maxBlockPos) {
         val minPosX = minBlockPos.getX();
         val maxPosX = maxBlockPos.getX();
         if (maxPosX < minPosX)
@@ -200,7 +202,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public void scheduleLightUpdateForRange(EnumSkyBlock lightType,
+    public void scheduleLightUpdateForRange(LightType lightType,
                                             int minPosX,
                                             int minPosY,
                                             int minPosZ,
@@ -229,7 +231,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public void scheduleLightUpdateForColumn(EnumSkyBlock lightType, int posX, int posZ) {
+    public void scheduleLightUpdateForColumn(LightType lightType, int posX, int posZ) {
         acquireLock();
         try {
             for (var posY = 0; posY < 255; posY++)
@@ -240,7 +242,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public void scheduleLightUpdateForColumn(EnumSkyBlock lightType, int posX, int posZ, int minPosY, int maxPosY) {
+    public void scheduleLightUpdateForColumn(LightType lightType, int posX, int posZ, int minPosY, int maxPosY) {
         if (maxPosY < minPosY)
             return;
 
@@ -254,7 +256,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public void scheduleLightUpdate(EnumSkyBlock lightType, BlockPos blockPos) {
+    public void scheduleLightUpdate(LightType lightType, BlockPos blockPos) {
         acquireLock();
         try {
             scheduleLightUpdate(lightType, posLongFromBlockPos(blockPos));
@@ -264,7 +266,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public void scheduleLightUpdate(EnumSkyBlock lightType, int posX, int posY, int posZ) {
+    public void scheduleLightUpdate(LightType lightType, int posX, int posY, int posZ) {
         acquireLock();
         try {
             scheduleLightUpdate(lightType, posLongFromPosXYZ(posX, posY, posZ));
@@ -274,13 +276,13 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public void processLightUpdates() {
-        processLightUpdates(EnumSkyBlock.Sky);
-        processLightUpdates(EnumSkyBlock.Block);
+    public void processLightUpdatesForAllTypes() {
+        for (val lightType : values())
+            processLightUpdatesForType(lightType);
     }
 
     @Override
-    public void processLightUpdates(EnumSkyBlock lightType) {
+    public void processLightUpdatesForType(LightType lightType) {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
@@ -302,13 +304,13 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         }
     }
 
-    private void scheduleLightUpdate(EnumSkyBlock lightType, long posLong) {
+    private void scheduleLightUpdate(LightType lightType, long posLong) {
         val queue = updateQueues[lightType.ordinal()];
         queue.add(posLong);
 
         //make sure there are not too many queued light updates
         if (queue.size() >= MAX_SCHEDULED_COUNT)
-            processLightUpdates(lightType);
+            processLightUpdatesForType(lightType);
     }
 
     @SideOnly(Side.CLIENT)
@@ -351,7 +353,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         lock.unlock();
     }
 
-    private void processLightUpdateQueue(final EnumSkyBlock lightType, final PooledLongQueue queue) {
+    private void processLightUpdateQueue(LightType lightType, PooledLongQueue queue) {
         if (isUpdating)
             return;
         isUpdating = true;
@@ -479,7 +481,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         isUpdating = false;
     }
 
-    private void updateNeighborBlocks(EnumSkyBlock lightType) {
+    private void updateNeighborBlocks(LightType lightType) {
         if (areNeighboursBlocksValid)
             return;
         areNeighboursBlocksValid = true;
@@ -512,7 +514,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     private static int getCachedLightFor(LumiChunk chunk,
                                          LumiSubChunk subChunk,
-                                         EnumSkyBlock lightType,
+                                         LightType lightType,
                                          BlockPos blockPos) {
         val posY = blockPos.getY();
         val subChunkPosX = blockPos.getX() & 15;
@@ -525,7 +527,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         return chunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);
     }
 
-    private int getCursorUpdatedLightValue(EnumSkyBlock lightType) {
+    private int getCursorUpdatedLightValue(LightType lightType) {
         val block = getBlockFromChunk(cursorChunk, cursorBlockPos);
         val blockMeta = getBlockMetaFromChunk(cursorChunk, cursorBlockPos);
 
@@ -540,7 +542,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         return getCursorUpdatedLightValue(cursorBlockLightValue, cursorBlockOpacity, lightType);
     }
 
-    private int getCursorUpdatedLightValue(int cursorBlockLightValue, int cursorBlockOpacity, EnumSkyBlock lightType) {
+    private int getCursorUpdatedLightValue(int cursorBlockLightValue, int cursorBlockOpacity, LightType lightType) {
         if (cursorBlockLightValue >= MAX_LIGHT_VALUE - cursorBlockOpacity)
             return cursorBlockLightValue;
 
@@ -555,7 +557,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         return newCursorLightValue;
     }
 
-    private void spreadLightFromCursor(int cursorLightValue, EnumSkyBlock lightType) {
+    private void spreadLightFromCursor(int cursorLightValue, LightType lightType) {
         updateNeighborBlocks(lightType);
 
         for (val neighbor : neighborBlocks) {
@@ -572,7 +574,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         }
     }
 
-    private void enqueueBrighteningFromCursor(int lightValue, EnumSkyBlock lightType) {
+    private void enqueueBrighteningFromCursor(int lightValue, LightType lightType) {
         enqueueBrightening(cursorBlockPos, cursorData, lightValue, cursorChunk, lightType);
     }
 
@@ -580,7 +582,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                                     long posLong,
                                     int lightValue,
                                     LumiChunk chunk,
-                                    EnumSkyBlock lightType) {
+                                    LightType lightType) {
         darkeningQueues[lightValue].add(posLong);
 
         val posY = blockPos.getY();
@@ -593,7 +595,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                                   long posLong,
                                   int oldLightValue,
                                   LumiChunk chunk,
-                                  EnumSkyBlock lightType) {
+                                  LightType lightType) {
         brighteningQueues[oldLightValue].add(posLong);
 
         val posY = blockPos.getY();
@@ -639,23 +641,23 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         return true;
     }
 
-    private int getCursorCurrentLightValue(EnumSkyBlock lightType) {
+    private int getCursorCurrentLightValue(LightType lightType) {
         val posY = cursorBlockPos.getY();
         val subChunkPosX = cursorBlockPos.getX() & 15;
         val subChunkPosZ = cursorBlockPos.getZ() & 15;
         return cursorChunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);
     }
 
-    private int getCursorBlockLightValue(Block cursorBlock, int cursorBlockMeta, EnumSkyBlock lightType) {
+    private int getCursorBlockLightValue(Block cursorBlock, int cursorBlockMeta, LightType lightType) {
         val posX = cursorBlockPos.getX();
         val posY = cursorBlockPos.getY();
         val posZ = cursorBlockPos.getZ();
 
-        if (lightType == EnumSkyBlock.Sky) {
+        if (lightType == SKY_LIGHT_TYPE) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
             if (cursorChunk.lumi$canBlockSeeSky(subChunkPosX, posY, subChunkPosZ)) {
-                return EnumSkyBlock.Sky.defaultLightValue;
+                return SKY_LIGHT_TYPE.defaultLightValue();
             } else {
                 return 0;
             }

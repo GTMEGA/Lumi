@@ -71,7 +71,7 @@ public abstract class ChunkMixin {
                        target = "Lnet/minecraft/world/chunk/Chunk;generateSkylightMap()V"),
               require = 1)
     private void initSubChunkSkyLightOnSet(Chunk baseChunk,
-                                           EnumSkyBlock lightType,
+                                           EnumSkyBlock baseLightType,
                                            int subChunkPosX,
                                            int posY,
                                            int subChunkPosZ,
@@ -102,8 +102,8 @@ public abstract class ChunkMixin {
      * @author Angeline
      */
     @Overwrite
-    public int getSavedLightValue(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ) {
-        return LightingHooks.getMaxLightValue(worldObj, thiz(), lightType, subChunkPosX, posY, subChunkPosZ);
+    public int getSavedLightValue(EnumSkyBlock baseLightType, int subChunkPosX, int posY, int subChunkPosZ) {
+        return LightingHooks.getMaxLightValue(worldObj, thiz(), baseLightType, subChunkPosX, posY, subChunkPosZ);
     }
 
     /**
@@ -128,28 +128,28 @@ public abstract class ChunkMixin {
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;relightBlock(III)V"),
               require = 2)
-    private void skipBlockRelight(Chunk chunk, int posX, int posY, int posZ) {
+    private void skipBlockRelight(Chunk baseChunk, int posX, int posY, int posZ) {
     }
 
     @Redirect(method = "func_150807_a",
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;generateSkylightMap()V"),
               require = 1)
-    private void skipSkyLightGeneration(Chunk chunk) {
+    private void skipSkyLightGeneration(Chunk baseChunk) {
     }
 
     @Redirect(method = "func_150807_a",
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;propagateSkylightOcclusion(II)V"),
               require = 1)
-    private void skipSkyLightPropagation(Chunk chunk, int posX, int posZ) {
+    private void skipSkyLightPropagation(Chunk baseChunk, int posX, int posZ) {
     }
 
     @Redirect(method = "func_150807_a(IIILnet/minecraft/block/Block;I)Z",
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;getSavedLightValue(Lnet/minecraft/world/EnumSkyBlock;III)I"),
               require = 2)
-    private int alwaysZeroLightValue(Chunk chunk, EnumSkyBlock lightType, int posX, int posY, int posZ) {
+    private int alwaysZeroLightValue(Chunk baseChunk, EnumSkyBlock baseLightType, int posX, int posY, int posZ) {
         return 0;
     }
 
@@ -157,7 +157,7 @@ public abstract class ChunkMixin {
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/block/Block;getLightOpacity(Lnet/minecraft/world/IBlockAccess;III)I"),
               require = 2)
-    private int alwaysZeroLightOpacity(Block block, IBlockAccess world, int posX, int posY, int posZ) {
+    private int alwaysZeroLightOpacity(Block block, IBlockAccess baseWorld, int posX, int posY, int posZ) {
         return 0;
     }
 

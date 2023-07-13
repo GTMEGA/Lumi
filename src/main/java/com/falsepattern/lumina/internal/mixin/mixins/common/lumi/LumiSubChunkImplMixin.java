@@ -23,13 +23,15 @@ package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunkRoot;
-import net.minecraft.world.EnumSkyBlock;
+import com.falsepattern.lumina.api.lighting.LightType;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 
+@Unique
 @Mixin(ExtendedBlockStorage.class)
 public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
     @Shadow
@@ -39,16 +41,16 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
     private NibbleArray skylightArray;
 
     @Override
-    public void lumi$setLightValue(EnumSkyBlock lightType,
+    public void lumi$setLightValue(LightType lightType,
                                    int subChunkPosX,
                                    int subChunkPosY,
                                    int subChunkPosZ,
                                    int lightValue) {
         switch (lightType) {
-            case Block:
+            case BLOCK_LIGHT_TYPE:
                 lumi$setBlockLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
                 break;
-            case Sky:
+            case SKY_LIGHT_TYPE:
                 lumi$setSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
                 break;
             default:
@@ -57,17 +59,17 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
     }
 
     @Override
-    public int lumi$getLightValue(EnumSkyBlock lightType,
+    public int lumi$getLightValue(LightType lightType,
                                   int subChunkPosX,
                                   int subChunkPosY,
                                   int subChunkPosZ) {
         switch (lightType) {
-            case Block:
+            case BLOCK_LIGHT_TYPE:
                 return lumi$getBlockLightValue(subChunkPosX, subChunkPosY, subChunkPosZ);
-            case Sky:
+            case SKY_LIGHT_TYPE:
                 return lumi$getSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ);
             default:
-                return lightType.defaultLightValue;
+                return lightType.defaultLightValue();
         }
     }
 

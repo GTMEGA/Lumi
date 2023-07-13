@@ -21,11 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
-import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 import net.minecraft.block.Block;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.world.IBlockAccess;
@@ -35,9 +31,10 @@ import net.minecraft.world.chunk.IChunkProvider;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 
+@Unique
 @Mixin(World.class)
-@Accessors(fluent = true, chain = false)
 public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldRoot {
     @Final
     @Shadow
@@ -65,10 +62,6 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
 
     @Shadow
     public abstract void func_147479_m(int posX, int posY, int posZ);
-
-    @Setter
-    @Getter
-    private LumiLightingEngine lightingEngine;
 
     @Override
     public World lumi$base() {

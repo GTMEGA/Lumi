@@ -21,9 +21,9 @@
 
 package com.falsepattern.lumina.api.chunk;
 
+import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import net.minecraft.block.Block;
-import net.minecraft.world.EnumSkyBlock;
 import org.jetbrains.annotations.Nullable;
 
 public interface LumiChunk {
@@ -37,15 +37,15 @@ public interface LumiChunk {
 
     int lumi$chunkPosZ();
 
-    int lumi$getBrightnessAndLightValueMax(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ);
+    int lumi$getBrightnessAndLightValueMax(LightType lightType, int subChunkPosX, int posY, int subChunkPosZ);
 
     int lumi$getBrightnessAndBlockLightValueMax(int subChunkPosX, int posY, int subChunkPosZ);
 
     int lumi$getLightValueMax(int subChunkPosX, int posY, int subChunkPosZ);
 
-    void lumi$setLightValue(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ, int lightValue);
+    void lumi$setLightValue(LightType lightType, int subChunkPosX, int posY, int subChunkPosZ, int lightValue);
 
-    int lumi$getLightValue(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ);
+    int lumi$getLightValue(LightType lightType, int subChunkPosX, int posY, int subChunkPosZ);
 
     void lumi$setBlockLightValue(int subChunkPosX, int posY, int subChunkPosZ, int lightValue);
 

@@ -35,8 +35,8 @@ public abstract class WorldMixin implements IBlockAccess {
      * @reason Redirect into LUMINA
      */
     @Overwrite
-    public boolean updateLightByType(EnumSkyBlock lightType, int posX, int posY, int posZ) {
-        LightingHooks.scheduleLightUpdates(thiz(), lightType, posX, posY, posZ);
+    public boolean updateLightByType(EnumSkyBlock baseLightType, int posX, int posY, int posZ) {
+        LightingHooks.scheduleLightUpdates(thiz(), baseLightType, posX, posY, posZ);
         return true;
     }
 
