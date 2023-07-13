@@ -72,7 +72,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
                                Profiler profiler,
                                CallbackInfo ci) {
         this.lumi$root = (LumiWorldRoot) this;
-        this.lumi$lightingEngine = createLightingEngine(this);
+        this.lumi$lightingEngine = createLightingEngine(this, profiler);
     }
 
     @Override
@@ -109,11 +109,6 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
         if (baseChunk instanceof LumiChunk)
             return (LumiChunk) baseChunk;
         return null;
-    }
-
-    @Override
-    public void lumi$lightingEngine(LumiLightingEngine lightingEngine) {
-        this.lumi$lightingEngine = lightingEngine;
     }
 
     @Override

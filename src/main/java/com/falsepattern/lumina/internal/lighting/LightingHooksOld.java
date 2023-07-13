@@ -327,7 +327,7 @@ public final class LightingHooksOld {
         val minChunkPosY = startPosY / 16;
         val maxChunkPosY = endPosY / 16;
 
-        scheduleSkyLightUpdateForColumn(world, basePosX, basePosZ, startPosY, endPosY);
+        lightingEngine.scheduleLightUpdateForColumn(EnumSkyBlock.Sky, basePosX, basePosZ, startPosY, endPosY);
 
         val bottomSubChunk = chunk.lumi$subChunk(minChunkPosY);
         if (bottomSubChunk == null && startPosY > 0) {
@@ -377,34 +377,9 @@ public final class LightingHooksOld {
                 val posZ = basePosZ + zOffset;
                 val minPosY = chunkPosY * 16;
                 val maxPosY = minPosY + 15;
-                scheduleSkyLightUpdateForColumn(world, posX, posZ, minPosY, maxPosY);
+                lightingEngine.scheduleLightUpdateForColumn(EnumSkyBlock.Sky, posX, posZ, minPosY, maxPosY);
             }
         }
-    }
-
-    private static void scheduleRelightChecksForArea(LumiWorld world,
-                                                     EnumSkyBlock lightType,
-                                                     int minPosX,
-                                                     int minPosY,
-                                                     int minPosZ,
-                                                     int maxPosX,
-                                                     int maxPosY,
-                                                     int maxPosZ) {
-        val lightingEngine = world.lumi$lightingEngine();
-        for (var posY = minPosY; posY <= maxPosY; posY++)
-            for (var posZ = minPosZ; posZ <= maxPosZ; posZ++)
-                for (var posX = minPosX; posX <= maxPosX; posX++)
-                    lightingEngine.scheduleLightUpdate(lightType, posX, posY, posZ);
-    }
-
-    private static void scheduleSkyLightUpdateForColumn(LumiWorld world,
-                                                        int posX,
-                                                        int posZ,
-                                                        int minPosY,
-                                                        int maxPosY) {
-        val lightingEngine = world.lumi$lightingEngine();
-        for (var posY = minPosY; posY <= maxPosY; posY++)
-            lightingEngine.scheduleLightUpdate(EnumSkyBlock.Sky, posX, posY, posZ);
     }
 
     private static void doRecheckGaps(LumiChunk chunk) {
@@ -578,6 +553,8 @@ public final class LightingHooksOld {
         chunk.lumi$root().lumi$markDirty();
         nChunk.lumi$root().lumi$markDirty();
 
+        val lightingEngine = world.lumi$lightingEngine();
+
         // Get the area to check
         // Start in the corner...
         var minPosX = chunk.lumi$chunkPosX() << 4;
@@ -604,7 +581,13 @@ public final class LightingHooksOld {
             if ((flags & (1 << chunkPosY)) != 0) {
                 val minPosY = chunkPosY * 16;
                 val maxPosY = minPosY + 15;
-                scheduleRelightChecksForArea(world, lightType, minPosX, minPosY, minPosZ, maxPosX, maxPosY, maxPosZ);
+                lightingEngine.scheduleLightUpdateForRange(lightType,
+                                                           minPosX,
+                                                           minPosY,
+                                                           minPosZ,
+                                                           maxPosX,
+                                                           maxPosY,
+                                                           maxPosZ);
             }
         }
     }

@@ -21,9 +21,26 @@
 
 package com.falsepattern.lumina.api.lighting;
 
+import com.falsepattern.lib.compat.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 
 public interface LumiLightingEngine {
+    void scheduleLightUpdateForRange(EnumSkyBlock lightType, BlockPos startBlockPos, BlockPos endBlockPos);
+
+    void scheduleLightUpdateForRange(EnumSkyBlock lightType,
+                                     int startPosX,
+                                     int startPosY,
+                                     int startPosZ,
+                                     int endPosX,
+                                     int endPosY,
+                                     int endPosZ);
+
+    void scheduleLightUpdateForColumn(EnumSkyBlock lightType, int posX, int posZ);
+
+    void scheduleLightUpdateForColumn(EnumSkyBlock lightType, int posX, int posZ, int startPosY, int endPosY);
+
+    void scheduleLightUpdate(EnumSkyBlock lightType, BlockPos blockPos);
+
     void scheduleLightUpdate(EnumSkyBlock lightType, int posX, int posY, int posZ);
 
     void processLightUpdates();

@@ -43,8 +43,6 @@ public interface LumiWorld {
 
     @Nullable LumiChunk lumi$getChunkFromChunkPos(int chunkPosX, int chunkPosZ);
 
-    void lumi$lightingEngine(LumiLightingEngine lightingEngine);
-
     LumiLightingEngine lumi$lightingEngine();
 
     int lumi$getBrightnessAndLightValueMax(EnumSkyBlock lightType, int posX, int posY, int posZ);

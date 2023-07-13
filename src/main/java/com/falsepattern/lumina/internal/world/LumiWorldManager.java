@@ -26,6 +26,7 @@ import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldProvider;
 import com.falsepattern.lumina.internal.lighting.PhosphorLightingEngine;
 import lombok.val;
+import net.minecraft.profiler.Profiler;
 import net.minecraft.world.World;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -63,8 +64,8 @@ public class LumiWorldManager {
     }
 
     @SuppressWarnings("ForLoopReplaceableByForEach")
-    public static LumiLightingEngine createLightingEngine(LumiWorld world) {
-        return new PhosphorLightingEngine(world);
+    public static LumiLightingEngine createLightingEngine(LumiWorld world, Profiler profiler) {
+        return new PhosphorLightingEngine(world, profiler);
     }
 
     public static void startInit() {

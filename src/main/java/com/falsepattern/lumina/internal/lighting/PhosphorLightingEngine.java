@@ -26,6 +26,8 @@ import com.falsepattern.lib.internal.Share;
 import com.falsepattern.lib.util.MathUtil;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
+import com.falsepattern.lumina.api.coordinate.Direction;
+import com.falsepattern.lumina.api.lighting.LightValueType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.internal.collection.PooledLongQueue;
@@ -38,9 +40,10 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.profiler.Profiler;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.world.EnumSkyBlock;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static com.falsepattern.lumina.internal.lighting.LightingHooksOld.getLoadedChunk;
@@ -51,6 +54,12 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     private static final int MIN_LIGHT_VALUE = 0;
     private static final int MAX_LIGHT_VALUE = 15;
+    private static final int LIGHT_VALUE_RANGE = (MAX_LIGHT_VALUE - MIN_LIGHT_VALUE) + 1;
+
+    private static final int LIGHT_VALUE_TYPES_COUNT = LightValueType.values().length;
+
+    private static final List<Direction> NEIGHBOUR_DIRECTIONS = Direction.validDirections();
+    private static final int NEIGHBOUR_COUNT = NEIGHBOUR_DIRECTIONS.size();
 
     private static final int MIN_BLOCK_OPACITY = 1;
     private static final int MAX_BLOCK_OPACITY = 15;
@@ -81,83 +90,182 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                                                ((POS_Z_BIT_MASK >> 4) << (4 + POS_Z_BIT_SHIFT));
 
     private static final long[] BLOCK_SIDE_BIT_OFFSET;
-
     static {
-        BLOCK_SIDE_BIT_OFFSET = new long[6];
-
-        val sides = EnumFacing.values();
-        val sideCount = sides.length;
-        for (var i = 0; i < sideCount; i++) {
-            val side = sides[i];
-            val offsetX = (long) side.getFrontOffsetX();
-            val offsetY = (long) side.getFrontOffsetY();
-            val offsetZ = (long) side.getFrontOffsetZ();
-
-            BLOCK_SIDE_BIT_OFFSET[i] = (offsetX << POS_X_BIT_SHIFT) |
-                                       (offsetY << POS_Y_BIT_SHIFT) |
-                                       (offsetZ << POS_Z_BIT_SHIFT);
+        BLOCK_SIDE_BIT_OFFSET = new long[NEIGHBOUR_COUNT];
+        for (var i = 0; i < NEIGHBOUR_COUNT; i++) {
+            val direction = NEIGHBOUR_DIRECTIONS.get(i);
+            BLOCK_SIDE_BIT_OFFSET[i] = ((long) direction.xOffset() << POS_X_BIT_SHIFT) |
+                                       ((long) direction.yOffset() << POS_Y_BIT_SHIFT) |
+                                       ((long) direction.zOffset() << POS_Z_BIT_SHIFT);
         }
     }
 
     private final Thread updateThread = Thread.currentThread();
     private final ReentrantLock lock = new ReentrantLock();
 
-    private final PooledLongQueue.Pool queuePool = PooledLongQueue.createPool();
-    /**
-     * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
-     */
-    private final PooledLongQueue[] updateQueues = new PooledLongQueue[EnumSkyBlock.values().length];
-    /**
-     * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
-     */
-    private final PooledLongQueue[] brighteningQueues = new PooledLongQueue[MAX_LIGHT_VALUE + 1];
-    /**
-     * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
-     */
-    private final PooledLongQueue[] darkeningQueues = new PooledLongQueue[MAX_LIGHT_VALUE + 1];
-    /**
-     * Layout of longs: [newLight(4)] [y(8)] [x(26)] [z(26)]
-     */
-    private final PooledLongQueue initialBrighteningQueue = queuePool.createQueue();
-    /**
-     * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
-     */
-    private final PooledLongQueue initialDarkeningQueue = queuePool.createQueue();
-
-    private PooledLongQueue.LongQueueIterator queueIterator = null;
-
-    private final BlockPos.MutableBlockPos cursorBlockPos = new BlockPos.MutableBlockPos();
-    private LumiChunk cursorChunk;
-    private long cursorChunkPosLong;
-    private long cursorData;
-
-    private final NeighborBlock[] neighborBlocks = new NeighborBlock[6];
-    private boolean areNeighboursBlocksValid = false;
-
-    private boolean isUpdating = false;
-
     private final LumiWorld world;
     private final Profiler profiler;
 
-    public PhosphorLightingEngine(LumiWorld world) {
+    /**
+     * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
+     */
+    private final PooledLongQueue[] updateQueues;
+    /**
+     * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
+     */
+    private final PooledLongQueue[] brighteningQueues;
+    /**
+     * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
+     */
+    private final PooledLongQueue[] darkeningQueues;
+    /**
+     * Layout of longs: [newLight(4)] [y(8)] [x(26)] [z(26)]
+     */
+    private final PooledLongQueue initialBrighteningQueue;
+    /**
+     * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
+     */
+    private final PooledLongQueue initialDarkeningQueue;
+
+    private @Nullable PooledLongQueue.LongQueueIterator queueIterator;
+
+    private final BlockPos.MutableBlockPos cursorBlockPos;
+    private @Nullable LumiChunk cursorChunk;
+    private long cursorChunkPosLong;
+    private long cursorData;
+
+    private final NeighborBlock[] neighborBlocks;
+    private boolean areNeighboursBlocksValid;
+
+    private boolean isUpdating;
+
+    public PhosphorLightingEngine(LumiWorld world, Profiler profiler) {
         this.world = world;
-        this.profiler = world.lumi$root().lumi$profiler();
+        this.profiler = profiler;
 
-        for (var i = 0; i < updateQueues.length; i++)
-            updateQueues[i] = queuePool.createQueue();
-        for (var i = 0; i < brighteningQueues.length; i++)
-            brighteningQueues[i] = queuePool.createQueue();
-        for (var i = 0; i < darkeningQueues.length; i++)
-            darkeningQueues[i] = queuePool.createQueue();
+        val queuePool = PooledLongQueue.createPool();
+        this.updateQueues = new PooledLongQueue[LIGHT_VALUE_TYPES_COUNT];
+        for (var i = 0; i < LIGHT_VALUE_TYPES_COUNT; i++)
+            this.updateQueues[i] = queuePool.createQueue();
+        this.brighteningQueues = new PooledLongQueue[LIGHT_VALUE_RANGE];
+        for (var i = 0; i < LIGHT_VALUE_RANGE; i++)
+            this.brighteningQueues[i] = queuePool.createQueue();
+        this.darkeningQueues = new PooledLongQueue[LIGHT_VALUE_RANGE];
+        for (var i = 0; i < LIGHT_VALUE_RANGE; i++)
+            this.darkeningQueues[i] = queuePool.createQueue();
+        this.initialBrighteningQueue = queuePool.createQueue();
+        this.initialDarkeningQueue = queuePool.createQueue();
+        this.queueIterator = null;
 
-        for (var i = 0; i < neighborBlocks.length; i++)
+        this.neighborBlocks = new NeighborBlock[NEIGHBOUR_COUNT];
+        for (var i = 0; i < NEIGHBOUR_COUNT; i++)
             neighborBlocks[i] = new NeighborBlock();
+        this.areNeighboursBlocksValid = false;
+
+        this.cursorBlockPos = new BlockPos.MutableBlockPos();
+        this.cursorChunk = null;
+        this.cursorChunkPosLong = 0L;
+        this.cursorData = 0L;
+
+        this.isUpdating = false;
+    }
+
+    @Override
+    public void scheduleLightUpdateForRange(EnumSkyBlock lightType, BlockPos minBlockPos, BlockPos maxBlockPos) {
+        val minPosX = minBlockPos.getX();
+        val maxPosX = maxBlockPos.getX();
+        if (maxPosX < minPosX)
+            return;
+        val minPosY = minBlockPos.getY();
+        val maxPosY = maxBlockPos.getY();
+        if (maxPosY < minPosY)
+            return;
+        val minPosZ = minBlockPos.getZ();
+        val maxPosZ = maxBlockPos.getZ();
+        if (maxPosZ < minPosZ)
+            return;
+
+        acquireLock();
+        try {
+            for (var posY = minPosY; posY < maxPosY; posY++) {
+                for (var posZ = minPosZ; posZ < maxPosZ; posZ++) {
+                    for (var posX = minPosX; posX < maxPosX; posX++) {
+                        scheduleLightUpdate(lightType, posLongFromPosXYZ(posX, posY, posZ));
+                    }
+                }
+            }
+        } finally {
+            releaseLock();
+        }
+    }
+
+    @Override
+    public void scheduleLightUpdateForRange(EnumSkyBlock lightType,
+                                            int minPosX,
+                                            int minPosY,
+                                            int minPosZ,
+                                            int maxPosX,
+                                            int maxPosY,
+                                            int maxPosZ) {
+        if (maxPosX < minPosX)
+            return;
+        if (maxPosY < minPosY)
+            return;
+        if (maxPosZ < minPosZ)
+            return;
+
+        acquireLock();
+        try {
+            for (var posY = minPosY; posY < maxPosY; posY++) {
+                for (var posZ = minPosZ; posZ < maxPosZ; posZ++) {
+                    for (var posX = minPosX; posX < maxPosX; posX++) {
+                        scheduleLightUpdate(lightType, posLongFromPosXYZ(posX, posY, posZ));
+                    }
+                }
+            }
+        } finally {
+            releaseLock();
+        }
+    }
+
+    @Override
+    public void scheduleLightUpdateForColumn(EnumSkyBlock lightType, int posX, int posZ) {
+        acquireLock();
+        try {
+            for (var posY = 0; posY < 255; posY++)
+                scheduleLightUpdate(lightType, posLongFromPosXYZ(posX, posY, posZ));
+        } finally {
+            releaseLock();
+        }
+    }
+
+    @Override
+    public void scheduleLightUpdateForColumn(EnumSkyBlock lightType, int posX, int posZ, int minPosY, int maxPosY) {
+        if (maxPosY < minPosY)
+            return;
+
+        acquireLock();
+        try {
+            for (var posY = minPosY; posY < maxPosY; posY++)
+                scheduleLightUpdate(lightType, posLongFromPosXYZ(posX, posY, posZ));
+        } finally {
+            releaseLock();
+        }
+    }
+
+    @Override
+    public void scheduleLightUpdate(EnumSkyBlock lightType, BlockPos blockPos) {
+        acquireLock();
+        try {
+            scheduleLightUpdate(lightType, posLongFromBlockPos(blockPos));
+        } finally {
+            releaseLock();
+        }
     }
 
     @Override
     public void scheduleLightUpdate(EnumSkyBlock lightType, int posX, int posY, int posZ) {
         acquireLock();
-
         try {
             scheduleLightUpdate(lightType, posLongFromPosXYZ(posX, posY, posZ));
         } finally {
@@ -376,7 +484,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             return;
         areNeighboursBlocksValid = true;
 
-        for (var i = 0; i < neighborBlocks.length; ++i) {
+        for (var i = 0; i < NEIGHBOUR_COUNT; ++i) {
             val neighbor = neighborBlocks[i];
 
             neighbor.posLong = cursorData + BLOCK_SIDE_BIT_OFFSET[i];
@@ -494,17 +602,21 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         chunk.lumi$setLightValue(lightType, subChunkPosX, posY, subChunkPosZ, MIN_LIGHT_VALUE);
     }
 
-    private static BlockPos.MutableBlockPos blockPosFromPosLong(BlockPos.MutableBlockPos blockPos, long longPos) {
-        val posX = (int) (longPos >> POS_X_BIT_SHIFT & POS_X_BIT_MASK) - (1 << POS_X_BIT_SIZE - 1);
-        val posY = (int) (longPos >> POS_Y_BIT_SHIFT & POS_Y_BIT_MASK);
-        val posZ = (int) (longPos >> POS_Z_BIT_SHIFT & POS_Z_BIT_MASK) - (1 << POS_Z_BIT_SIZE - 1);
-        return blockPos.setPos(posX, posY, posZ);
+    private static long posLongFromBlockPos(BlockPos blockPos) {
+        return posLongFromPosXYZ(blockPos.getX(), blockPos.getY(), blockPos.getZ());
     }
 
-    private static long posLongFromPosXYZ(long posX, long posY, long posZ) {
-        return (posY << POS_Y_BIT_SHIFT) |
-               (posX + (1 << POS_X_BIT_SIZE - 1) << POS_X_BIT_SHIFT) |
-               (posZ + (1 << POS_Z_BIT_SIZE - 1) << POS_Z_BIT_SHIFT);
+    private static long posLongFromPosXYZ(int posX, int posY, int posZ) {
+        return ((long) posY << POS_Y_BIT_SHIFT) |
+               ((long) posX + (1L << POS_X_BIT_SIZE - 1L) << POS_X_BIT_SHIFT) |
+               ((long) posZ + (1L << POS_Z_BIT_SIZE - 1L) << POS_Z_BIT_SHIFT);
+    }
+
+    private static void blockPosFromPosLong(BlockPos.MutableBlockPos blockPos, long longPos) {
+        val posX = (int) (longPos >> POS_X_BIT_SHIFT & POS_X_BIT_MASK) - (1L << POS_X_BIT_SIZE - 1L);
+        val posY = (int) (longPos >> POS_Y_BIT_SHIFT & POS_Y_BIT_MASK);
+        val posZ = (int) (longPos >> POS_Z_BIT_SHIFT & POS_Z_BIT_MASK) - (1L << POS_Z_BIT_SIZE - 1L);
+        blockPos.setPos(posX, posY, posZ);
     }
 
     private boolean nextItem() {
@@ -603,12 +715,12 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     private static class NeighborBlock {
         private final BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos();
 
-        private long posLong;
+        private long posLong = 0L;
 
-        private LumiChunk chunk;
-        private LumiSubChunk subChunk;
+        private @Nullable LumiChunk chunk = null;
+        private @Nullable LumiSubChunk subChunk = null;
 
-        private int lightValue;
+        private int lightValue = 0;
     }
 }
 

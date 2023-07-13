@@ -60,6 +60,6 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
                                      Profiler profiler,
                                      CallbackInfo ci) {
         this.lumi$root = (LumiWorldRoot) this;
-        this.lumi$lightingEngine = createLightingEngine(this);
+        this.lumi$lightingEngine = createLightingEngine(this, profiler);
     }
 }
