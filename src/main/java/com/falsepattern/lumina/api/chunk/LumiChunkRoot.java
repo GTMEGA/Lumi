@@ -25,6 +25,7 @@ import net.minecraft.block.Block;
 import net.minecraft.world.chunk.Chunk;
 
 public interface LumiChunkRoot {
+    @Deprecated
     Chunk lumi$base();
 
     Block lumi$getBlock(int subChunkPosX, int posY, int subChunkPosZ);
@@ -36,8 +37,6 @@ public interface LumiChunkRoot {
     boolean lumi$isSubChunkPrepared(int chunkPosY);
 
     int lumi$topPreparedSubChunkBasePosY();
-
-    void lumi$shouldRecheckLightingGaps(boolean shouldRecheckLightingGaps);
 
     void lumi$markDirty();
 }

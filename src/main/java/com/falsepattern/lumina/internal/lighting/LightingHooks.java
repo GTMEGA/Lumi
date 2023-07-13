@@ -32,32 +32,38 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
+import java.util.Arrays;
+
 @UtilityClass
 public final class LightingHooks {
-    public static void generateHeightMap(World baseWorld, Chunk baseChunk) {
+    private static final int DEFAULT_PRECIPITATION_HEIGHT = -999;
+
+    public static void initChunkSkyLight(World baseWorld, Chunk baseChunk) {
+        Arrays.fill(baseChunk.precipitationHeightMap, DEFAULT_PRECIPITATION_HEIGHT);
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
             val chunk = world.lumi$wrap(baseChunk);
-            LightingHooksOld.generateClientSkyLightHeightMap(chunk);
+            LightingHooksOld.initChunkSkyLight(chunk);
         }
     }
 
-    public static void generateSkylightMap(World baseWorld, Chunk baseChunk) {
+    public static void initClientChunkSkyLight(World baseWorld, Chunk baseChunk) {
+        Arrays.fill(baseChunk.precipitationHeightMap, DEFAULT_PRECIPITATION_HEIGHT);
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
             val chunk = world.lumi$wrap(baseChunk);
-            LightingHooksOld.generateSkyLightHeightMap(chunk);
+            LightingHooksOld.initClientChunkSkyLight(chunk);
         }
     }
 
-    public static int getLightValue(World baseWorld,
-                                    Chunk baseChunk,
-                                    EnumSkyBlock lightType,
-                                    int subChunkPosX,
-                                    int posY,
-                                    int subChunkPosZ) {
+    public static int getMaxLightValue(World baseWorld,
+                                       Chunk baseChunk,
+                                       EnumSkyBlock lightType,
+                                       int subChunkPosX,
+                                       int posY,
+                                       int subChunkPosZ) {
         var lightValue = 0;
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
@@ -90,15 +96,6 @@ public final class LightingHooks {
             val chunk = world.lumi$wrap(baseChunk);
             val subChunk = chunk.lumi$subChunk(chunkPosY);
             LightingHooksOld.initSkyLightForSubChunk(world, chunk, subChunk);
-        }
-    }
-
-    public static void recheckLightingGaps(World baseWorld, Chunk baseChunk, boolean onlyOne) {
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(baseWorld, i);
-            val chunk = world.lumi$wrap(baseChunk);
-            LightingHooksOld.doRecheckGaps(chunk, onlyOne);
         }
     }
 

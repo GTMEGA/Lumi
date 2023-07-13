@@ -95,11 +95,6 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     }
 
     @Override
-    public void lumi$shouldRecheckLightingGaps(boolean shouldRecheckLightingGaps) {
-        this.isGapLightingUpdated = shouldRecheckLightingGaps;
-    }
-
-    @Override
     public void lumi$markDirty() {
         setChunkModified();
     }

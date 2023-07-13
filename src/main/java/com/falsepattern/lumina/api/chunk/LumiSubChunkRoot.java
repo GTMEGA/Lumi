@@ -25,6 +25,7 @@ import net.minecraft.block.Block;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 public interface LumiSubChunkRoot {
+    @Deprecated
     ExtendedBlockStorage lumi$base();
 
     int lumi$posY();

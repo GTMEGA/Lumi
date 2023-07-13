@@ -45,8 +45,6 @@ import static com.falsepattern.lumina.internal.lighting.LightingHooksOld.FLAG_CO
 
 @Mixin(Chunk.class)
 public abstract class LumiChunkImplMixin implements LumiChunk {
-    private static final int DEFAULT_PRECIPITATION_HEIGHT = -999;
-
     @Final
     @Shadow
     public int xPosition;
@@ -280,23 +278,6 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     public void lumi$resetSkyLightHeightMap() {
         Arrays.fill(heightMap, Integer.MAX_VALUE);
         heightMapMinimum = Integer.MAX_VALUE;
-    }
-
-    @Override
-    public void lumi$precipitationHeight(int subChunkPosX, int subChunkPosZ, int precipitationHeight) {
-        val index = (subChunkPosX + (subChunkPosZ * 16)) % 255;
-        precipitationHeightMap[index] = precipitationHeight;
-    }
-
-    @Override
-    public int lumi$precipitationHeight(int subChunkPosX, int subChunkPosZ) {
-        val index = (subChunkPosX + (subChunkPosZ * 16)) % 255;
-        return precipitationHeightMap[index];
-    }
-
-    @Override
-    public void lumi$resetPrecipitationHeightMap() {
-        Arrays.fill(precipitationHeightMap, DEFAULT_PRECIPITATION_HEIGHT);
     }
 
     @Override

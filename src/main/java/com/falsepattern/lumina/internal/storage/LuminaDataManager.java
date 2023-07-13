@@ -98,7 +98,7 @@ public final class LuminaDataManager implements ChunkDataManager.ChunkNBTDataMan
             }
 
             chunk.lumi$lightingInitialized(false);
-            LightingHooksOld.generateSkyLightHeightMap(chunk);
+            LightingHooksOld.initChunkSkyLight(chunk);
         }
     }
 

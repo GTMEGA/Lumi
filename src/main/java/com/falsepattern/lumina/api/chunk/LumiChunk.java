@@ -75,12 +75,6 @@ public interface LumiChunk {
 
     void lumi$resetSkyLightHeightMap();
 
-    void lumi$precipitationHeight(int subChunkPosX, int subChunkPosZ, int precipitationHeight);
-
-    int lumi$precipitationHeight(int subChunkPosX, int subChunkPosZ);
-
-    void lumi$resetPrecipitationHeightMap();
-
     void lumi$isHeightOutdated(int subChunkPosX, int subChunkPosZ, boolean isOutdated);
 
     boolean lumi$isHeightOutdated(int subChunkPosX, int subChunkPosZ);

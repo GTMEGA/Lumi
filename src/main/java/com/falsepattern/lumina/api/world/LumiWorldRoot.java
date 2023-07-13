@@ -27,6 +27,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.IChunkProvider;
 
 public interface LumiWorldRoot {
+    @Deprecated
     World lumi$base();
 
     @Deprecated

@@ -94,7 +94,7 @@ public abstract class ChunkMixin {
      */
     @Overwrite
     public void generateSkylightMap() {
-        LightingHooks.generateSkylightMap(worldObj, thiz());
+        LightingHooks.initChunkSkyLight(worldObj, thiz());
     }
 
     /**
@@ -103,7 +103,7 @@ public abstract class ChunkMixin {
      */
     @Overwrite
     public int getSavedLightValue(EnumSkyBlock lightType, int subChunkPosX, int posY, int subChunkPosZ) {
-        return LightingHooks.getLightValue(worldObj, thiz(), lightType, subChunkPosX, posY, subChunkPosZ);
+        return LightingHooks.getMaxLightValue(worldObj, thiz(), lightType, subChunkPosX, posY, subChunkPosZ);
     }
 
     /**
@@ -117,12 +117,11 @@ public abstract class ChunkMixin {
     }
 
     /**
-     * @reason Optimized version of recheckGaps. Avoids chunk fetches as much as possible.
-     * @author Angeline
+     * @reason No longer used
+     * @author Ven
      */
     @Overwrite
     private void recheckGaps(boolean onlyOne) {
-        LightingHooks.recheckLightingGaps(worldObj, thiz(), onlyOne);
     }
 
     @Redirect(method = "func_150807_a(IIILnet/minecraft/block/Block;I)Z",
