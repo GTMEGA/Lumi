@@ -12,17 +12,16 @@ def deobfCurse(curseDep) {
 }
 
 dependencies {
-    compileOnly("org.projectlombok:lombok:[1.18.24,1.19)") {
-        transitive = false
-    }
-    annotationProcessor("org.projectlombok:lombok:[1.18.24,1.19)")
-
+    // FalsePattern Lib
     implementation("com.falsepattern:falsepatternlib-mc1.7.10:[0.11,0.12):dev")
 
-    implementation("com.falsepattern:chunkapi-mc1.7.10:0.3.0:dev")
+    // Chunk API
+    implementation("com.falsepattern:chunkapi-mc1.7.10:[0.3.0,0.4.0):dev")
 
+    // JetBrains Annotations
     compileOnly("org.jetbrains:annotations:[24,25)")
 
-    compileOnly(deobfCurse("dynamiclights-227874:2337326"))
-
+    // Lombok
+    compileOnly("org.projectlombok:lombok:[1.18.24,1.19)")
+    annotationProcessor("org.projectlombok:lombok:[1.18.24,1.19)")
 }
