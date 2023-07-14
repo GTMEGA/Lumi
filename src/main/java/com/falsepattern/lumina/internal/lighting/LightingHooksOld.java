@@ -51,6 +51,7 @@ public final class LightingHooksOld {
     public static final int FLAG_COUNT = 32;
     public static final String NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME = "neighbor_light_checks";
 
+    @Deprecated
     public static void updateSkyLightForBlock(LumiChunk chunk, int subChunkPosX, int posY, int subChunkPosZ) {
         var maxPosY = chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ) & 255;
         var minPosY = Math.max(posY & 255, maxPosY);
@@ -72,6 +73,7 @@ public final class LightingHooksOld {
         chunk.lumi$root().lumi$markDirty();
     }
 
+    @Deprecated
     public static void initChunkSkyLight(LumiChunk chunk) {
         val rootWorld = chunk.lumi$world().lumi$root();
         val hasSky = rootWorld.lumi$hasSky();
@@ -145,6 +147,7 @@ public final class LightingHooksOld {
         rootChunk.lumi$markDirty();
     }
 
+    @Deprecated
     @SideOnly(Side.CLIENT)
     public static void initClientChunkSkyLight(LumiChunk chunk) {
         val rootChunk = chunk.lumi$root();
@@ -181,6 +184,7 @@ public final class LightingHooksOld {
         rootChunk.lumi$markDirty();
     }
 
+    @Deprecated
     public static void scheduleRelightChecksForChunkBoundaries(LumiWorld world, LumiChunk chunk) {
         val baseChunkPosX = chunk.lumi$chunkPosX();
         val baseChunkPosZ = chunk.lumi$chunkPosZ();
@@ -242,6 +246,7 @@ public final class LightingHooksOld {
         return true;
     }
 
+    @Deprecated
     public static void initSkyLightForSubChunk(LumiWorld world, LumiChunk chunk, LumiSubChunk subChunk) {
         if (!world.lumi$root().lumi$hasSky())
             return;

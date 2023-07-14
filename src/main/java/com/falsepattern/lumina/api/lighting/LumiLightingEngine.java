@@ -24,6 +24,10 @@ package com.falsepattern.lumina.api.lighting;
 import com.falsepattern.lib.compat.BlockPos;
 
 public interface LumiLightingEngine {
+    int getCurrentLightValue(LightType lightType, BlockPos blockPos);
+
+    int getCurrentLightValue(LightType lightType, int posX, int posY, int posZ);
+
     void scheduleLightUpdateForRange(LightType lightType, BlockPos startBlockPos, BlockPos endBlockPos);
 
     void scheduleLightUpdateForRange(LightType lightType,

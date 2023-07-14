@@ -39,8 +39,9 @@ import java.util.Arrays;
 public final class LightingHooks {
     private static final int DEFAULT_PRECIPITATION_HEIGHT = -999;
 
+    @Deprecated
     public static void initChunkSkyLight(World baseWorld, Chunk baseChunk) {
-        Arrays.fill(baseChunk.precipitationHeightMap, DEFAULT_PRECIPITATION_HEIGHT);
+        resetPrecipitationHeightMap(baseChunk);
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
@@ -49,8 +50,9 @@ public final class LightingHooks {
         }
     }
 
+    @Deprecated
     public static void initClientChunkSkyLight(World baseWorld, Chunk baseChunk) {
-        Arrays.fill(baseChunk.precipitationHeightMap, DEFAULT_PRECIPITATION_HEIGHT);
+        resetPrecipitationHeightMap(baseChunk);
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
@@ -65,22 +67,23 @@ public final class LightingHooks {
                                        int subChunkPosX,
                                        int posY,
                                        int subChunkPosZ) {
+        val posX = (baseChunk.xPosition << 4) + subChunkPosX;
+        val posZ = (baseChunk.zPosition << 4) + subChunkPosZ;
         val lightType = LightType.of(baseLightType);
-        var lightValue = 0;
+
+        var maxLightValue = 0;
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
-            val chunk = world.lumi$wrap(baseChunk);
-
             val lightingEngine = world.lumi$lightingEngine();
             lightingEngine.processLightUpdatesForType(lightType);
-
-            val chunkLightValue = chunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);
-            lightValue = Math.max(lightValue, chunkLightValue);
+            val lightValue = lightingEngine.getCurrentLightValue(lightType, posX, posY, posZ);
+            maxLightValue = Math.max(maxLightValue, lightValue);
         }
-        return lightValue;
+        return maxLightValue;
     }
 
+    @Deprecated
     public static void initSkyLightForSubChunk(World baseWorld, Chunk baseChunk, ExtendedBlockStorage baseSubChunk) {
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
@@ -91,6 +94,7 @@ public final class LightingHooks {
         }
     }
 
+    @Deprecated
     public static void initSkyLightForSubChunk(World baseWorld, Chunk baseChunk, int chunkPosY) {
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
@@ -106,11 +110,12 @@ public final class LightingHooks {
                                             int posX,
                                             int posY,
                                             int posZ) {
+        val lightType = LightType.of(baseLightType);
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
             val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.scheduleLightUpdate(LightType.of(baseLightType), posX, posY, posZ);
+            lightingEngine.scheduleLightUpdate(lightType, posX, posY, posZ);
         }
     }
 
@@ -123,6 +128,7 @@ public final class LightingHooks {
         }
     }
 
+    @Deprecated
     public static void updateSkyLightForBlock(World baseWorld,
                                               Chunk baseChunk,
                                               int subChunkPosX,
@@ -138,6 +144,7 @@ public final class LightingHooks {
         }
     }
 
+    @Deprecated
     public static void scheduleRelightChecksForChunkBoundaries(World baseWorld, Chunk baseChunk) {
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
@@ -168,6 +175,7 @@ public final class LightingHooks {
         return chunkHasLighting;
     }
 
+    @Deprecated
     public static void randomLightUpdates(World baseWorld, Chunk baseChunk) {
         if (baseChunk.queuedLightChecks >= (16 * 16 * 16))
             return;
@@ -255,5 +263,9 @@ public final class LightingHooks {
                 }
             }
         }
+    }
+
+    private static void resetPrecipitationHeightMap(Chunk baseChunk) {
+        Arrays.fill(baseChunk.precipitationHeightMap, DEFAULT_PRECIPITATION_HEIGHT);
     }
 }
