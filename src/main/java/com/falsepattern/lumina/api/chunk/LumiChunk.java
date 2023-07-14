@@ -31,7 +31,9 @@ public interface LumiChunk {
 
     LumiWorld lumi$world();
 
-    @Nullable LumiSubChunk lumi$subChunk(int chunkPosY);
+    @Nullable LumiSubChunk lumi$getSubChunkIfPrepared(int chunkPosY);
+
+    LumiSubChunk lumi$getSubChunk(int chunkPosY);
 
     int lumi$chunkPosX();
 
@@ -79,8 +81,10 @@ public interface LumiChunk {
 
     boolean lumi$isHeightOutdated(int subChunkPosX, int subChunkPosZ);
 
+    @Deprecated
     void lumi$resetOutdatedHeightFlags();
 
+    @Deprecated
     short[] lumi$neighborLightCheckFlags();
 
     void lumi$lightingInitialized(boolean lightingInitialized);

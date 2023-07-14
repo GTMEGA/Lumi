@@ -119,7 +119,7 @@ public final class LightingHooksOld {
                                 val chunkPosY = skyLightHeight / 16;
                                 val subChunkPosY = skyLightHeight & 15;
 
-                                val subChunk = chunk.lumi$subChunk(chunkPosY);
+                                val subChunk = chunk.lumi$getSubChunkIfPrepared(chunkPosY);
                                 if (subChunk != null) {
                                     val posX = basePosX + subChunkPosX;
                                     val posZ = basePosZ + subChunkPosZ;
@@ -332,7 +332,7 @@ public final class LightingHooksOld {
 
         lightingEngine.scheduleLightUpdateForColumn(SKY_LIGHT_TYPE, basePosX, basePosZ, startPosY, endPosY);
 
-        val bottomSubChunk = chunk.lumi$subChunk(minChunkPosY);
+        val bottomSubChunk = chunk.lumi$getSubChunkIfPrepared(minChunkPosY);
         if (bottomSubChunk == null && startPosY > 0) {
             val posY = startPosY - 1;
             lightingEngine.scheduleLightUpdate(SKY_LIGHT_TYPE, basePosX, posY, basePosZ);
@@ -340,7 +340,7 @@ public final class LightingHooksOld {
 
         short flags = 0;
         for (var chunkPosY = maxChunkPosY; chunkPosY >= minChunkPosY; chunkPosY--) {
-            val subChunk = chunk.lumi$subChunk(chunkPosY);
+            val subChunk = chunk.lumi$getSubChunkIfPrepared(chunkPosY);
             if (subChunk != null)
                 continue;
 
@@ -648,7 +648,7 @@ public final class LightingHooksOld {
             return;
 
         for (var chunkPosY = 0; chunkPosY < 16; chunkPosY++) {
-            val subChunk = chunk.lumi$subChunk(chunkPosY);
+            val subChunk = chunk.lumi$getSubChunkIfPrepared(chunkPosY);
             if (subChunk == null)
                 continue;
 

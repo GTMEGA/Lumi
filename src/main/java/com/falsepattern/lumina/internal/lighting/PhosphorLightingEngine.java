@@ -591,7 +591,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                 continue;
 
             val chunkPosY = neighbor.blockPos.getY() / 16;
-            neighbor.subChunk = neighbor.chunk.lumi$subChunk(chunkPosY);
+            neighbor.subChunk = neighbor.chunk.lumi$getSubChunkIfPrepared(chunkPosY);
             neighbor.lightValue = getCachedLightFor(neighbor.chunk, neighbor.subChunk, lightType, neighbor.blockPos);
         }
     }
@@ -786,7 +786,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             return Blocks.air;
 
         val chunkPosY = blockPos.getY() / 16;
-        val subChunk = chunk.lumi$subChunk(chunkPosY);
+        val subChunk = chunk.lumi$getSubChunkIfPrepared(chunkPosY);
         return getBlockFromSubChunk(subChunk, blockPos);
     }
 
@@ -805,7 +805,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             return 0;
 
         val chunkPosY = blockPos.getY() / 16;
-        val subChunk = chunk.lumi$subChunk(chunkPosY);
+        val subChunk = chunk.lumi$getSubChunkIfPrepared(chunkPosY);
         return getBlockMetaFromSubChunk(subChunk, blockPos);
     }
 

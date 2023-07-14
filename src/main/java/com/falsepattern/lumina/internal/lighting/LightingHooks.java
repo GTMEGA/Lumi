@@ -100,7 +100,7 @@ public final class LightingHooks {
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
             val chunk = world.lumi$wrap(baseChunk);
-            val subChunk = chunk.lumi$subChunk(chunkPosY);
+            val subChunk = chunk.lumi$getSubChunk(chunkPosY);
             LightingHooksOld.initSkyLightForSubChunk(world, chunk, subChunk);
         }
     }

@@ -75,6 +75,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     @Inject(method = "<init>*",
             at = @At("RETURN"),
             require = 1)
+    @SuppressWarnings("CastToIncompatibleInterface")
     private void lumiChunkInit(CallbackInfo ci) {
         this.lumi$root = (LumiChunkRoot) this;
         this.lumi$world = (LumiWorld) worldObj;
@@ -93,7 +94,16 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public @Nullable LumiSubChunk lumi$subChunk(int chunkPosY) {
+    @SuppressWarnings("CastToIncompatibleInterface")
+    public LumiSubChunk lumi$getSubChunk(int chunkPosY) {
+        lumi$root.lumi$prepareSubChunk(chunkPosY);
+        val subChunk = storageArrays[chunkPosY];
+        return (LumiSubChunk) subChunk;
+    }
+
+    @Override
+    @SuppressWarnings("InstanceofIncompatibleInterface")
+    public @Nullable LumiSubChunk lumi$getSubChunkIfPrepared(int chunkPosY) {
         val subChunk = storageArrays[chunkPosY];
         if (subChunk instanceof LumiSubChunk)
             return (LumiSubChunk) subChunk;
@@ -170,8 +180,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
         val subChunkPosY = posY & 15;
         subChunkPosZ &= 15;
 
-        lumi$root.lumi$prepareSubChunk(chunkPosY);
-        val subChunk = lumi$subChunk(chunkPosY);
+        val subChunk = lumi$getSubChunk(chunkPosY);
         subChunk.lumi$setBlockLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
 
         lumi$root.lumi$markDirty();
@@ -181,7 +190,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     public int lumi$getBlockLightValue(int subChunkPosX, int posY, int subChunkPosZ) {
         val chunkPosY = (posY & 255) / 16;
 
-        val subChunk = lumi$subChunk(chunkPosY);
+        val subChunk = lumi$getSubChunkIfPrepared(chunkPosY);
         if (subChunk == null)
             return BLOCK_LIGHT_TYPE.defaultLightValue();
 
@@ -203,8 +212,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
         val subChunkPosY = posY & 15;
         subChunkPosZ &= 15;
 
-        lumi$root.lumi$prepareSubChunk(chunkPosY);
-        val subChunk = lumi$subChunk(chunkPosY);
+        val subChunk = lumi$getSubChunk(chunkPosY);
         subChunk.lumi$setSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
 
         lumi$root.lumi$markDirty();
@@ -220,7 +228,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
         subChunkPosX &= 15;
         subChunkPosZ &= 15;
 
-        val subChunk = lumi$subChunk(chunkPosY);
+        val subChunk = lumi$getSubChunkIfPrepared(chunkPosY);
         if (subChunk == null) {
             if (lumi$canBlockSeeSky(subChunkPosX, posY, subChunkPosZ))
                 return SKY_LIGHT_TYPE.defaultLightValue();
