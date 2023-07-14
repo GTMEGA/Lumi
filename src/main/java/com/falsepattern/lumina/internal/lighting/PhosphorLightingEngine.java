@@ -40,6 +40,7 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.profiler.Profiler;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -222,18 +223,18 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public int getCurrentLightValue(LightType lightType, BlockPos blockPos) {
+    public int getCurrentLightValue(@NotNull LightType lightType, @NotNull BlockPos blockPos) {
         return getCurrentLightValue(lightType, blockPos.getX(), blockPos.getY(), blockPos.getZ());
     }
 
     @Override
-    public int getCurrentLightValue(LightType lightType, int posX, int posY, int posZ) {
+    public int getCurrentLightValue(@NotNull LightType lightType, int posX, int posY, int posZ) {
         processLightUpdatesForType(lightType);
         return world.lumi$getLightValue(lightType, posX, posY, posZ);
     }
 
     @Override
-    public void scheduleLightUpdateForRange(LightType lightType, BlockPos minBlockPos, BlockPos maxBlockPos) {
+    public void scheduleLightUpdateForRange(@NotNull LightType lightType, @NotNull BlockPos minBlockPos, @NotNull BlockPos maxBlockPos) {
         val minPosX = minBlockPos.getX();
         val maxPosX = maxBlockPos.getX();
         if (maxPosX < minPosX)
@@ -262,7 +263,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public void scheduleLightUpdateForRange(LightType lightType,
+    public void scheduleLightUpdateForRange(@NotNull LightType lightType,
                                             int minPosX,
                                             int minPosY,
                                             int minPosZ,
@@ -291,7 +292,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public void scheduleLightUpdateForColumn(LightType lightType, int posX, int posZ) {
+    public void scheduleLightUpdateForColumn(@NotNull LightType lightType, int posX, int posZ) {
         acquireLock();
         try {
             for (var posY = 0; posY < 255; posY++)
@@ -302,7 +303,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public void scheduleLightUpdateForColumn(LightType lightType, int posX, int posZ, int minPosY, int maxPosY) {
+    public void scheduleLightUpdateForColumn(@NotNull LightType lightType, int posX, int posZ, int minPosY, int maxPosY) {
         if (maxPosY < minPosY)
             return;
 
@@ -316,7 +317,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public void scheduleLightUpdate(LightType lightType, BlockPos blockPos) {
+    public void scheduleLightUpdate(@NotNull LightType lightType, @NotNull BlockPos blockPos) {
         acquireLock();
         try {
             scheduleLightUpdate(lightType, posLongFromBlockPos(blockPos));
@@ -326,7 +327,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public void scheduleLightUpdate(LightType lightType, int posX, int posY, int posZ) {
+    public void scheduleLightUpdate(@NotNull LightType lightType, int posX, int posY, int posZ) {
         acquireLock();
         try {
             scheduleLightUpdate(lightType, posLongFromPosXYZ(posX, posY, posZ));
@@ -336,7 +337,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public void processLightUpdatesForType(LightType lightType) {
+    public void processLightUpdatesForType(@NotNull LightType lightType) {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
