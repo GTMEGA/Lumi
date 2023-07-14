@@ -62,30 +62,79 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     private static final int MIN_BLOCK_OPACITY = 1;
     private static final int MAX_BLOCK_OPACITY = 15;
 
-    private static final int MAX_SCHEDULED_COUNT = 1 << 22;
+    /**
+     * Maximum scheduled lighting updates before processing the updates is forced.
+     */
+    private static final int MAX_SCHEDULED_UPDATES = 1 << 22;
 
-    private static final int POS_X_BIT_SIZE = 26;
-    private static final int POS_Y_BIT_SIZE = 8;
-    private static final int POS_Z_BIT_SIZE = 26;
-    private static final int LIGHT_VALUE_BIT_SIZE = 4;
-
+    /**
+     * Bit length of the Z coordinate in a pos long.
+     */
+    private static final int POS_Z_BIT_LENGTH = 26;
+    /**
+     * Bit length of the X coordinate in a pos long.
+     */
+    private static final int POS_X_BIT_LENGTH = 26;
+    /**
+     * Bit length of the Y coordinate in a pos long.
+     */
+    private static final int POS_Y_BIT_LENGTH = 8;
+    /**
+     * Bit length of the light value in a pos long.
+     */
+    private static final int LIGHT_VALUE_BIT_LENGTH = 4;
+    /**
+     * Bit shift for the Z coordinate in a pos long.
+     */
     private static final int POS_Z_BIT_SHIFT = 0;
-    private static final int POS_X_BIT_SHIFT = POS_Z_BIT_SHIFT + POS_Z_BIT_SIZE;
-    private static final int POS_Y_BIT_SHIFT = POS_X_BIT_SHIFT + POS_X_BIT_SIZE;
-    private static final int LIGHT_VALUE_BIT_SHIFT = POS_Y_BIT_SHIFT + POS_Y_BIT_SIZE;
-
-    private static final long Y_POS_OVERFLOW_CHECK_BIT_MASK = 1L << (POS_Y_BIT_SHIFT + POS_Y_BIT_SIZE);
-
-    private static final long POS_X_BIT_MASK = (1L << POS_X_BIT_SIZE) - 1;
-    private static final long POS_Y_BIT_MASK = (1L << POS_Y_BIT_SIZE) - 1;
-    private static final long POS_Z_BIT_MASK = (1L << POS_Z_BIT_SIZE) - 1;
-    private static final long LIGHT_VALUE_BIT_MASK = (1L << LIGHT_VALUE_BIT_SIZE) - 1;
-
-    private static final long BLOCK_POS_MASK = (POS_Y_BIT_MASK << POS_Y_BIT_SHIFT) |
-                                               (POS_X_BIT_MASK << POS_X_BIT_SHIFT) |
-                                               (POS_Z_BIT_MASK << POS_Z_BIT_SHIFT);
-    private static final long CHUNK_POS_MASK = ((POS_X_BIT_MASK >> 4) << (4 + POS_X_BIT_SHIFT)) |
-                                               ((POS_Z_BIT_MASK >> 4) << (4 + POS_Z_BIT_SHIFT));
+    /**
+     * Bit shift the X coordinate in a pos long.
+     */
+    private static final int POS_X_BIT_SHIFT = POS_Z_BIT_SHIFT + POS_Z_BIT_LENGTH;
+    /**
+     * Bit shift the Y coordinate in a pos long.
+     */
+    private static final int POS_Y_BIT_SHIFT = POS_X_BIT_SHIFT + POS_X_BIT_LENGTH;
+    /**
+     * Bit shift for the light value in a pos long.
+     */
+    private static final int LIGHT_VALUE_BIT_SHIFT = POS_Y_BIT_SHIFT + POS_Y_BIT_LENGTH;
+    /**
+     * Bit mask of the Z coordinate in a pos long.
+     */
+    private static final long POS_Z_BIT_MASK = (1L << POS_Z_BIT_LENGTH) - 1;
+    /**
+     * Bit mask of the X coordinate in a pos long.
+     */
+    private static final long POS_X_BIT_MASK = (1L << POS_X_BIT_LENGTH) - 1;
+    /**
+     * Bit mask of the Y coordinate in a pos long.
+     */
+    private static final long POS_Y_BIT_MASK = (1L << POS_Y_BIT_LENGTH) - 1;
+    /**
+     * Bit mask of the light value in a pos long.
+     */
+    private static final long LIGHT_VALUE_BIT_MASK = (1L << LIGHT_VALUE_BIT_LENGTH) - 1;
+    /**
+     * Composite bit mask for the XYZ coordinates in a pos long.
+     */
+    private static final long BLOCK_POS_BIT_MASK = (POS_Z_BIT_MASK << POS_Z_BIT_SHIFT) |
+                                                   (POS_X_BIT_MASK << POS_X_BIT_SHIFT) |
+                                                   (POS_Y_BIT_MASK << POS_Y_BIT_SHIFT);
+    /**
+     * Bit mask zeroing out the Y coordinate and light value in a pos long, alongside the lower 4 bits in X and Z.
+     * <p>
+     * Used for comparing if two given pos longs are in the same chunk.
+     */
+    private static final long BLOCK_POS_CHUNK_BIT_MASK = ((POS_Z_BIT_MASK >> 4) << (4 + POS_Z_BIT_SHIFT)) |
+                                                         ((POS_X_BIT_MASK >> 4) << (4 + POS_X_BIT_SHIFT));
+    /**
+     * Pos long overflow check bit mask.
+     * <p>
+     * Used for checking if a pos long has overflowed into the light value range,
+     * which is expected when dealing with cursor data, but not when dealing with a simple pos long.
+     */
+    private static final long POS_OVERFLOW_CHECK_BIT_MASK = 1L << (POS_Y_BIT_SHIFT + POS_Y_BIT_LENGTH);
 
     private static final List<Direction> NEIGHBOUR_DIRECTIONS = Direction.validDirections();
     private static final int NEIGHBOUR_COUNT = NEIGHBOUR_DIRECTIONS.size();
@@ -132,7 +181,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     private @Nullable PooledLongQueue.LongQueueIterator queueIterator;
 
     private final BlockPos.MutableBlockPos cursorBlockPos;
-    private @Nullable LumiChunk cursorChunk;
+    private LumiChunk cursorChunk;
     private long cursorChunkPosLong;
     private long cursorData;
 
@@ -331,7 +380,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     private void scheduleLightUpdate(LightType lightType, long posLong) {
         val queue = updateQueues[lightType.ordinal()];
-        if (queue.size() >= MAX_SCHEDULED_COUNT)
+        if (queue.size() >= MAX_SCHEDULED_UPDATES)
             processLightUpdatesForType(lightType);
 
         queue.add(posLong);
@@ -411,7 +460,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             // Sets the light to newLight to only schedule once. Clear leading bits of curData for later
             val cursorDataLightValue = (int) (cursorData >> LIGHT_VALUE_BIT_SHIFT & LIGHT_VALUE_BIT_MASK);
             if (cursorDataLightValue > getCursorCurrentLightValue(lightType)) {
-                val posLong = cursorData & BLOCK_POS_MASK;
+                val posLong = cursorData & BLOCK_POS_BIT_MASK;
                 enqueueBrightening(cursorBlockPos, posLong, cursorDataLightValue, cursorChunk, lightType);
             }
         }
@@ -514,14 +563,14 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             val neighbor = neighborBlocks[i];
 
             neighbor.posLong = cursorData + BLOCK_SIDE_BIT_OFFSET[i];
-            if ((neighbor.posLong & Y_POS_OVERFLOW_CHECK_BIT_MASK) != 0) {
+            if ((neighbor.posLong & POS_OVERFLOW_CHECK_BIT_MASK) != 0) {
                 neighbor.chunk = null;
                 neighbor.subChunk = null;
                 continue;
             }
 
             blockPosFromPosLong(neighbor.blockPos, neighbor.posLong);
-            if ((neighbor.posLong & CHUNK_POS_MASK) == cursorChunkPosLong) {
+            if ((neighbor.posLong & BLOCK_POS_CHUNK_BIT_MASK) == cursorChunkPosLong) {
                 neighbor.chunk = cursorChunk;
             } else {
                 neighbor.chunk = getChunk(neighbor.blockPos);
@@ -633,15 +682,17 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     private static long posLongFromPosXYZ(int posX, int posY, int posZ) {
-        return ((long) posY << POS_Y_BIT_SHIFT) |
-               ((long) posX + (1L << POS_X_BIT_SIZE - 1L) << POS_X_BIT_SHIFT) |
-               ((long) posZ + (1L << POS_Z_BIT_SIZE - 1L) << POS_Z_BIT_SHIFT);
+        // The additional logic is needed as the X and Z may be negative, and this preserves the sign value.
+        return ((long) posX + (1L << POS_X_BIT_LENGTH - 1L) << POS_X_BIT_SHIFT) |
+               ((long) posY << POS_Y_BIT_SHIFT) |
+               ((long) posZ + (1L << POS_Z_BIT_LENGTH - 1L) << POS_Z_BIT_SHIFT);
     }
 
     private static void blockPosFromPosLong(BlockPos.MutableBlockPos blockPos, long longPos) {
-        val posX = (int) (longPos >> POS_X_BIT_SHIFT & POS_X_BIT_MASK) - (1L << POS_X_BIT_SIZE - 1L);
+        // The additional logic is needed as the X and Z may be negative, and this preserves the sign value.
+        val posX = (int) (longPos >> POS_X_BIT_SHIFT & POS_X_BIT_MASK) - (1L << POS_X_BIT_LENGTH - 1L);
         val posY = (int) (longPos >> POS_Y_BIT_SHIFT & POS_Y_BIT_MASK);
-        val posZ = (int) (longPos >> POS_Z_BIT_SHIFT & POS_Z_BIT_MASK) - (1L << POS_Z_BIT_SIZE - 1L);
+        val posZ = (int) (longPos >> POS_Z_BIT_SHIFT & POS_Z_BIT_MASK) - (1L << POS_Z_BIT_LENGTH - 1L);
         blockPos.setPos(posX, posY, posZ);
     }
 
@@ -656,7 +707,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
         blockPosFromPosLong(cursorBlockPos, cursorData);
 
-        val chunkPosLong = cursorData & CHUNK_POS_MASK;
+        val chunkPosLong = cursorData & BLOCK_POS_CHUNK_BIT_MASK;
         if (cursorChunkPosLong != chunkPosLong) {
             cursorChunk = getChunk(cursorBlockPos);
             cursorChunkPosLong = chunkPosLong;
