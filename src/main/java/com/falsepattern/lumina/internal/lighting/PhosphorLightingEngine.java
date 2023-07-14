@@ -64,21 +64,21 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     private static final int MAX_SCHEDULED_COUNT = 1 << 22;
 
+    private static final int POS_X_BIT_SIZE = 26;
+    private static final int POS_Y_BIT_SIZE = 8;
     private static final int POS_Z_BIT_SIZE = 26;
-    private static final int POS_X_BIT_SIZE = 8;
-    private static final int POS_Y_BIT_SIZE = 26;
     private static final int LIGHT_VALUE_BIT_SIZE = 4;
 
     private static final int POS_Z_BIT_SHIFT = 0;
-    private static final int POS_X_BIT_SHIFT = POS_Z_BIT_SHIFT + POS_Y_BIT_SIZE;
-    private static final int POS_Y_BIT_SHIFT = POS_X_BIT_SHIFT + POS_Z_BIT_SIZE;
-    private static final int LIGHT_VALUE_BIT_SHIFT = POS_Y_BIT_SHIFT + POS_X_BIT_SIZE;
+    private static final int POS_X_BIT_SHIFT = POS_Z_BIT_SHIFT + POS_Z_BIT_SIZE;
+    private static final int POS_Y_BIT_SHIFT = POS_X_BIT_SHIFT + POS_X_BIT_SIZE;
+    private static final int LIGHT_VALUE_BIT_SHIFT = POS_Y_BIT_SHIFT + POS_Y_BIT_SIZE;
 
-    private static final long Y_POS_OVERFLOW_CHECK_BIT_MASK = 1L << (POS_Y_BIT_SHIFT + POS_X_BIT_SIZE);
+    private static final long Y_POS_OVERFLOW_CHECK_BIT_MASK = 1L << (POS_Y_BIT_SHIFT + POS_Y_BIT_SIZE);
 
-    private static final long POS_X_BIT_MASK = (1L << POS_Z_BIT_SIZE) - 1;
-    private static final long POS_Y_BIT_MASK = (1L << POS_X_BIT_SIZE) - 1;
-    private static final long POS_Z_BIT_MASK = (1L << POS_Y_BIT_SIZE) - 1;
+    private static final long POS_X_BIT_MASK = (1L << POS_X_BIT_SIZE) - 1;
+    private static final long POS_Y_BIT_MASK = (1L << POS_Y_BIT_SIZE) - 1;
+    private static final long POS_Z_BIT_MASK = (1L << POS_Z_BIT_SIZE) - 1;
     private static final long LIGHT_VALUE_BIT_MASK = (1L << LIGHT_VALUE_BIT_SIZE) - 1;
 
     private static final long BLOCK_POS_MASK = (POS_Y_BIT_MASK << POS_Y_BIT_SHIFT) |
