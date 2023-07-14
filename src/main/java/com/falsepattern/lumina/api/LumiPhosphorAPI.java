@@ -19,8 +19,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api.coordinate;
+package com.falsepattern.lumina.api;
 
-public enum FacingDirection {
-    INPUT, OUTPUT
+import com.falsepattern.lumina.api.lighting.LumiLightingEngineProvider;
+import lombok.experimental.UtilityClass;
+
+import static com.falsepattern.lumina.internal.lighting.phosphor.Phosphor.createPhosphorProvider;
+
+@UtilityClass
+public final class LumiPhosphorAPI {
+    private static final LumiLightingEngineProvider PHOSPHOR_PROVIDER = createPhosphorProvider();
+
+    public static LumiLightingEngineProvider phosphorProvider() {
+        return PHOSPHOR_PROVIDER;
+    }
 }

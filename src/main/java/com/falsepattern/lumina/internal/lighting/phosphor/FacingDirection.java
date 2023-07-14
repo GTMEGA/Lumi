@@ -21,12 +21,6 @@
 
 package com.falsepattern.lumina.internal.lighting.phosphor;
 
-import com.falsepattern.lumina.api.lighting.LumiLightingEngineProvider;
-
-public final class PhosphorAPI {
-    private static final LumiLightingEngineProvider PHOSPHOR_PROVIDER = PhosphorEngine::new;
-
-    public static LumiLightingEngineProvider phosphorProvider() {
-        return PHOSPHOR_PROVIDER;
-    }
+enum FacingDirection {
+    INPUT, OUTPUT
 }

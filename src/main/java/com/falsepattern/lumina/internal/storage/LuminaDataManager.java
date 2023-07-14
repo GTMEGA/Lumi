@@ -36,7 +36,7 @@ import java.nio.ByteBuffer;
 @NoArgsConstructor
 public final class LuminaDataManager implements ChunkDataManager.ChunkNBTDataManager,
                                                 ChunkDataManager.PacketDataManager {
-    public static final String VERSION_NBT_TAG_NAME = Tags.MODID + "_version";
+    public static final String VERSION_NBT_TAG_NAME = Tags.MOD_ID + "_version";
     public static final String LIGHT_INITIALIZED_NBT_TAG_NAME = "lighting_initialized";
     public static final String SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME = "sky_light_height_map";
 
@@ -104,7 +104,7 @@ public final class LuminaDataManager implements ChunkDataManager.ChunkNBTDataMan
 
     @Override
     public String domain() {
-        return Tags.MODNAME;
+        return Tags.MOD_NAME;
     }
 
     @Override

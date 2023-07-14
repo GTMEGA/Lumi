@@ -22,14 +22,14 @@
 package com.falsepattern.lumina.internal.lighting.phosphor;
 
 import com.falsepattern.lib.compat.BlockPos;
-import com.falsepattern.lib.internal.Share;
 import com.falsepattern.lib.util.MathUtil;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
-import com.falsepattern.lumina.api.coordinate.Direction;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
+import com.falsepattern.lumina.api.lighting.LumiLightingEngineProvider;
 import com.falsepattern.lumina.api.world.LumiWorld;
+import com.falsepattern.lumina.internal.Tags;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import lombok.NoArgsConstructor;
@@ -39,6 +39,8 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.profiler.Profiler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +52,9 @@ import static com.falsepattern.lumina.api.lighting.LightType.values;
 import static com.falsepattern.lumina.internal.lighting.phosphor.LightingHooksOld.getLoadedChunk;
 
 
-public final class PhosphorEngine implements LumiLightingEngine {
+public final class Phosphor implements LumiLightingEngine {
+    private static final Logger LOG = LogManager.getLogger(Tags.MOD_NAME + "|Phosphor");
+
     private static final boolean ENABLE_ILLEGAL_THREAD_ACCESS_WARNINGS = true;
 
     private static final int MIN_LIGHT_VALUE = 0;
@@ -190,7 +194,7 @@ public final class PhosphorEngine implements LumiLightingEngine {
 
     private boolean isUpdating;
 
-    public PhosphorEngine(LumiWorld world, Profiler profiler) {
+    private Phosphor(LumiWorld world, Profiler profiler) {
         this.world = world;
         this.profiler = profiler;
 
@@ -221,6 +225,10 @@ public final class PhosphorEngine implements LumiLightingEngine {
         this.isUpdating = false;
     }
 
+    public static LumiLightingEngineProvider createPhosphorProvider() {
+        return Phosphor::new;
+    }
+
     @Override
     public int getCurrentLightValue(@NotNull LightType lightType, @NotNull BlockPos blockPos) {
         return getCurrentLightValue(lightType, blockPos.getX(), blockPos.getY(), blockPos.getZ());
@@ -237,17 +245,23 @@ public final class PhosphorEngine implements LumiLightingEngine {
         if (!world.lumi$root().lumi$hasSky())
             return;
 
-        val maxPosY = subChunk.lumi$root().lumi$posY() + 15;
-        val lightValue = SKY_LIGHT_TYPE.defaultLightValue();
-        for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
-            for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
-                if (chunk.lumi$canBlockSeeSky(subChunkPosX, maxPosY, subChunkPosZ)) {
-                    for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
-                        subChunk.lumi$setSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+        acquireLock();
+        try {
+            val maxPosY = subChunk.lumi$root().lumi$posY() + 15;
+            val lightValue = SKY_LIGHT_TYPE.defaultLightValue();
+            for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
+                for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
+                    if (chunk.lumi$canBlockSeeSky(subChunkPosX, maxPosY, subChunkPosZ)) {
+                        for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
+                            subChunk.lumi$setSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+                        }
                     }
                 }
             }
+        } finally {
+            releaseLock();
         }
+        chunk.lumi$root().lumi$markDirty();
     }
 
     @Override
@@ -323,7 +337,6 @@ public final class PhosphorEngine implements LumiLightingEngine {
     public void scheduleLightingUpdateForColumn(@NotNull LightType lightType, int posX, int posZ, int minPosY, int maxPosY) {
         if (maxPosY < minPosY)
             return;
-
         acquireLock();
         try {
             for (var posY = minPosY; posY < maxPosY; posY++)
@@ -358,7 +371,7 @@ public final class PhosphorEngine implements LumiLightingEngine {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
-        if (world.lumi$root().lumi$isClientSide() && !isCallingFromMainThread())
+        if (world.lumi$root().lumi$isClientSide() && !isCallingFromClientThread())
             return;
 
         // Quickly check if the queue is empty before we acquire a more expensive lock.
@@ -382,7 +395,7 @@ public final class PhosphorEngine implements LumiLightingEngine {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
-        if (world.lumi$root().lumi$isClientSide() && !isCallingFromMainThread())
+        if (world.lumi$root().lumi$isClientSide() && !isCallingFromClientThread())
             return;
 
         // Quickly check if the queue is empty before we acquire a more expensive lock.
@@ -416,39 +429,42 @@ public final class PhosphorEngine implements LumiLightingEngine {
     }
 
     @SideOnly(Side.CLIENT)
-    private boolean isCallingFromMainThread() {
+    private boolean isCallingFromClientThread() {
         return Minecraft.getMinecraft().func_152345_ab();
     }
 
     private void acquireLock() {
-        if (!lock.tryLock()) {
-            // If we cannot lock, something has gone wrong... Only one thread should ever acquire the lock.
-            // Validate that we're on the right thread immediately so we can gather information.
-            // It is NEVER valid to call World methods from a thread other than the owning thread of the world instance.
-            // Users can safely disable this warning, however it will not resolve the issue.
-            if (ENABLE_ILLEGAL_THREAD_ACCESS_WARNINGS) {
-                final Thread current = Thread.currentThread();
+        if (lock.tryLock())
+            return;
 
-                if (current != updateThread) {
-                    final IllegalAccessException e = new IllegalAccessException(String.format("World is owned by '%s' (ID: %s)," +
-                                                                                              " but was accessed from thread '%s' (ID: %s)",
-                                                                                              updateThread.getName(), updateThread.getId(), current.getName(), current.getId()));
+        // If we cannot lock, something has gone wrong... Only one thread should ever acquire the lock.
+        // Validate that we're on the right thread immediately so we can gather information.
+        // It is NEVER valid to call World methods from a thread other than the owning thread of the world instance.
+        // Users can safely disable this warning, however it will not resolve the issue.
+        if (ENABLE_ILLEGAL_THREAD_ACCESS_WARNINGS) {
+            val currentThread = Thread.currentThread();
 
-                    Share.LOG.warn(
-                            "Something (likely another mod) has attempted to modify the world's state from the wrong thread!\n" +
-                            "This is *bad practice* and can cause severe issues in your game. Phosphor has done as best as it can to mitigate this violation," +
-                            " but it may negatively impact performance or introduce stalls.\nIn a future release, this violation may result in a hard crash instead" +
-                            " of the current soft warning. You should report this issue to our issue tracker with the following stacktrace information.\n(If you are" +
-                            " aware you have misbehaving mods and cannot resolve this issue, you can safely disable this warning by setting" +
-                            " `enable_illegal_thread_access_warnings` to `false` in Phosphor's configuration file for the time being.)", e);
+            if (currentThread != updateThread) {
+                val e = new IllegalAccessException(String.format("World is owned by '%s' (ID: %s)," +
+                                                                 " but was accessed from thread '%s' (ID: %s)",
+                                                                 updateThread.getName(),
+                                                                 updateThread.getId(),
+                                                                 currentThread.getName(),
+                                                                 currentThread.getId()));
 
-                }
+                LOG.error("Something (likely another mod) has attempted to modify the world's state from the wrong thread!\n" +
+                          "This is *bad practice* and can cause severe issues in your game.\n" +
+                          "Phosphor has done as best as it can to mitigate this violation, but it may negatively impact performance or introduce stalls.\n" +
+                          "You should report this issue to our issue tracker with the following stacktrace information.\n" +
+                          "(If you are aware you have misbehaving mods and cannot resolve this issue, you can safely disable this warning by setting" +
+                          " `enable_illegal_thread_access_warnings` to `false` in LUMINAS's configuration file for the time being.)", e);
 
             }
 
-            // Wait for the lock to be released. This will likely introduce unwanted stalls, but will mitigate the issue.
-            lock.lock();
         }
+
+        // Wait for the lock to be released. This will likely introduce unwanted stalls, but will mitigate the issue.
+        lock.lock();
     }
 
     private void releaseLock() {
@@ -697,6 +713,7 @@ public final class PhosphorEngine implements LumiLightingEngine {
         val subChunkPosZ = blockPos.getZ() & 15;
         brighteningQueues[lightValue].add(posLong);
         chunk.lumi$setLightValue(lightType, subChunkPosX, posY, subChunkPosZ, lightValue);
+        chunk.lumi$root().lumi$markDirty();
     }
 
     private void enqueueDarkening(BlockPos blockPos,
@@ -712,6 +729,7 @@ public final class PhosphorEngine implements LumiLightingEngine {
         val subChunkPosZ = blockPos.getZ() & 15;
         darkeningQueues[oldLightValue].add(posLong);
         chunk.lumi$setLightValue(lightType, subChunkPosX, posY, subChunkPosZ, MIN_LIGHT_VALUE);
+        chunk.lumi$root().lumi$markDirty();
     }
 
     private static long posLongFromBlockPos(BlockPos blockPos) {

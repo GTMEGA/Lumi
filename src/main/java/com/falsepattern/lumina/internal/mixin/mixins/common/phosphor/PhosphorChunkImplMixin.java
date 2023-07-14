@@ -25,25 +25,16 @@ import com.falsepattern.lumina.internal.lighting.phosphor.PhosphorChunk;
 import net.minecraft.world.chunk.Chunk;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Unique
 @Mixin(Chunk.class)
 public abstract class PhosphorChunkImplMixin implements PhosphorChunk {
     private short[] phosphor$neighborLightCheckFlags;
 
-    @Inject(method = "<init>*",
-            at = @At("RETURN"),
-            require = 1)
-    @SuppressWarnings("CastToIncompatibleInterface")
-    private void phosphorChunkInit(CallbackInfo ci) {
-        this.phosphor$neighborLightCheckFlags = new short[LIGHT_CHECK_FLAGS_LENGTH];
-    }
-
     @Override
     public short[] phosphor$lightCheckFlags() {
-        return this.phosphor$neighborLightCheckFlags;
+        if (phosphor$neighborLightCheckFlags == null)
+            phosphor$neighborLightCheckFlags = new short[LIGHT_CHECK_FLAGS_LENGTH];
+        return phosphor$neighborLightCheckFlags;
     }
 }

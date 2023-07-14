@@ -6,33 +6,34 @@
  * in all copies or substantial portions of the Software.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
+ * it under the terms of the GNU Lesser General License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU General License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
+ * You should have received a copy of the GNU Lesser General License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api.coordinate;
+package com.falsepattern.lumina.internal.lighting.phosphor;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.val;
 
-import static com.falsepattern.lumina.api.coordinate.Direction.EAST;
-import static com.falsepattern.lumina.api.coordinate.Direction.WEST;
+import static com.falsepattern.lumina.internal.lighting.phosphor.Direction.EAST;
+import static com.falsepattern.lumina.internal.lighting.phosphor.Direction.WEST;
+import static lombok.AccessLevel.PACKAGE;
 
-@Getter
+@Getter(PACKAGE)
 @Accessors(fluent = true, chain = false)
 @RequiredArgsConstructor
-public enum DirectionSign {
+enum DirectionSign {
     POSITIVE(1),
     NEGATIVE(-1),
     ;
@@ -40,11 +41,11 @@ public enum DirectionSign {
     @Getter
     private final int sign;
 
-    public DirectionSign opposite() {
+    DirectionSign opposite() {
         return opposite(this);
     }
 
-    public static DirectionSign of(Direction direction) {
+    static DirectionSign of(Direction direction) {
         switch (direction) {
             default:
             case UP:
@@ -58,7 +59,7 @@ public enum DirectionSign {
         }
     }
 
-    public static DirectionSign of(Direction direction, int facingOffsetX, int facingOffsetZ) {
+    static DirectionSign of(Direction direction, int facingOffsetX, int facingOffsetZ) {
         val subChunkPosX = facingOffsetX & 15;
         val subChunkPosZ = facingOffsetZ & 15;
 

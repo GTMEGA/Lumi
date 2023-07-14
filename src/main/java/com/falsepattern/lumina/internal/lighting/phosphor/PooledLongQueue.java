@@ -6,16 +6,16 @@
  * in all copies or substantial portions of the Software.
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
+ * it under the terms of the GNU Lesser General License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU General License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
+ * You should have received a copy of the GNU Lesser General License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
@@ -28,13 +28,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+import static lombok.AccessLevel.PACKAGE;
 import static lombok.AccessLevel.PRIVATE;
 
 /**
  * Implement own queue with pooled segments to reduce allocation costs and reduce idle memory footprint
  */
 @RequiredArgsConstructor(access = PRIVATE)
-public final class PooledLongQueue {
+final class PooledLongQueue {
     /**
      * Maximum number of segments which each pool will keep
      */
@@ -57,7 +58,7 @@ public final class PooledLongQueue {
      */
     private volatile boolean empty;
 
-    public static Pool createPool() {
+    static Pool createPool() {
         return new Pool();
     }
 
@@ -66,7 +67,7 @@ public final class PooledLongQueue {
      *
      * @return The number of encoded values present in this queue
      */
-    public int size() {
+    int size() {
         return size;
     }
 
@@ -75,7 +76,7 @@ public final class PooledLongQueue {
      *
      * @return True if the queue is empty, otherwise false
      */
-    public boolean isEmpty() {
+    boolean isEmpty() {
         return empty;
     }
 
@@ -84,7 +85,7 @@ public final class PooledLongQueue {
      *
      * @param value The long to add
      */
-    public void add(long value) {
+    void add(long value) {
         if (headSegment == null) {
             val segment = queuePool.acquire();
             this.headSegment = segment;
@@ -106,7 +107,7 @@ public final class PooledLongQueue {
      *
      * @return The iterator
      */
-    public LongQueueIterator iterator() {
+    LongQueueIterator iterator() {
         return new LongQueueIterator(headSegment);
     }
 
@@ -125,10 +126,10 @@ public final class PooledLongQueue {
     }
 
     @NoArgsConstructor(access = PRIVATE)
-    public static final class Pool {
+    static final class Pool {
         private final Deque<Segment> segments = new ArrayDeque<>();
 
-        public PooledLongQueue createQueue() {
+        PooledLongQueue createQueue() {
             return new PooledLongQueue(this);
         }
 
@@ -164,14 +165,14 @@ public final class PooledLongQueue {
     }
 
     @Accessors(fluent = true, chain = false)
-    public final class LongQueueIterator {
+    final class LongQueueIterator {
         private @Nullable Segment currentSegment;
         private long @Nullable [] data;
 
         private int capacity;
         private int index;
 
-        @Getter
+        @Getter(PACKAGE)
         private boolean hasNext;
 
         private LongQueueIterator(@Nullable Segment currentSegment) {
@@ -190,7 +191,7 @@ public final class PooledLongQueue {
             }
         }
 
-        public long next() {
+        long next() {
             if (!hasNext)
                 throw new IllegalStateException("Iterator has no more elements");
 

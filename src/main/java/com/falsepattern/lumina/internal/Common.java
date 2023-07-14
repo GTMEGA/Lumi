@@ -28,5 +28,5 @@ import org.apache.logging.log4j.Logger;
  * Non-minecraft stuff to avoid accidental classloading in spaghetti code
  */
 public class Common {
-    public static final Logger LOG = LogManager.getLogger(Tags.MODID);
+    public static final Logger LOG = LogManager.getLogger(Tags.MOD_ID);
 }

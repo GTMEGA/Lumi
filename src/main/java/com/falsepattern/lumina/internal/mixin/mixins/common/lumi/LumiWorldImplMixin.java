@@ -88,7 +88,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
 
     @Override
     public String lumi$worldID() {
-        return Tags.MODID;
+        return Tags.MOD_ID;
     }
 
     @Override

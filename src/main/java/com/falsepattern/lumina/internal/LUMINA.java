@@ -33,9 +33,9 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@Mod(modid = Tags.MODID,
+@Mod(modid = Tags.MOD_ID,
      version = Tags.VERSION,
-     name = Tags.MODNAME,
+     name = Tags.MOD_NAME,
      acceptedMinecraftVersions = "[1.7.10]",
      dependencies = "required-after:falsepatternlib@[0.11,);required-after:chunkapi@[0.2,)")
 public class LUMINA {

@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api.coordinate;
+package com.falsepattern.lumina.internal.lighting.phosphor;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -31,9 +31,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@Getter
+import static lombok.AccessLevel.PACKAGE;
+
+@Getter(PACKAGE)
 @Accessors(fluent = true, chain = false)
-public enum Direction {
+enum Direction {
     // @formatter:off
     DOWN(   ForgeDirection.DOWN,    EnumFacing.DOWN),
     UP(     ForgeDirection.UP,      EnumFacing.UP),

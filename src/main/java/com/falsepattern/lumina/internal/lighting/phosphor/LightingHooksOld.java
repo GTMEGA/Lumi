@@ -23,9 +23,6 @@ package com.falsepattern.lumina.internal.lighting.phosphor;
 
 import com.falsepattern.lib.internal.Share;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
-import com.falsepattern.lumina.api.coordinate.Direction;
-import com.falsepattern.lumina.api.coordinate.DirectionSign;
-import com.falsepattern.lumina.api.coordinate.FacingDirection;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import cpw.mods.fml.relauncher.Side;
@@ -42,6 +39,7 @@ import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorChunk.LIGHT_CHECK_FLAGS_LENGTH;
 
+@Deprecated
 @UtilityClass
 public final class LightingHooksOld {
 
@@ -465,14 +463,11 @@ public final class LightingHooksOld {
                                                      int posZ,
                                                      int minPosY,
                                                      int maxPosY) {
-        if (maxPosY <= minPosY)
-            return;
         if (!slice.isLoaded(posX, posZ, 16))
             return;
 
         val lightingEngine = chunk.lumi$world().lumi$lightingEngine();
-        for (var posY = minPosY; posY < maxPosY; posY++)
-            lightingEngine.scheduleLightingUpdate(SKY_LIGHT_TYPE, posX, posY, posZ);
+        lightingEngine.scheduleLightingUpdateForColumn(SKY_LIGHT_TYPE, posX, posZ, minPosY, maxPosY);
         chunk.lumi$root().lumi$markDirty();
     }
 
