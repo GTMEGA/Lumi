@@ -54,11 +54,6 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     public abstract void setChunkModified();
 
     @Override
-    public Chunk lumi$base() {
-        return (Chunk) (Object) this;
-    }
-
-    @Override
     public Block lumi$getBlock(int subChunkPosX, int posY, int subChunkPosZ) {
         return getBlock(subChunkPosX, posY, subChunkPosZ);
     }

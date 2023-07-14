@@ -22,12 +22,8 @@
 package com.falsepattern.lumina.api.chunk;
 
 import net.minecraft.block.Block;
-import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 public interface LumiSubChunkRoot {
-    @Deprecated
-    ExtendedBlockStorage lumi$base();
-
     int lumi$posY();
 
     Block lumi$getBlock(int subChunkPosX, int subChunkPosY, int subChunkPosZ);

@@ -64,11 +64,6 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     public abstract void func_147479_m(int posX, int posY, int posZ);
 
     @Override
-    public World lumi$base() {
-        return (World) (Object) this;
-    }
-
-    @Override
     public Profiler lumi$profiler() {
         return theProfiler;
     }

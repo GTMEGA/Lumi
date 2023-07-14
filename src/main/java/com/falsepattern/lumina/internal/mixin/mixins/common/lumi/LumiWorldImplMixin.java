@@ -54,10 +54,10 @@ import static com.falsepattern.lumina.internal.world.LumiWorldManager.createLigh
 @Mixin(World.class)
 public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     @Shadow
-    public abstract Chunk getChunkFromBlockCoords(int p_72938_1_, int p_72938_2_);
+    public abstract Chunk getChunkFromBlockCoords(int posX, int posZ);
 
     @Shadow
-    public abstract Chunk getChunkFromChunkCoords(int p_72964_1_, int p_72964_2_);
+    public abstract Chunk getChunkFromChunkCoords(int chunkPosX, int chunkPosZ);
 
     private LumiWorldRoot lumi$root = null;
     private LumiLightingEngine lumi$lightingEngine = null;

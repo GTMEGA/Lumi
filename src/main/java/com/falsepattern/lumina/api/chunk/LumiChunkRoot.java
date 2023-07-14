@@ -22,12 +22,8 @@
 package com.falsepattern.lumina.api.chunk;
 
 import net.minecraft.block.Block;
-import net.minecraft.world.chunk.Chunk;
 
 public interface LumiChunkRoot {
-    @Deprecated
-    Chunk lumi$base();
-
     Block lumi$getBlock(int subChunkPosX, int posY, int subChunkPosZ);
 
     int lumi$getBlockMeta(int subChunkPosX, int posY, int subChunkPosZ);

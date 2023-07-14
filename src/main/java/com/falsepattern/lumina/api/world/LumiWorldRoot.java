@@ -23,13 +23,9 @@ package com.falsepattern.lumina.api.world;
 
 import net.minecraft.block.Block;
 import net.minecraft.profiler.Profiler;
-import net.minecraft.world.World;
 import net.minecraft.world.chunk.IChunkProvider;
 
 public interface LumiWorldRoot {
-    @Deprecated
-    World lumi$base();
-
     @Deprecated
     Profiler lumi$profiler();
 
