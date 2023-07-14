@@ -44,7 +44,6 @@ import java.util.Arrays;
 
 import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
-import static com.falsepattern.lumina.internal.lighting.LightingHooksOld.FLAG_COUNT;
 
 @Unique
 @Mixin(Chunk.class)
@@ -69,8 +68,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
 
     private LumiChunkRoot lumi$root;
     private LumiWorld lumi$world;
-    private short[] lumi$neighborLightCheckFlags;
-    private boolean lumi$lightingInitialized;
+    private boolean lumi$isLightingInitialized;
 
     @Inject(method = "<init>*",
             at = @At("RETURN"),
@@ -79,8 +77,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     private void lumiChunkInit(CallbackInfo ci) {
         this.lumi$root = (LumiChunkRoot) this;
         this.lumi$world = (LumiWorld) worldObj;
-        this.lumi$neighborLightCheckFlags = new short[FLAG_COUNT];
-        this.lumi$lightingInitialized = false;
+        this.lumi$isLightingInitialized = false;
     }
 
     @Override
@@ -330,17 +327,12 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public short[] lumi$neighborLightCheckFlags() {
-        return lumi$neighborLightCheckFlags;
+    public void lumi$isLightingInitialized(boolean lightingInitialized) {
+        this.lumi$isLightingInitialized = lightingInitialized;
     }
 
     @Override
-    public void lumi$lightingInitialized(boolean lightingInitialized) {
-        this.lumi$lightingInitialized = lightingInitialized;
-    }
-
-    @Override
-    public boolean lumi$lightingInitialized() {
-        return lumi$lightingInitialized;
+    public boolean lumi$isLightingInitialized() {
+        return lumi$isLightingInitialized;
     }
 }

@@ -19,21 +19,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.world;
+package com.falsepattern.lumina.internal.lighting.phosphor;
 
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.world.LumiWorld;
 
-import static com.falsepattern.lumina.internal.lighting.LightingHooksOld.getLoadedChunk;
+import static com.falsepattern.lumina.internal.lighting.phosphor.LightingHooksOld.getLoadedChunk;
 
-public class WorldChunkSlice {
+final class WorldChunkSlice {
     private static final int DIAMETER = 5;
 
     private final LumiChunk[] chunks;
 
     private final int x, z;
 
-    public WorldChunkSlice(LumiWorld world, int x, int z) {
+    WorldChunkSlice(LumiWorld world, int x, int z) {
         this.chunks = new LumiChunk[DIAMETER * DIAMETER];
 
         int radius = DIAMETER / 2;
@@ -49,19 +49,19 @@ public class WorldChunkSlice {
         this.z = z - radius;
     }
 
-    public LumiChunk getChunk(int x, int z) {
+    LumiChunk getChunk(int x, int z) {
         return this.chunks[(x * DIAMETER) + z];
     }
 
-    public LumiChunk getChunkFromWorldCoords(int x, int z) {
+    LumiChunk getChunkFromWorldCoords(int x, int z) {
         return this.getChunk((x >> 4) - this.x, (z >> 4) - this.z);
     }
 
-    public boolean isLoaded(int x, int z, int radius) {
+    boolean isLoaded(int x, int z, int radius) {
         return this.isLoaded(x - radius, z - radius, x + radius, z + radius);
     }
 
-    public boolean isLoaded(int xStart, int zStart, int xEnd, int zEnd) {
+    boolean isLoaded(int xStart, int zStart, int xEnd, int zEnd) {
         xStart = (xStart >> 4) - this.x;
         zStart = (zStart >> 4) - this.z;
         xEnd = (xEnd >> 4) - this.x;

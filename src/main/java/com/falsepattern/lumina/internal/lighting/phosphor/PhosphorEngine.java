@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.lighting;
+package com.falsepattern.lumina.internal.lighting.phosphor;
 
 import com.falsepattern.lib.compat.BlockPos;
 import com.falsepattern.lib.internal.Share;
@@ -30,7 +30,6 @@ import com.falsepattern.lumina.api.coordinate.Direction;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
-import com.falsepattern.lumina.internal.collection.PooledLongQueue;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import lombok.NoArgsConstructor;
@@ -48,10 +47,10 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.values;
-import static com.falsepattern.lumina.internal.lighting.LightingHooksOld.getLoadedChunk;
+import static com.falsepattern.lumina.internal.lighting.phosphor.LightingHooksOld.getLoadedChunk;
 
 
-public final class PhosphorLightingEngine implements LumiLightingEngine {
+public final class PhosphorEngine implements LumiLightingEngine {
     private static final boolean ENABLE_ILLEGAL_THREAD_ACCESS_WARNINGS = true;
 
     private static final int MIN_LIGHT_VALUE = 0;
@@ -191,7 +190,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     private boolean isUpdating;
 
-    public PhosphorLightingEngine(LumiWorld world, Profiler profiler) {
+    public PhosphorEngine(LumiWorld world, Profiler profiler) {
         this.world = world;
         this.profiler = profiler;
 
@@ -229,12 +228,30 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     @Override
     public int getCurrentLightValue(@NotNull LightType lightType, int posX, int posY, int posZ) {
-        processLightUpdatesForType(lightType);
+        processLightingUpdatesForType(lightType);
         return world.lumi$getLightValue(lightType, posX, posY, posZ);
     }
 
     @Override
-    public void scheduleLightUpdateForRange(@NotNull LightType lightType, @NotNull BlockPos minBlockPos, @NotNull BlockPos maxBlockPos) {
+    public void initLightingForSubChunk(@NotNull LumiChunk chunk, @NotNull LumiSubChunk subChunk) {
+        if (!world.lumi$root().lumi$hasSky())
+            return;
+
+        val maxPosY = subChunk.lumi$root().lumi$posY() + 15;
+        val lightValue = SKY_LIGHT_TYPE.defaultLightValue();
+        for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
+            for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
+                if (chunk.lumi$canBlockSeeSky(subChunkPosX, maxPosY, subChunkPosZ)) {
+                    for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
+                        subChunk.lumi$setSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void scheduleLightingUpdateForRange(@NotNull LightType lightType, @NotNull BlockPos minBlockPos, @NotNull BlockPos maxBlockPos) {
         val minPosX = minBlockPos.getX();
         val maxPosX = maxBlockPos.getX();
         if (maxPosX < minPosX)
@@ -253,7 +270,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             for (var posY = minPosY; posY < maxPosY; posY++) {
                 for (var posZ = minPosZ; posZ < maxPosZ; posZ++) {
                     for (var posX = minPosX; posX < maxPosX; posX++) {
-                        scheduleLightUpdate(lightType, posLongFromPosXYZ(posX, posY, posZ));
+                        scheduleLightingUpdate(lightType, posLongFromPosXYZ(posX, posY, posZ));
                     }
                 }
             }
@@ -263,13 +280,13 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public void scheduleLightUpdateForRange(@NotNull LightType lightType,
-                                            int minPosX,
-                                            int minPosY,
-                                            int minPosZ,
-                                            int maxPosX,
-                                            int maxPosY,
-                                            int maxPosZ) {
+    public void scheduleLightingUpdateForRange(@NotNull LightType lightType,
+                                               int minPosX,
+                                               int minPosY,
+                                               int minPosZ,
+                                               int maxPosX,
+                                               int maxPosY,
+                                               int maxPosZ) {
         if (maxPosX < minPosX)
             return;
         if (maxPosY < minPosY)
@@ -282,7 +299,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             for (var posY = minPosY; posY < maxPosY; posY++) {
                 for (var posZ = minPosZ; posZ < maxPosZ; posZ++) {
                     for (var posX = minPosX; posX < maxPosX; posX++) {
-                        scheduleLightUpdate(lightType, posLongFromPosXYZ(posX, posY, posZ));
+                        scheduleLightingUpdate(lightType, posLongFromPosXYZ(posX, posY, posZ));
                     }
                 }
             }
@@ -292,52 +309,52 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public void scheduleLightUpdateForColumn(@NotNull LightType lightType, int posX, int posZ) {
+    public void scheduleLightingUpdateForColumn(@NotNull LightType lightType, int posX, int posZ) {
         acquireLock();
         try {
             for (var posY = 0; posY < 255; posY++)
-                scheduleLightUpdate(lightType, posLongFromPosXYZ(posX, posY, posZ));
+                scheduleLightingUpdate(lightType, posLongFromPosXYZ(posX, posY, posZ));
         } finally {
             releaseLock();
         }
     }
 
     @Override
-    public void scheduleLightUpdateForColumn(@NotNull LightType lightType, int posX, int posZ, int minPosY, int maxPosY) {
+    public void scheduleLightingUpdateForColumn(@NotNull LightType lightType, int posX, int posZ, int minPosY, int maxPosY) {
         if (maxPosY < minPosY)
             return;
 
         acquireLock();
         try {
             for (var posY = minPosY; posY < maxPosY; posY++)
-                scheduleLightUpdate(lightType, posLongFromPosXYZ(posX, posY, posZ));
+                scheduleLightingUpdate(lightType, posLongFromPosXYZ(posX, posY, posZ));
         } finally {
             releaseLock();
         }
     }
 
     @Override
-    public void scheduleLightUpdate(@NotNull LightType lightType, @NotNull BlockPos blockPos) {
+    public void scheduleLightingUpdate(@NotNull LightType lightType, @NotNull BlockPos blockPos) {
         acquireLock();
         try {
-            scheduleLightUpdate(lightType, posLongFromBlockPos(blockPos));
+            scheduleLightingUpdate(lightType, posLongFromBlockPos(blockPos));
         } finally {
             releaseLock();
         }
     }
 
     @Override
-    public void scheduleLightUpdate(@NotNull LightType lightType, int posX, int posY, int posZ) {
+    public void scheduleLightingUpdate(@NotNull LightType lightType, int posX, int posY, int posZ) {
         acquireLock();
         try {
-            scheduleLightUpdate(lightType, posLongFromPosXYZ(posX, posY, posZ));
+            scheduleLightingUpdate(lightType, posLongFromPosXYZ(posX, posY, posZ));
         } finally {
             releaseLock();
         }
     }
 
     @Override
-    public void processLightUpdatesForType(@NotNull LightType lightType) {
+    public void processLightingUpdatesForType(@NotNull LightType lightType) {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
@@ -358,9 +375,9 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public void processLightUpdatesForAllTypes() {
+    public void processLightingUpdatesForAllTypes() {
         for (val lightType : values())
-            processLightUpdatesForType(lightType);
+            processLightingUpdatesForType(lightType);
 
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
@@ -390,10 +407,10 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         }
     }
 
-    private void scheduleLightUpdate(LightType lightType, long posLong) {
+    private void scheduleLightingUpdate(LightType lightType, long posLong) {
         val queue = updateQueues[lightType.ordinal()];
         if (queue.size() >= MAX_SCHEDULED_UPDATES)
-            processLightUpdatesForType(lightType);
+            processLightingUpdatesForType(lightType);
 
         queue.add(posLong);
     }

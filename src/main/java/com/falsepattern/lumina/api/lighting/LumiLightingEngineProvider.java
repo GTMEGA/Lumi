@@ -22,7 +22,9 @@
 package com.falsepattern.lumina.api.lighting;
 
 import com.falsepattern.lumina.api.world.LumiWorld;
+import net.minecraft.profiler.Profiler;
 
+@FunctionalInterface
 public interface LumiLightingEngineProvider {
-    LumiLightingEngine createLightingEngine(LumiWorld world);
+    LumiLightingEngine createLightingEngine(LumiWorld world, Profiler profiler);
 }

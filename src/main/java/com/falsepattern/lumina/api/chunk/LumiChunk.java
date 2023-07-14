@@ -81,13 +81,9 @@ public interface LumiChunk {
 
     boolean lumi$isHeightOutdated(int subChunkPosX, int subChunkPosZ);
 
-    @Deprecated
     void lumi$resetOutdatedHeightFlags();
 
-    @Deprecated
-    short[] lumi$neighborLightCheckFlags();
+    void lumi$isLightingInitialized(boolean lightingInitialized);
 
-    void lumi$lightingInitialized(boolean lightingInitialized);
-
-    boolean lumi$lightingInitialized();
+    boolean lumi$isLightingInitialized();
 }

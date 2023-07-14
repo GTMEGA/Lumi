@@ -24,7 +24,7 @@ package com.falsepattern.lumina.internal.world;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldProvider;
-import com.falsepattern.lumina.internal.lighting.PhosphorLightingEngine;
+import com.falsepattern.lumina.internal.lighting.phosphor.PhosphorEngine;
 import lombok.val;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.world.World;
@@ -65,7 +65,7 @@ public class LumiWorldManager {
 
     @SuppressWarnings("ForLoopReplaceableByForEach")
     public static LumiLightingEngine createLightingEngine(LumiWorld world, Profiler profiler) {
-        return new PhosphorLightingEngine(world, profiler);
+        return new PhosphorEngine(world, profiler);
     }
 
     public static void startInit() {

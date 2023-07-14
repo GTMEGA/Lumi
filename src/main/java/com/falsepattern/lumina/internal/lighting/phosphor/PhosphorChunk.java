@@ -19,28 +19,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.mixin.mixins.common;
+package com.falsepattern.lumina.internal.lighting.phosphor;
 
-import com.falsepattern.lumina.internal.lighting.LightingHooks;
-import net.minecraft.world.EnumSkyBlock;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
+import com.falsepattern.lumina.api.chunk.LumiChunk;
 
-@Mixin(World.class)
-public abstract class WorldMixin implements IBlockAccess {
+public interface PhosphorChunk extends LumiChunk {
     /**
-     * @author Ven
-     * @reason Redirect into LUMINA
+     * 2 light types * 4 directions * 2 halves * (inwards + outwards)
      */
-    @Overwrite
-    public boolean updateLightByType(EnumSkyBlock baseLightType, int posX, int posY, int posZ) {
-        LightingHooks.scheduleLightingUpdate(thiz(), baseLightType, posX, posY, posZ);
-        return true;
-    }
+    int LIGHT_CHECK_FLAGS_LENGTH = 32;
 
-    private World thiz() {
-        return (World) (Object) this;
-    }
+    short[] phosphor$lightCheckFlags();
 }

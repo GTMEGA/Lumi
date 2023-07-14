@@ -57,6 +57,8 @@ public enum Mixin implements IMixin {
 
     client_lumi_LumiWorldImplMixin(CLIENT, always(), "lumi.LumiWorldImplMixin"),
 
+    client_phosphor_PhosphorChunkImplMixin(COMMON, always(), "phosphor.PhosphorChunkImplMixin"),
+
     common_ExtendedBlockStorageMixin(COMMON, always(), "ExtendedBlockStorageMixin"),
     common_NibbleArrayMixin(COMMON, always(), "NibbleArrayMixin"),
     common_MixinLongHashMap(COMMON, avoid(ARCHAICFIX), "LongHashMapMixin"),

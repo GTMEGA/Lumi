@@ -23,6 +23,7 @@ package com.falsepattern.lumina.internal.lighting;
 
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
+import com.falsepattern.lumina.internal.lighting.phosphor.LightingHooksOld;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import lombok.experimental.UtilityClass;
 import lombok.val;
@@ -76,46 +77,46 @@ public final class LightingHooks {
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
             val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.processLightUpdatesForType(lightType);
+            lightingEngine.processLightingUpdatesForType(lightType);
             val lightValue = lightingEngine.getCurrentLightValue(lightType, posX, posY, posZ);
             maxLightValue = Math.max(maxLightValue, lightValue);
         }
         return maxLightValue;
     }
 
-    @Deprecated
     public static void initSkyLightForSubChunk(World baseWorld, Chunk baseChunk, ExtendedBlockStorage baseSubChunk) {
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
+            val lightingEngine = world.lumi$lightingEngine();
             val chunk = world.lumi$wrap(baseChunk);
             val subChunk = world.lumi$wrap(baseSubChunk);
-            LightingHooksOld.initSkyLightForSubChunk(world, chunk, subChunk);
+            lightingEngine.initLightingForSubChunk(chunk, subChunk);
         }
     }
 
-    @Deprecated
     public static void initSkyLightForSubChunk(World baseWorld, Chunk baseChunk, int chunkPosY) {
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
+            val lightingEngine = world.lumi$lightingEngine();
             val chunk = world.lumi$wrap(baseChunk);
             val subChunk = chunk.lumi$getSubChunk(chunkPosY);
-            LightingHooksOld.initSkyLightForSubChunk(world, chunk, subChunk);
+            lightingEngine.initLightingForSubChunk(chunk, subChunk);
         }
     }
 
-    public static void scheduleLightUpdates(World baseWorld,
-                                            EnumSkyBlock baseLightType,
-                                            int posX,
-                                            int posY,
-                                            int posZ) {
+    public static void scheduleLightingUpdate(World baseWorld,
+                                              EnumSkyBlock baseLightType,
+                                              int posX,
+                                              int posY,
+                                              int posZ) {
         val lightType = LightType.of(baseLightType);
         val worldCount = LumiWorldManager.lumiWorldCount();
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
             val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.scheduleLightUpdate(lightType, posX, posY, posZ);
+            lightingEngine.scheduleLightingUpdate(lightType, posX, posY, posZ);
         }
     }
 
@@ -124,7 +125,7 @@ public final class LightingHooks {
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
             val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.processLightUpdatesForAllTypes();
+            lightingEngine.processLightingUpdatesForAllTypes();
         }
     }
 

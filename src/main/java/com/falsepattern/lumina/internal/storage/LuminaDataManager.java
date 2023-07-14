@@ -23,7 +23,7 @@ package com.falsepattern.lumina.internal.storage;
 
 import com.falsepattern.chunk.api.ChunkDataManager;
 import com.falsepattern.lumina.internal.Tags;
-import com.falsepattern.lumina.internal.lighting.LightingHooksOld;
+import com.falsepattern.lumina.internal.lighting.phosphor.LightingHooksOld;
 import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import lombok.NoArgsConstructor;
 import lombok.val;
@@ -51,7 +51,7 @@ public final class LuminaDataManager implements ChunkDataManager.ChunkNBTDataMan
             val subTag = new NBTTagCompound();
             LightingHooksOld.writeNeighborLightChecksToNBT(chunk, subTag);
 
-            subTag.setBoolean(LIGHT_INITIALIZED_NBT_TAG_NAME, chunk.lumi$lightingInitialized());
+            subTag.setBoolean(LIGHT_INITIALIZED_NBT_TAG_NAME, chunk.lumi$isLightingInitialized());
             for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
                 for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
                     val index = (subChunkPosX + (subChunkPosZ * 16)) % 255;
@@ -93,11 +93,11 @@ public final class LuminaDataManager implements ChunkDataManager.ChunkNBTDataMan
                         chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ, skyLightHeight);
                     }
                 }
-                chunk.lumi$lightingInitialized(true);
+                chunk.lumi$isLightingInitialized(true);
                 continue;
             }
 
-            chunk.lumi$lightingInitialized(false);
+            chunk.lumi$isLightingInitialized(false);
             LightingHooksOld.initChunkSkyLight(chunk);
         }
     }
@@ -128,7 +128,7 @@ public final class LuminaDataManager implements ChunkDataManager.ChunkNBTDataMan
         for (var i = 0; i < worldCount; i++) {
             val world = LumiWorldManager.getWorld(baseWorld, i);
             val chunk = world.lumi$wrap(baseChunk);
-            chunk.lumi$lightingInitialized(true);
+            chunk.lumi$isLightingInitialized(true);
         }
     }
 }

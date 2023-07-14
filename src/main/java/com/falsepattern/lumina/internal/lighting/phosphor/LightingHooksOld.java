@@ -19,17 +19,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.lighting;
+package com.falsepattern.lumina.internal.lighting.phosphor;
 
 import com.falsepattern.lib.internal.Share;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
-import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.coordinate.Direction;
 import com.falsepattern.lumina.api.coordinate.DirectionSign;
 import com.falsepattern.lumina.api.coordinate.FacingDirection;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.world.LumiWorld;
-import com.falsepattern.lumina.internal.world.WorldChunkSlice;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import lombok.experimental.UtilityClass;
@@ -42,13 +40,11 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
+import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorChunk.LIGHT_CHECK_FLAGS_LENGTH;
 
 @UtilityClass
 public final class LightingHooksOld {
-    /**
-     * 2 light types * 4 directions * 2 halves * (inwards + outwards)
-     */
-    public static final int FLAG_COUNT = 32;
+
     public static final String NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME = "neighbor_light_checks";
 
     @Deprecated
@@ -226,7 +222,7 @@ public final class LightingHooksOld {
     }
 
     public static boolean checkChunkLighting(LumiWorld world, LumiChunk chunk) {
-        if (!chunk.lumi$lightingInitialized())
+        if (!chunk.lumi$isLightingInitialized())
             initChunkLighting(world, chunk);
 
         for (int zOffset = -1; zOffset <= 1; ++zOffset) {
@@ -238,7 +234,7 @@ public final class LightingHooksOld {
                 val chunkPosZ = chunk.lumi$chunkPosZ() + zOffset;
                 val chunkNeighbour = getLoadedChunk(world, chunkPosX, chunkPosZ);
 
-                if (chunkNeighbour == null || !chunkNeighbour.lumi$lightingInitialized())
+                if (chunkNeighbour == null || !chunkNeighbour.lumi$isLightingInitialized())
                     return false;
             }
         }
@@ -246,29 +242,15 @@ public final class LightingHooksOld {
         return true;
     }
 
-    @Deprecated
-    public static void initSkyLightForSubChunk(LumiWorld world, LumiChunk chunk, LumiSubChunk subChunk) {
-        if (!world.lumi$root().lumi$hasSky())
+    public static void writeNeighborLightChecksToNBT(LumiChunk lumiChunk, NBTTagCompound output) {
+        if (!(lumiChunk instanceof PhosphorChunk))
             return;
+        val chunk = (PhosphorChunk) lumiChunk;
+        val flags = chunk.phosphor$lightCheckFlags();
 
-        val maxPosY = subChunk.lumi$root().lumi$posY();
-        val lightValue = SKY_LIGHT_TYPE.defaultLightValue();
-        for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
-            for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
-                if (chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ) <= maxPosY) {
-                    for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
-                        subChunk.lumi$setSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
-                    }
-                }
-            }
-        }
-    }
-
-    public static void writeNeighborLightChecksToNBT(LumiChunk chunk, NBTTagCompound output) {
-        val neighborLightCheckFlags = chunk.lumi$neighborLightCheckFlags();
         val flagList = new NBTTagList();
         var flagsSet = false;
-        for (val flag : neighborLightCheckFlags) {
+        for (val flag : flags) {
             val flagTag = new NBTTagShort(flag);
             flagList.appendTag(flagTag);
             if (flag != 0)
@@ -279,24 +261,28 @@ public final class LightingHooksOld {
             output.setTag(NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME, flagList);
     }
 
-    public static void readNeighborLightChecksFromNBT(LumiChunk chunk, NBTTagCompound input) {
+    public static void readNeighborLightChecksFromNBT(LumiChunk lumiChunk, NBTTagCompound input) {
+        if (!(lumiChunk instanceof PhosphorChunk))
+            return;
+        val chunk = (PhosphorChunk) lumiChunk;
+
         if (!input.hasKey(NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME, 9))
             return;
 
         val list = input.getTagList(NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME, 2);
-        if (list.tagCount() != FLAG_COUNT) {
+        if (list.tagCount() != LIGHT_CHECK_FLAGS_LENGTH) {
             Share.LOG.warn("Chunk field {} had invalid length, ignoring it (chunk coordinates: {} {})",
                            NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME,
-                           chunk.lumi$chunkPosX(),
-                           chunk.lumi$chunkPosZ());
+                           lumiChunk.lumi$chunkPosX(),
+                           lumiChunk.lumi$chunkPosZ());
             return;
         }
 
-        val neighborLightCheckFlags = chunk.lumi$neighborLightCheckFlags();
-        for (var flagIndex = 0; flagIndex < FLAG_COUNT; ++flagIndex) {
+        val flags = chunk.phosphor$lightCheckFlags();
+        for (var flagIndex = 0; flagIndex < LIGHT_CHECK_FLAGS_LENGTH; ++flagIndex) {
             val flagTag = (NBTTagShort) list.tagList.get(flagIndex);
             val flag = flagTag.func_150289_e();
-            neighborLightCheckFlags[flagIndex] = flag;
+            flags[flagIndex] = flag;
         }
     }
 
@@ -330,12 +316,12 @@ public final class LightingHooksOld {
         val minChunkPosY = startPosY / 16;
         val maxChunkPosY = endPosY / 16;
 
-        lightingEngine.scheduleLightUpdateForColumn(SKY_LIGHT_TYPE, basePosX, basePosZ, startPosY, endPosY);
+        lightingEngine.scheduleLightingUpdateForColumn(SKY_LIGHT_TYPE, basePosX, basePosZ, startPosY, endPosY);
 
         val bottomSubChunk = chunk.lumi$getSubChunkIfPrepared(minChunkPosY);
         if (bottomSubChunk == null && startPosY > 0) {
             val posY = startPosY - 1;
-            lightingEngine.scheduleLightUpdate(SKY_LIGHT_TYPE, basePosX, posY, basePosZ);
+            lightingEngine.scheduleLightingUpdate(SKY_LIGHT_TYPE, basePosX, posY, basePosZ);
         }
 
         short flags = 0;
@@ -380,7 +366,7 @@ public final class LightingHooksOld {
                 val posZ = basePosZ + zOffset;
                 val minPosY = chunkPosY * 16;
                 val maxPosY = minPosY + 15;
-                lightingEngine.scheduleLightUpdateForColumn(SKY_LIGHT_TYPE, posX, posZ, minPosY, maxPosY);
+                lightingEngine.scheduleLightingUpdateForColumn(SKY_LIGHT_TYPE, posX, posZ, minPosY, maxPosY);
             }
         }
     }
@@ -486,82 +472,103 @@ public final class LightingHooksOld {
 
         val lightingEngine = chunk.lumi$world().lumi$lightingEngine();
         for (var posY = minPosY; posY < maxPosY; posY++)
-            lightingEngine.scheduleLightUpdate(SKY_LIGHT_TYPE, posX, posY, posZ);
+            lightingEngine.scheduleLightingUpdate(SKY_LIGHT_TYPE, posX, posY, posZ);
         chunk.lumi$root().lumi$markDirty();
     }
 
-    private static void flagChunkBoundaryForUpdate(LumiChunk chunk,
+    private static void flagChunkBoundaryForUpdate(LumiChunk lumiChunk,
                                                    short subChunkMask,
                                                    Direction direction,
                                                    DirectionSign directionSign) {
+        if (!(lumiChunk instanceof PhosphorChunk))
+            return;
+        val chunk = (PhosphorChunk) lumiChunk;
+        val flags = chunk.phosphor$lightCheckFlags();
+
         val flagIndex = getFlagIndex(SKY_LIGHT_TYPE, direction, directionSign, FacingDirection.OUTPUT);
-        chunk.lumi$neighborLightCheckFlags()[flagIndex] |= subChunkMask;
-        chunk.lumi$root().lumi$markDirty();
+        flags[flagIndex] |= subChunkMask;
+        lumiChunk.lumi$root().lumi$markDirty();
     }
 
     private static void mergeFlags(LightType lightType,
-                                   LumiChunk destinationChunk,
-                                   LumiChunk sourceChunk,
+                                   LumiChunk lumiDestinationChunk,
+                                   LumiChunk lumiSourceChunk,
                                    Direction direction,
                                    DirectionSign directionSign) {
-        if (sourceChunk.lumi$neighborLightCheckFlags() == null)
+        if (!(lumiDestinationChunk instanceof PhosphorChunk) || !(lumiSourceChunk instanceof PhosphorChunk))
             return;
+        val destinationChunk = (PhosphorChunk) lumiDestinationChunk;
+        val sourceChunk = (PhosphorChunk) lumiSourceChunk;
+
+        val destinationFlags = destinationChunk.phosphor$lightCheckFlags();
+        val sourceFlags = sourceChunk.phosphor$lightCheckFlags();
 
         val destinationFlagIndex = getFlagIndex(lightType, direction, directionSign, FacingDirection.INPUT);
         val sourceFlagIndex = getFlagIndex(lightType, direction.opposite(), directionSign, FacingDirection.OUTPUT);
 
-        destinationChunk.lumi$neighborLightCheckFlags()[destinationFlagIndex] |= sourceChunk.lumi$neighborLightCheckFlags()[sourceFlagIndex];
+        destinationFlags[destinationFlagIndex] |= sourceFlags[sourceFlagIndex];
         // no need to call Chunk.setModified() since checks are not deleted from outChunk
     }
 
     private static void scheduleRelightChecksForBoundary(LumiWorld world,
-                                                         LumiChunk chunk,
-                                                         LumiChunk nChunk,
-                                                         LumiChunk sChunk,
+                                                         LumiChunk lumiChunk,
+                                                         LumiChunk lumiNChunk,
+                                                         LumiChunk lumiSChunk,
                                                          LightType lightType,
                                                          int xOffset,
                                                          int zOffset,
                                                          DirectionSign directionSign) {
+        if (!(lumiChunk instanceof PhosphorChunk))
+            return;
+        val chunk = (PhosphorChunk) lumiChunk;
+        val flags = chunk.phosphor$lightCheckFlags();
+
         // OUT checks from neighbor are already merged
         val inFlagIndex = getFlagIndex(lightType, xOffset, zOffset, directionSign, FacingDirection.INPUT);
-        val flags = chunk.lumi$neighborLightCheckFlags()[inFlagIndex];
+        val flag = flags[inFlagIndex];
 
-        if (flags == 0)
+        if (flag == 0)
             return;
 
-        val baseChunkPosX = chunk.lumi$chunkPosX();
-        val baseChunkPosZ = chunk.lumi$chunkPosZ();
+        val baseChunkPosX = lumiChunk.lumi$chunkPosX();
+        val baseChunkPosZ = lumiChunk.lumi$chunkPosZ();
 
-        if (nChunk == null) {
+        if (lumiNChunk == null) {
             val chunkPosX = baseChunkPosX + xOffset;
             val chunkPosZ = baseChunkPosZ + zOffset;
-            nChunk = getLoadedChunk(world, chunkPosX, chunkPosZ);
-            if (nChunk == null)
+            lumiNChunk = getLoadedChunk(world, chunkPosX, chunkPosZ);
+            if (lumiNChunk == null)
                 return;
         }
 
-        if (sChunk == null) {
+        if (lumiSChunk == null) {
             val chunkPosX = baseChunkPosX + (zOffset != 0 ? directionSign.sign() : 0);
             val chunkPosZ = baseChunkPosZ + (xOffset != 0 ? directionSign.sign() : 0);
 
-            sChunk = getLoadedChunk(world, chunkPosX, chunkPosZ);
-            if (sChunk == null)
+            lumiSChunk = getLoadedChunk(world, chunkPosX, chunkPosZ);
+            if (lumiSChunk == null)
                 return;
         }
 
-        val outFlagIndex = getFlagIndex(lightType, -xOffset, -zOffset, directionSign, FacingDirection.OUTPUT);
-        chunk.lumi$neighborLightCheckFlags()[inFlagIndex] = 0;
-        nChunk.lumi$neighborLightCheckFlags()[outFlagIndex] = 0; //Clear only now that it's clear that the checks are processed
+        if (!(lumiNChunk instanceof PhosphorChunk))
+            return;
+        val nChunk = (PhosphorChunk) lumiNChunk;
+        val nFlags = nChunk.phosphor$lightCheckFlags();
 
-        chunk.lumi$root().lumi$markDirty();
-        nChunk.lumi$root().lumi$markDirty();
+        val outFlagIndex = getFlagIndex(lightType, -xOffset, -zOffset, directionSign, FacingDirection.OUTPUT);
+        // Clear only now that it's clear that the checks are processed
+        flags[inFlagIndex] = 0;
+        nFlags[outFlagIndex] = 0;
+
+        lumiChunk.lumi$root().lumi$markDirty();
+        lumiNChunk.lumi$root().lumi$markDirty();
 
         val lightingEngine = world.lumi$lightingEngine();
 
         // Get the area to check
         // Start in the corner...
-        var minPosX = chunk.lumi$chunkPosX() << 4;
-        var minPosZ = chunk.lumi$chunkPosZ() << 4;
+        var minPosX = lumiChunk.lumi$chunkPosX() << 4;
+        var minPosZ = lumiChunk.lumi$chunkPosZ() << 4;
 
         // move to other side of chunk if the direction is positive
         if ((xOffset | zOffset) > 0) {
@@ -581,16 +588,16 @@ public final class LightingHooksOld {
         val maxPosZ = (7 * (xOffset & 1)) + minPosZ;
 
         for (var chunkPosY = 0; chunkPosY < 16; chunkPosY++) {
-            if ((flags & (1 << chunkPosY)) != 0) {
+            if ((flag & (1 << chunkPosY)) != 0) {
                 val minPosY = chunkPosY * 16;
                 val maxPosY = minPosY + 15;
-                lightingEngine.scheduleLightUpdateForRange(lightType,
-                                                           minPosX,
-                                                           minPosY,
-                                                           minPosZ,
-                                                           maxPosX,
-                                                           maxPosY,
-                                                           maxPosZ);
+                lightingEngine.scheduleLightingUpdateForRange(lightType,
+                                                              minPosX,
+                                                              minPosY,
+                                                              minPosZ,
+                                                              maxPosX,
+                                                              maxPosY,
+                                                              maxPosZ);
             }
         }
     }
@@ -661,7 +668,7 @@ public final class LightingHooksOld {
                             val posX = basePosX + subChunkPosX;
                             val posY = basePosY + subChunkPosY;
                             val posZ = basePosZ + subChunkPosZ;
-                            world.lumi$lightingEngine().scheduleLightUpdate(BLOCK_LIGHT_TYPE, posX, posY, posZ);
+                            world.lumi$lightingEngine().scheduleLightingUpdate(BLOCK_LIGHT_TYPE, posX, posY, posZ);
                         }
                     }
                 }
@@ -673,6 +680,6 @@ public final class LightingHooksOld {
             doRecheckGaps(chunk);
         }
 
-        chunk.lumi$lightingInitialized(true);
+        chunk.lumi$isLightingInitialized(true);
     }
 }

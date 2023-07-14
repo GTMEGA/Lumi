@@ -19,28 +19,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.mixin.mixins.common;
+package com.falsepattern.lumina.internal.lighting.phosphor;
 
-import com.falsepattern.lumina.internal.lighting.LightingHooks;
-import net.minecraft.world.EnumSkyBlock;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
+import com.falsepattern.lumina.api.lighting.LumiLightingEngineProvider;
 
-@Mixin(World.class)
-public abstract class WorldMixin implements IBlockAccess {
-    /**
-     * @author Ven
-     * @reason Redirect into LUMINA
-     */
-    @Overwrite
-    public boolean updateLightByType(EnumSkyBlock baseLightType, int posX, int posY, int posZ) {
-        LightingHooks.scheduleLightingUpdate(thiz(), baseLightType, posX, posY, posZ);
-        return true;
-    }
+public final class PhosphorAPI {
+    private static final LumiLightingEngineProvider PHOSPHOR_PROVIDER = PhosphorEngine::new;
 
-    private World thiz() {
-        return (World) (Object) this;
+    public static LumiLightingEngineProvider phosphorProvider() {
+        return PHOSPHOR_PROVIDER;
     }
 }

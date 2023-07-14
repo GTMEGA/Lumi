@@ -22,6 +22,8 @@
 package com.falsepattern.lumina.api.lighting;
 
 import com.falsepattern.lib.compat.BlockPos;
+import com.falsepattern.lumina.api.chunk.LumiChunk;
+import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import org.jetbrains.annotations.NotNull;
 
 public interface LumiLightingEngine {
@@ -29,27 +31,30 @@ public interface LumiLightingEngine {
 
     int getCurrentLightValue(@NotNull LightType lightType, int posX, int posY, int posZ);
 
-    void scheduleLightUpdateForRange(@NotNull LightType lightType,
-                                     @NotNull BlockPos startBlockPos,
-                                     @NotNull BlockPos endBlockPos);
+    void initLightingForSubChunk(@NotNull LumiChunk chunk,
+                                 @NotNull LumiSubChunk subChunk);
 
-    void scheduleLightUpdateForRange(@NotNull LightType lightType,
-                                     int startPosX,
-                                     int startPosY,
-                                     int startPosZ,
-                                     int endPosX,
-                                     int endPosY,
-                                     int endPosZ);
+    void scheduleLightingUpdateForRange(@NotNull LightType lightType,
+                                        @NotNull BlockPos startBlockPos,
+                                        @NotNull BlockPos endBlockPos);
 
-    void scheduleLightUpdateForColumn(@NotNull LightType lightType, int posX, int posZ);
+    void scheduleLightingUpdateForRange(@NotNull LightType lightType,
+                                        int startPosX,
+                                        int startPosY,
+                                        int startPosZ,
+                                        int endPosX,
+                                        int endPosY,
+                                        int endPosZ);
 
-    void scheduleLightUpdateForColumn(@NotNull LightType lightType, int posX, int posZ, int startPosY, int endPosY);
+    void scheduleLightingUpdateForColumn(@NotNull LightType lightType, int posX, int posZ);
 
-    void scheduleLightUpdate(@NotNull LightType lightType, @NotNull BlockPos blockPos);
+    void scheduleLightingUpdateForColumn(@NotNull LightType lightType, int posX, int posZ, int startPosY, int endPosY);
 
-    void scheduleLightUpdate(@NotNull LightType lightType, int posX, int posY, int posZ);
+    void scheduleLightingUpdate(@NotNull LightType lightType, @NotNull BlockPos blockPos);
 
-    void processLightUpdatesForType(@NotNull LightType lightType);
+    void scheduleLightingUpdate(@NotNull LightType lightType, int posX, int posY, int posZ);
 
-    void processLightUpdatesForAllTypes();
+    void processLightingUpdatesForType(@NotNull LightType lightType);
+
+    void processLightingUpdatesForAllTypes();
 }
