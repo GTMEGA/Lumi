@@ -33,18 +33,13 @@ import net.minecraft.block.Block;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldProvider;
-import net.minecraft.world.WorldSettings;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
-import net.minecraft.world.storage.ISaveHandler;
 import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.lib.Opcodes;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
@@ -53,6 +48,11 @@ import static com.falsepattern.lumina.internal.world.LumiWorldManager.createLigh
 @Unique
 @Mixin(World.class)
 public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
+    @Mutable
+    @Final
+    @Shadow
+    public Profiler theProfiler;
+
     @Shadow
     public abstract Chunk getChunkFromBlockCoords(int posX, int posZ);
 
@@ -62,21 +62,21 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     private LumiWorldRoot lumi$root = null;
     private LumiLightingEngine lumi$lightingEngine = null;
 
-    @Inject(method = "<init>(" +
-                     "Lnet/minecraft/world/storage/ISaveHandler;" +
-                     "Ljava/lang/String;" +
-                     "Lnet/minecraft/world/WorldSettings;" +
-                     "Lnet/minecraft/world/WorldProvider;" +
-                     "Lnet/minecraft/profiler/Profiler;" +
-                     ")V",
-            at = @At("TAIL"),
-            require = 1)
-    private void lumiWorldInit(ISaveHandler saveHandler,
-                               String worldName,
-                               WorldSettings worldSettings,
-                               WorldProvider worldProvider,
-                               Profiler profiler,
-                               CallbackInfo ci) {
+    @Redirect(method = "<init>(" +
+                       "Lnet/minecraft/world/storage/ISaveHandler;" +
+                       "Ljava/lang/String;" +
+                       "Lnet/minecraft/world/WorldSettings;" +
+                       "Lnet/minecraft/world/WorldProvider;" +
+                       "Lnet/minecraft/profiler/Profiler;" +
+                       ")V",
+              at = @At(value = "FIELD",
+                       opcode = Opcodes.PUTFIELD,
+                       target = "Lnet/minecraft/world/World;" +
+                                "theProfiler:Lnet/minecraft/profiler/Profiler;"),
+              require = 1)
+    private void lumiWorldInit(World thiz, Profiler profiler) {
+        this.theProfiler = profiler;
+
         this.lumi$root = (LumiWorldRoot) this;
         this.lumi$lightingEngine = createLightingEngine(this, profiler);
     }
