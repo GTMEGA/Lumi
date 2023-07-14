@@ -43,7 +43,7 @@ public abstract class ChunkProviderServerMixin {
     @Inject(method = "saveChunks",
             at = @At("HEAD"),
             require = 1)
-    private void processLightUpdatesOnSave(boolean all, IProgressUpdate update, CallbackInfoReturnable<Boolean> cir) {
+    private void processLightUpdatesOnSave(boolean saveAll, IProgressUpdate progressUpdate, CallbackInfoReturnable<Boolean> cir) {
         LightingHooks.processLightUpdates(worldObj);
     }
 

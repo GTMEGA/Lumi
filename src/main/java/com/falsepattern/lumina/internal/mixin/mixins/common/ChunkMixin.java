@@ -70,14 +70,14 @@ public abstract class ChunkMixin {
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;generateSkylightMap()V"),
               require = 1)
-    private void initSubChunkSkyLightOnSet(Chunk baseChunk,
+    private void initSubChunkSkyLightOnSet(Chunk thiz,
                                            EnumSkyBlock baseLightType,
                                            int subChunkPosX,
                                            int posY,
                                            int subChunkPosZ,
                                            int value) {
         val chunkPosY = posY / 16;
-        LightingHooks.initSkyLightForSubChunk(worldObj, thiz(), chunkPosY);
+        LightingHooks.initSkyLightForSubChunk(worldObj, thiz, chunkPosY);
     }
 
     /**
@@ -128,28 +128,28 @@ public abstract class ChunkMixin {
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;relightBlock(III)V"),
               require = 2)
-    private void skipBlockRelight(Chunk baseChunk, int posX, int posY, int posZ) {
+    private void skipBlockRelight(Chunk thiz, int posX, int posY, int posZ) {
     }
 
     @Redirect(method = "func_150807_a",
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;generateSkylightMap()V"),
               require = 1)
-    private void skipSkyLightGeneration(Chunk baseChunk) {
+    private void skipSkyLightGeneration(Chunk thiz) {
     }
 
     @Redirect(method = "func_150807_a",
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;propagateSkylightOcclusion(II)V"),
               require = 1)
-    private void skipSkyLightPropagation(Chunk baseChunk, int posX, int posZ) {
+    private void skipSkyLightPropagation(Chunk thiz, int posX, int posZ) {
     }
 
     @Redirect(method = "func_150807_a(IIILnet/minecraft/block/Block;I)Z",
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;getSavedLightValue(Lnet/minecraft/world/EnumSkyBlock;III)I"),
               require = 2)
-    private int alwaysZeroLightValue(Chunk baseChunk, EnumSkyBlock baseLightType, int posX, int posY, int posZ) {
+    private int alwaysZeroLightValue(Chunk thiz, EnumSkyBlock baseLightType, int posX, int posY, int posZ) {
         return 0;
     }
 
