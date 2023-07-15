@@ -24,8 +24,11 @@ package com.falsepattern.lumina.internal.asm;
 import com.falsepattern.lumina.internal.Tags;
 import lombok.NoArgsConstructor;
 import lombok.val;
+import lombok.var;
+import net.minecraft.client.Minecraft;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.Launch;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,18 +36,20 @@ import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.GeneratorAdapter;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 
+import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorChunk.LIGHT_CHECK_FLAGS_LENGTH;
 import static org.objectweb.asm.Type.*;
 
 @NoArgsConstructor
-public final class PhosphorusDataInjector implements IClassTransformer {
-    private static final Logger LOG = LogManager.getLogger(Tags.MOD_NAME + "|" + "Phosphorus Data Injector");
+public final class PhosphorDataInjector implements IClassTransformer {
+    private static final Logger LOG = LogManager.getLogger(Tags.MOD_NAME + "|Phosphor Data Injector");
 
     @Override
-    public byte @Nullable [] transform(String name, String transformedName, byte[] classBytes) {
+    public byte @Nullable [] transform(String name, String transformedName, byte @Nullable [] classBytes) {
         if (name.startsWith("com.falsepattern.lumina"))
             return classBytes;
         try {
@@ -53,6 +58,8 @@ public final class PhosphorusDataInjector implements IClassTransformer {
 
             val transformedBytes = implementInterface(classBytes);
             LOG.info("Injected Phosphor Data into: {}", name);
+
+            FileUtils.writeByteArrayToFile(new File(Minecraft.getMinecraft().mcDataDir, "asm_out/Dummy.class"), transformedBytes);
             return transformedBytes;
         } catch (Throwable ignored) {
             LOG.warn("I'm so sorry");
@@ -66,67 +73,50 @@ public final class PhosphorusDataInjector implements IClassTransformer {
 
         {
             val cr = new ClassReader(classBytes);
-            //is class an interface or abstract?
             val access = cr.getAccess();
-            if ((access & Opcodes.ACC_INTERFACE) != 0 || (access & Opcodes.ACC_ABSTRACT) != 0) {
+            if ((access & Opcodes.ACC_INTERFACE) != 0 ||
+                (access & Opcodes.ACC_ABSTRACT) != 0)
                 return false;
-            }
         }
-
-        val classLoader = Launch.classLoader;
 
         val classStack = new ArrayDeque<byte[]>();
         classStack.push(classBytes);
 
-        val isTarget = new boolean[]{false};
-        val isInjected = new boolean[]{false};
-
+        var isTarget = false;
         while (!classStack.isEmpty()) {
             val currentClassBytes = classStack.pop();
             val cr = new ClassReader(currentClassBytes);
 
-            val cv = new ClassVisitor(Opcodes.ASM5) {
-                @Override
-                public void visit(int version,
-                                  int access,
-                                  String name,
-                                  String signature,
-                                  String superName,
-                                  String[] interfaces) {
-                    for (val interfaceName : interfaces) {
-                        if ("com/falsepattern/lumina/api/chunk/LumiChunk".equals(interfaceName)) {
-                            isTarget[0] = true;
-                        } else if ("com/falsepattern/lumina/internal/lighting/phosphor/PhosphorChunk".equals(interfaceName)) {
-                            isInjected[0] = true;
-                        } else {
-                            try {
-                                val in = classLoader.getResourceAsStream(interfaceName + ".class");
-                                if (in != null)
-                                    classStack.push(IOUtils.toByteArray(in));
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-
-                    if (superName != null && !"java/lang/Object".equals(superName)) {
-                        try {
-                            val in = classLoader.getResourceAsStream(superName + ".class");
-                            if (in != null)
-                                classStack.push(IOUtils.toByteArray(in));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    super.visit(version, access, name, signature, superName, interfaces);
+            val interfaces = cr.getInterfaces();
+            for (val interfaceName : interfaces) {
+                if (!isTarget && "com/falsepattern/lumina/api/chunk/LumiChunk".equals(interfaceName)) {
+                    isTarget = true;
+                    continue;
                 }
-            };
-            cr.accept(cv, ClassReader.SKIP_DEBUG | ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);
-            if (isInjected[0])
-                break;
+
+                if ("com/falsepattern/lumina/internal/lighting/phosphor/PhosphorChunk".equals(interfaceName))
+                    return false;
+
+                try {
+                    val in = Launch.classLoader.getResourceAsStream(interfaceName + ".class");
+                    if (in != null)
+                        classStack.push(IOUtils.toByteArray(in));
+                } catch (IOException ignored) {
+                }
+            }
+
+            val superName = cr.getSuperName();
+            if (superName != null && !"java/lang/Object".equals(superName)) {
+                try {
+                    val in = Launch.classLoader.getResourceAsStream(superName + ".class");
+                    if (in != null)
+                        classStack.push(IOUtils.toByteArray(in));
+                } catch (IOException ignored) {
+                }
+            }
         }
 
-        return isTarget[0] && !isInjected[0];
+        return isTarget;
     }
 
     private static byte[] implementInterface(byte[] classBytes) {
@@ -140,7 +130,7 @@ public final class PhosphorusDataInjector implements IClassTransformer {
         val fieldAcc = Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL;
         val getterAcc = Opcodes.ACC_PUBLIC;
 
-        val fieldInitSize = 32;
+        val fieldInitSize = LIGHT_CHECK_FLAGS_LENGTH;
 
         val cr = new ClassReader(classBytes);
         val cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);

@@ -21,6 +21,7 @@
 
 package com.falsepattern.lumina.internal.asm;
 
+import com.falsepattern.lumina.internal.Tags;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 import lombok.NoArgsConstructor;
 
@@ -28,7 +29,7 @@ import java.util.Map;
 
 import static cpw.mods.fml.relauncher.IFMLLoadingPlugin.*;
 
-@Name("Balller")
+@Name(Tags.MOD_NAME + "|ASM Plugin")
 @MCVersion("1.7.10")
 @SortingIndex(Integer.MAX_VALUE)
 @TransformerExclusions("com.falsepattern.lumina.internal.asm")
@@ -36,7 +37,7 @@ import static cpw.mods.fml.relauncher.IFMLLoadingPlugin.*;
 public final class ASMLoadingPlugin implements IFMLLoadingPlugin {
     @Override
     public String[] getASMTransformerClass() {
-        return new String[]{PhosphorusDataInjector.class.getName()};
+        return new String[]{PhosphorDataInjector.class.getName()};
     }
 
     @Override
