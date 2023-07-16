@@ -22,15 +22,11 @@
 package com.falsepattern.lumina.api.world;
 
 import net.minecraft.block.Block;
-import net.minecraft.profiler.Profiler;
 import net.minecraft.world.chunk.IChunkProvider;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
 public interface LumiWorldRoot {
-    @Deprecated
-    Profiler lumi$profiler();
-
     boolean lumi$isClientSide();
 
     boolean lumi$hasSky();

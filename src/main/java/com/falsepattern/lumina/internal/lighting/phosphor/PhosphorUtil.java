@@ -32,6 +32,7 @@ import lombok.var;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagShort;
+import net.minecraft.profiler.Profiler;
 import org.jetbrains.annotations.Nullable;
 
 import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
@@ -82,9 +83,9 @@ final class PhosphorUtil {
         }
     }
 
-    static boolean isChunkFullyLit(LumiWorld world, LumiChunk chunk) {
+    static boolean isChunkFullyLit(LumiWorld world, LumiChunk chunk, Profiler profiler) {
         if (!chunk.lumi$isLightingInitialized())
-            initChunkLighting(world, chunk);
+            initChunkLighting(world, chunk, profiler);
 
         for (int zOffset = -1; zOffset <= 1; ++zOffset) {
             for (int xOffset = -1; xOffset <= 1; ++xOffset) {
@@ -231,10 +232,9 @@ final class PhosphorUtil {
         }
     }
 
-    private static void doRecheckGaps(LumiChunk chunk) {
+    private static void doRecheckGaps(LumiChunk chunk, Profiler profiler) {
         val world = chunk.lumi$world();
         val worldRoot = world.lumi$root();
-        val profiler = worldRoot.lumi$profiler();
 
         profiler.startSection("recheckGaps");
         profilerSection:
@@ -496,7 +496,7 @@ final class PhosphorUtil {
                boundaryFacingBits;
     }
 
-    private static void initChunkLighting(LumiWorld world, LumiChunk chunk) {
+    private static void initChunkLighting(LumiWorld world, LumiChunk chunk, Profiler profiler) {
         val basePosX = chunk.lumi$chunkPosX() << 4;
         val basePosZ = chunk.lumi$chunkPosZ() << 4;
 
@@ -534,7 +534,7 @@ final class PhosphorUtil {
 
         if (world.lumi$root().lumi$hasSky()) {
             chunk.lumi$resetOutdatedHeightFlags();
-            doRecheckGaps(chunk);
+            doRecheckGaps(chunk, profiler);
         }
 
         chunk.lumi$isLightingInitialized(true);

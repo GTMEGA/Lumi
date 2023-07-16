@@ -304,7 +304,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     @Override
     public boolean isChunkFullyLit(@NotNull LumiChunk chunk) {
-        return PhosphorUtil.isChunkFullyLit(world, chunk);
+        return PhosphorUtil.isChunkFullyLit(world, chunk, profiler);
     }
 
     @Override

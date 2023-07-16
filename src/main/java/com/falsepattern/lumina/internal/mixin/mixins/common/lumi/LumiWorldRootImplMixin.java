@@ -68,11 +68,6 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     public abstract boolean func_147451_t(int posX, int posY, int posZ);
 
     @Override
-    public Profiler lumi$profiler() {
-        return theProfiler;
-    }
-
-    @Override
     public boolean lumi$isClientSide() {
         return isRemote;
     }
