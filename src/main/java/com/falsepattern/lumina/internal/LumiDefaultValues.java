@@ -24,16 +24,18 @@ package com.falsepattern.lumina.internal;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngineRegistry;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRegistry;
-import com.falsepattern.lumina.internal.lighting.phosphor.Phosphor;
 import lombok.experimental.UtilityClass;
+
+import static com.falsepattern.lumina.internal.lighting.phosphor.Phosphor.createPhosphorProvider;
 
 @UtilityClass
 public final class LumiDefaultValues {
+    @SuppressWarnings("CastToIncompatibleInterface")
     public static void registerDefaultWorldProvider(LumiWorldRegistry registry) {
         registry.registerWorldProvider(world -> (LumiWorld) world);
     }
 
     public static void registerDefaultLightingEngineProvider(LumiLightingEngineRegistry registry) {
-        registry.registerLightingEngineProvider(Phosphor.createPhosphorProvider(), false);
+        registry.registerLightingEngineProvider(createPhosphorProvider(), false);
     }
 }

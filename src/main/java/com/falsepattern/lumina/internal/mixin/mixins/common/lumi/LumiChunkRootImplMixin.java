@@ -57,13 +57,18 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     public abstract void setChunkModified();
 
     @Override
-    public @NotNull Block lumi$getBlock(int subChunkPosX, int posY, int subChunkPosZ) {
-        return getBlock(subChunkPosX, posY, subChunkPosZ);
+    public boolean lumi$isUpdating() {
+        return worldObj.activeChunkSet.contains(thiz());
     }
 
     @Override
-    public int lumi$getBlockMeta(int subChunkPosX, int posY, int subChunkPosZ) {
-        return getBlockMetadata(subChunkPosX, posY, subChunkPosZ);
+    public void lumi$markDirty() {
+        setChunkModified();
+    }
+
+    @Override
+    public boolean lumi$isDirty() {
+        return isModified;
     }
 
     @Override
@@ -94,20 +99,13 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     }
 
     @Override
-    public boolean lumi$isUpdating() {
-        if (isModified)
-            return true;
-        return worldObj.activeChunkSet.contains(thiz());
+    public @NotNull Block lumi$getBlock(int subChunkPosX, int posY, int subChunkPosZ) {
+        return getBlock(subChunkPosX, posY, subChunkPosZ);
     }
 
     @Override
-    public void lumi$markDirty() {
-        setChunkModified();
-    }
-
-    @Override
-    public boolean lumi$isDirty() {
-        return isModified;
+    public int lumi$getBlockMeta(int subChunkPosX, int posY, int subChunkPosZ) {
+        return getBlockMetadata(subChunkPosX, posY, subChunkPosZ);
     }
 
     private Chunk thiz() {

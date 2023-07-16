@@ -25,7 +25,6 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
-@FunctionalInterface
 public interface LumiWorldWrapper {
     @NotNull @Unmodifiable Iterable<LumiWorld> lumiWorldsFromBaseWorld(@NotNull World worldBase);
 }

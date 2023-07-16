@@ -28,21 +28,16 @@ import com.falsepattern.lumina.api.world.LumiWorldRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.EventBus;
 import lombok.experimental.UtilityClass;
-import lombok.val;
 
 @UtilityClass
 public final class EventPoster {
+    private static final EventBus EVENT_BUS = FMLCommonHandler.instance().bus();
+
     public static void postLumiWorldRegistrationEvent(LumiWorldRegistry registry) {
-        val evt = new LumiWorldRegistrationEvent(registry);
-        fmlCommonBus().post(evt);
+        EVENT_BUS.post(new LumiWorldRegistrationEvent(registry));
     }
 
     public static void postLumiLightingEngineRegistrationEvent(LumiLightingEngineRegistry registry) {
-        val evt = new LumiLightingEngineRegistrationEvent(registry);
-        fmlCommonBus().post(evt);
-    }
-
-    private static EventBus fmlCommonBus() {
-        return FMLCommonHandler.instance().bus();
+        EVENT_BUS.post(new LumiLightingEngineRegistrationEvent(registry));
     }
 }

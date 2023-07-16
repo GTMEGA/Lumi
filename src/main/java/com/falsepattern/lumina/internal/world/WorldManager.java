@@ -122,6 +122,10 @@ public final class WorldManager implements LumiWorldRegistry, LumiWorldWrapper {
         return providedWorlds.computeIfAbsent(worldBase, this::collectProvidedWorlds);
     }
 
+    public int worldProviderCount() {
+        return worldProviders.size();
+    }
+
     private Iterable<LumiWorld> collectProvidedWorlds(World worldBase) {
         val worldList = worldProviders.stream()
                                       .map(worldProvider -> worldProvider.provideWorld(worldBase))

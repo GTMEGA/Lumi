@@ -26,9 +26,14 @@ import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
 public interface LumiChunkRoot {
-    @NotNull Block lumi$getBlock(int subChunkPosX, int posY, int subChunkPosZ);
+    int BLOCK_LIGHT_ARRAY_SIZE = 16 * 16 * 16;
+    int SKY_LIGHT_ARRAY_SIZE = 16 * 16 * 16;
 
-    int lumi$getBlockMeta(int subChunkPosX, int posY, int subChunkPosZ);
+    boolean lumi$isUpdating();
+
+    void lumi$markDirty();
+
+    boolean lumi$isDirty();
 
     void lumi$prepareSubChunk(int chunkPosY);
 
@@ -36,9 +41,7 @@ public interface LumiChunkRoot {
 
     int lumi$topPreparedSubChunkBasePosY();
 
-    boolean lumi$isUpdating();
+    @NotNull Block lumi$getBlock(int subChunkPosX, int posY, int subChunkPosZ);
 
-    void lumi$markDirty();
-
-    boolean lumi$isDirty();
+    int lumi$getBlockMeta(int subChunkPosX, int posY, int subChunkPosZ);
 }

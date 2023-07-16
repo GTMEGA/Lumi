@@ -23,8 +23,6 @@ package com.falsepattern.lumina.internal.data;
 
 import com.falsepattern.chunk.api.ChunkDataManager;
 import com.falsepattern.chunk.api.ChunkDataRegistry;
-import com.falsepattern.lumina.api.chunk.LumiChunk;
-import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.internal.Tags;
 import lombok.NoArgsConstructor;
 import lombok.val;
@@ -34,11 +32,18 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import static com.falsepattern.lumina.api.LumiAPI.lumiWorldsFromBaseWorld;
 import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor(access = PRIVATE)
 public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTDataManager {
     private static final Logger LOG = LogManager.getLogger(Tags.MOD_NAME + "|Sub Chunk NBT Manager");
+
+    private static final String VERSION_NBT_TAG_NAME = Tags.MOD_ID + "_version";
+    private static final String BLOCK_LIGHT_NBT_TAG_NAME = "block_light";
+    private static final String SKY_LIGHT_NBT_TAG_NAME = "sky_light";
+
+    private static final String VERSION_NBT_TAG_VALUE = Tags.VERSION;
 
     private static final SubChunkNBTManager INSTANCE = new SubChunkNBTManager();
 
@@ -69,13 +74,63 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
 
     @Override
     public void writeSectionToNBT(Chunk chunkBase, ExtendedBlockStorage subChunkBase, NBTTagCompound output) {
-        val chunk = (LumiChunk) chunkBase;
-        val subChunk = (LumiSubChunk) subChunkBase;
+        output.setString(VERSION_NBT_TAG_NAME, VERSION_NBT_TAG_VALUE);
+
+        val worldBase = chunkBase.worldObj;
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+            val worldTagName = world.lumi$worldID();
+            val worldTag = new NBTTagCompound();
+
+            val subChunk = world.lumi$wrap(subChunkBase);
+            val chunk = world.lumi$wrap(chunkBase);
+            val lightingEngine = world.lumi$lightingEngine();
+
+            {
+                val subChunkTagName = subChunk.lumi$subChunkID();
+                val subChunkTag = new NBTTagCompound();
+                subChunk.lumi$writeToNBT(subChunkTag);
+                worldTag.setTag(subChunkTagName, subChunkTag);
+            }
+
+            {
+                val lightingEngineTagName = lightingEngine.lightingEngineID();
+                val lightingEngineTag = new NBTTagCompound();
+                lightingEngine.lumi$writeToSubChunkNBT(chunk, subChunk, lightingEngineTag);
+                worldTag.setTag(lightingEngineTagName, lightingEngineTag);
+            }
+
+            output.setTag(worldTagName, worldTag);
+        }
     }
 
     @Override
     public void readSectionFromNBT(Chunk chunkBase, ExtendedBlockStorage subChunkBase, NBTTagCompound input) {
-        val chunk = (LumiChunk) chunkBase;
-        val subChunk = (LumiSubChunk) subChunkBase;
+        val version = input.getString(VERSION_NBT_TAG_NAME);
+        if (!VERSION_NBT_TAG_VALUE.equals(version))
+            return;
+
+        val worldBase = chunkBase.worldObj;
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+            val chunk = world.lumi$wrap(chunkBase);
+            val subChunk = world.lumi$wrap(subChunkBase);
+            val lightingEngine = world.lumi$lightingEngine();
+
+            val worldTagName = world.lumi$worldID();
+            if (!input.hasKey(worldTagName, 10))
+                continue;
+            val worldTag = input.getCompoundTag(worldTagName);
+
+            val subChunkTagName = subChunk.lumi$subChunkID();
+            if (worldTag.hasKey(subChunkTagName, 10)) {
+                val subChunkTag = worldTag.getCompoundTag(subChunkTagName);
+                subChunk.lumi$readFromNBT(subChunkTag);
+            }
+
+            val lightingEngineTagName = lightingEngine.lightingEngineID();
+            if (worldTag.hasKey(lightingEngineTagName, 10)) {
+                val lightingEngineTag = worldTag.getCompoundTag(lightingEngineTagName);
+                lightingEngine.lumi$readFromSubChunkNBT(chunk, subChunk, lightingEngineTag);
+            }
+        }
     }
 }

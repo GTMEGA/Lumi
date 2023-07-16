@@ -30,6 +30,8 @@ import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public interface LumiChunk {
+    int SUB_CHUNK_ARRAY_SIZE = 16;
+    int HEIGHT_MAP_ARRAY_SIZE = 16 * 16;
     int MAX_QUEUED_RANDOM_LIGHT_UPDATES = 16 * 16 * 16;
 
     @NotNull LumiChunkRoot lumi$root();
@@ -40,7 +42,7 @@ public interface LumiChunk {
 
     void lumi$writeToNBT(@NotNull NBTTagCompound output);
 
-    void lumi$readFromNBT(@NotNull NBTTagCompound output);
+    void lumi$readFromNBT(@NotNull NBTTagCompound input);
 
     @Nullable LumiSubChunk lumi$getSubChunkIfPrepared(int chunkPosY);
 

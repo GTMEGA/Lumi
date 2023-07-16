@@ -34,13 +34,17 @@ import static cpw.mods.fml.relauncher.Side.CLIENT;
 public interface LumiLightingEngine {
     @NotNull String lightingEngineID();
 
-    void lumi$writeToChunkNBT(@NotNull NBTTagCompound output);
+    void lumi$writeToChunkNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound output);
 
-    void lumi$readFromChunkNBT(@NotNull NBTTagCompound output);
+    void lumi$readFromChunkNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound input);
 
-    void lumi$writeToSubChunkNBT(@NotNull NBTTagCompound output);
+    void lumi$writeToSubChunkNBT(@NotNull LumiChunk chunk,
+                                 @NotNull LumiSubChunk subChunk,
+                                 @NotNull NBTTagCompound output);
 
-    void lumi$readFromSubChunkNBT(@NotNull NBTTagCompound output);
+    void lumi$readFromSubChunkNBT(@NotNull LumiChunk chunk,
+                                  @NotNull LumiSubChunk subChunk,
+                                  @NotNull NBTTagCompound input);
 
     int getCurrentLightValue(@NotNull LightType lightType, @NotNull BlockPos blockPos);
 

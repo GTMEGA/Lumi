@@ -104,7 +104,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public void lumi$readFromNBT(@NotNull NBTTagCompound output) {
+    public void lumi$readFromNBT(@NotNull NBTTagCompound input) {
     }
 
     @Override
@@ -344,7 +344,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     public boolean lumi$isHeightOutdated(int subChunkPosX, int subChunkPosZ) {
         subChunkPosX &= 15;
         subChunkPosZ &= 15;
-        val index = (subChunkPosX + (subChunkPosZ * 16)) % 255;
+        val index = subChunkPosX + (subChunkPosZ << 4);
         return updateSkylightColumns[index];
     }
 
