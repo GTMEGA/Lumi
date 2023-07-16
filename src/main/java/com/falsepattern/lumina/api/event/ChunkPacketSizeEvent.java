@@ -26,6 +26,7 @@ import cpw.mods.fml.common.eventhandler.Event;
 
 import static com.falsepattern.lumina.api.chunk.LumiChunk.SUB_CHUNK_ARRAY_SIZE;
 
+@SuppressWarnings("unused")
 public final class ChunkPacketSizeEvent extends Event {
     /**
      * Size limited to 1MiB

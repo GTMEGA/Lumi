@@ -25,7 +25,6 @@ import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngineProvider;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldWrapper;
-import lombok.experimental.UtilityClass;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
@@ -33,10 +32,14 @@ import org.jetbrains.annotations.NotNull;
 import static com.falsepattern.lumina.internal.lighting.LightingEngineManager.lightingEngineManager;
 import static com.falsepattern.lumina.internal.world.WorldManager.worldManager;
 
-@UtilityClass
+@SuppressWarnings("unused")
 public final class LumiAPI {
     private static final LumiWorldWrapper WORLD_WRAPPER = worldManager();
     private static final LumiLightingEngineProvider LIGHTING_ENGINE_PROVIDER = lightingEngineManager();
+
+    private LumiAPI() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
 
     public static @NotNull Iterable<LumiWorld> lumiWorldsFromBaseWorld(@NotNull World worldBase) {
         return WORLD_WRAPPER.lumiWorldsFromBaseWorld(worldBase);

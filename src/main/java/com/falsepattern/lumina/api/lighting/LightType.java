@@ -21,8 +21,6 @@
 
 package com.falsepattern.lumina.api.lighting;
 
-import lombok.val;
-import lombok.var;
 import net.minecraft.world.EnumSkyBlock;
 
 @SuppressWarnings("unused")
@@ -35,10 +33,10 @@ public enum LightType {
     private static final int MAX_BASE_LIGHT_VALUE;
 
     static {
-        var minBaseLightValue = Integer.MAX_VALUE;
-        var maxBaseLightValue = Integer.MIN_VALUE;
-        for (val lightType : values()) {
-            val defaultLightValue = lightType.defaultLightValue;
+        int minBaseLightValue = Integer.MAX_VALUE;
+        int maxBaseLightValue = Integer.MIN_VALUE;
+        for (LightType lightType : values()) {
+            final int defaultLightValue = lightType.defaultLightValue;
             minBaseLightValue = Math.min(maxBaseLightValue, defaultLightValue);
             maxBaseLightValue = Math.max(maxBaseLightValue, defaultLightValue);
         }
