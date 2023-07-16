@@ -13,15 +13,15 @@ def deobfCurse(curseDep) {
 
 dependencies {
     // FalsePattern Lib
-    implementation("com.falsepattern:falsepatternlib-mc1.7.10:[0.11,0.12):dev")
+    implementation("com.falsepattern:falsepatternlib-mc1.7.10:0.11.4:dev")
 
     // Chunk API
-    implementation("com.falsepattern:chunkapi-mc1.7.10:[0.3.0,0.4.0):dev")
+    implementation("com.falsepattern:chunkapi-mc1.7.10:0.3.2:dev")
 
     // JetBrains Annotations
-    compileOnly("org.jetbrains:annotations:[24,25)")
+    compileOnly("org.jetbrains:annotations:24.0.1")
 
     // Lombok
-    compileOnly("org.projectlombok:lombok:[1.18.24,1.19)")
-    annotationProcessor("org.projectlombok:lombok:[1.18.24,1.19)")
+    compileOnly("org.projectlombok:lombok:1.18.28")
+    annotationProcessor("org.projectlombok:lombok:1.18.28")
 }

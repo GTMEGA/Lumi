@@ -53,7 +53,7 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
     private static final int BLOCKS_PER_SUB_CHUNK = 16 * 16 * 16;
     private static final int BITS_PER_BLOCK = 4 + 4;
     private static final int BYTES_PER_BLOCK = BITS_PER_BLOCK / 8;
-    private static final int MAX_PACKET_SIZE_PER_WORLD_PROVIDER = BLOCKS_PER_SUB_CHUNK * BYTES_PER_BLOCK + 256;
+    private static final int MAX_PACKET_SIZE_PER_WORLD_PROVIDER = BLOCKS_PER_SUB_CHUNK * BYTES_PER_BLOCK;
 
     @Getter
     private int maxPacketSize = 0;
