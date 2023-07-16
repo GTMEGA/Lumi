@@ -27,5 +27,5 @@ import org.jetbrains.annotations.Unmodifiable;
 
 @FunctionalInterface
 public interface LumiWorldWrapper {
-    @NotNull @Unmodifiable Iterable<LumiWorld> lumiWorldsFromBaseWorld(@NotNull World baseWorld);
+    @NotNull @Unmodifiable Iterable<LumiWorld> lumiWorldsFromBaseWorld(@NotNull World worldBase);
 }

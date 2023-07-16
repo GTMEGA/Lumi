@@ -37,9 +37,9 @@ public interface LumiWorld {
 
     @NotNull String lumi$worldID();
 
-    @NotNull LumiChunk lumi$wrap(@NotNull Chunk baseChunk);
+    @NotNull LumiChunk lumi$wrap(@NotNull Chunk chunkBase);
 
-    @NotNull LumiSubChunk lumi$wrap(@NotNull ExtendedBlockStorage baseSubChunk);
+    @NotNull LumiSubChunk lumi$wrap(@NotNull ExtendedBlockStorage subChunkBase);
 
     @Nullable LumiChunk lumi$getChunkFromBlockPosIfExists(int posX, int posZ);
 

@@ -35,7 +35,7 @@ public abstract class AnvilChunkLoaderMixin {
     @Inject(method = "saveChunk",
             at = @At("HEAD"),
             require = 1)
-    private void processLightUpdatesOnSave(World baseWorld, Chunk baseChunk, CallbackInfo callbackInfo) {
-        LightingHooks.processLightUpdates(baseWorld);
+    private void processLightUpdatesOnSave(World worldBase, Chunk chunkBase, CallbackInfo callbackInfo) {
+        LightingHooks.processLightUpdates(worldBase);
     }
 }

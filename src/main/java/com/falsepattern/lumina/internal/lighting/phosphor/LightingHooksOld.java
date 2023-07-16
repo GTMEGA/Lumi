@@ -44,15 +44,15 @@ public final class LightingHooksOld {
     public static final String NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME = "neighbor_light_checks";
 
     static void scheduleRelightChecksForChunkBoundaries(LumiWorld world, LumiChunk chunk) {
-        val baseChunkPosX = chunk.lumi$chunkPosX();
-        val baseChunkPosZ = chunk.lumi$chunkPosZ();
+        val chunkBasePosX = chunk.lumi$chunkPosX();
+        val chunkBasePosZ = chunk.lumi$chunkPosZ();
 
         for (val direction : Direction.horizontalDirections()) {
             val xOffset = direction.xOffset(); // -1, 0, +1
             val zOffset = direction.zOffset(); // -1, 0, +1
 
-            val neighbourChunkPosX = baseChunkPosX + xOffset;
-            val neighbourChunkPosZ = baseChunkPosZ + zOffset;
+            val neighbourChunkPosX = chunkBasePosX + xOffset;
+            val neighbourChunkPosZ = chunkBasePosZ + zOffset;
 
             val neighbourChunk = getLoadedChunk(world, neighbourChunkPosX, neighbourChunkPosZ);
             if (neighbourChunk == null)
@@ -153,8 +153,8 @@ public final class LightingHooksOld {
         if (!provider.chunkExists(chunkPosX, chunkPosZ))
             return null;
 
-        val baseChunk = provider.provideChunk(chunkPosX, chunkPosZ);
-        return world.lumi$wrap(baseChunk);
+        val chunkBase = provider.provideChunk(chunkPosX, chunkPosZ);
+        return world.lumi$wrap(chunkBase);
     }
 
     static void relightSkyLightColumn(LumiLightingEngine lightingEngine,
@@ -388,20 +388,20 @@ public final class LightingHooksOld {
         if (flag == 0)
             return;
 
-        val baseChunkPosX = lumiChunk.lumi$chunkPosX();
-        val baseChunkPosZ = lumiChunk.lumi$chunkPosZ();
+        val chunkBasePosX = lumiChunk.lumi$chunkPosX();
+        val chunkBasePosZ = lumiChunk.lumi$chunkPosZ();
 
         if (lumiNChunk == null) {
-            val chunkPosX = baseChunkPosX + xOffset;
-            val chunkPosZ = baseChunkPosZ + zOffset;
+            val chunkPosX = chunkBasePosX + xOffset;
+            val chunkPosZ = chunkBasePosZ + zOffset;
             lumiNChunk = getLoadedChunk(world, chunkPosX, chunkPosZ);
             if (lumiNChunk == null)
                 return;
         }
 
         if (lumiSChunk == null) {
-            val chunkPosX = baseChunkPosX + (zOffset != 0 ? directionSign.sign() : 0);
-            val chunkPosZ = baseChunkPosZ + (xOffset != 0 ? directionSign.sign() : 0);
+            val chunkPosX = chunkBasePosX + (zOffset != 0 ? directionSign.sign() : 0);
+            val chunkPosZ = chunkBasePosZ + (xOffset != 0 ? directionSign.sign() : 0);
 
             lumiSChunk = getLoadedChunk(world, chunkPosX, chunkPosZ);
             if (lumiSChunk == null)

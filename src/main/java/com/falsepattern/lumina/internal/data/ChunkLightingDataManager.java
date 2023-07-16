@@ -76,12 +76,12 @@ public final class ChunkLightingDataManager implements ChunkDataManager.ChunkNBT
     }
 
     @Override
-    public void writeChunkToNBT(Chunk baseChunk, NBTTagCompound output) {
+    public void writeChunkToNBT(Chunk chunkBase, NBTTagCompound output) {
         output.setString(VERSION_NBT_TAG_NAME, Tags.VERSION);
 
         val skyLightHeightMap = new int[256];
-        for (val world : lumiWorldsFromBaseWorld(baseChunk.worldObj)) {
-            val chunk = world.lumi$wrap(baseChunk);
+        for (val world : lumiWorldsFromBaseWorld(chunkBase.worldObj)) {
+            val chunk = world.lumi$wrap(chunkBase);
             val subTag = new NBTTagCompound();
 
             // TODO: Make Lighting Engine handle this [4]
@@ -101,13 +101,13 @@ public final class ChunkLightingDataManager implements ChunkDataManager.ChunkNBT
     }
 
     @Override
-    public void readChunkFromNBT(Chunk baseChunk, NBTTagCompound input) {
+    public void readChunkFromNBT(Chunk chunkBase, NBTTagCompound input) {
         val version = input.getString(VERSION_NBT_TAG_NAME);
         val forceRelight = !Tags.VERSION.equals(version);
 
-        for (val world : lumiWorldsFromBaseWorld(baseChunk.worldObj)) {
+        for (val world : lumiWorldsFromBaseWorld(chunkBase.worldObj)) {
             val lightingEngine = world.lumi$lightingEngine();
-            val chunk = world.lumi$wrap(baseChunk);
+            val chunk = world.lumi$wrap(chunkBase);
             val subTag = input.getCompoundTag(world.lumi$worldID());
 
             // TODO: Make Lighting Engine handle this [4]
@@ -146,11 +146,11 @@ public final class ChunkLightingDataManager implements ChunkDataManager.ChunkNBT
     }
 
     @Override
-    public void writeToBuffer(Chunk baseChunk, int subChunkMask, boolean forceUpdate, ByteBuffer buffer) {
+    public void writeToBuffer(Chunk chunkBase, int subChunkMask, boolean forceUpdate, ByteBuffer buffer) {
     }
 
     @Override
-    public void readFromBuffer(Chunk baseChunk, int subChunkMask, boolean forceUpdate, ByteBuffer buffer) {
-        LightingHooks.markClientChunkLightingInitialized(baseChunk);
+    public void readFromBuffer(Chunk chunkBase, int subChunkMask, boolean forceUpdate, ByteBuffer buffer) {
+        LightingHooks.markClientChunkLightingInitialized(chunkBase);
     }
 }

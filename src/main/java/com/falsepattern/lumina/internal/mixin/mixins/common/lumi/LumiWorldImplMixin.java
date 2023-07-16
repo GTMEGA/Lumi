@@ -101,31 +101,31 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
 
     @Override
     @SuppressWarnings("CastToIncompatibleInterface")
-    public @NotNull LumiChunk lumi$wrap(@NotNull Chunk baseChunk) {
-        return (LumiChunk) baseChunk;
+    public @NotNull LumiChunk lumi$wrap(@NotNull Chunk chunkBase) {
+        return (LumiChunk) chunkBase;
     }
 
     @Override
     @SuppressWarnings("CastToIncompatibleInterface")
-    public @NotNull LumiSubChunk lumi$wrap(@NotNull ExtendedBlockStorage baseSubChunk) {
-        return (LumiSubChunk) baseSubChunk;
+    public @NotNull LumiSubChunk lumi$wrap(@NotNull ExtendedBlockStorage subChunkBase) {
+        return (LumiSubChunk) subChunkBase;
     }
 
     @Override
     @SuppressWarnings("InstanceofIncompatibleInterface")
     public @Nullable LumiChunk lumi$getChunkFromBlockPosIfExists(int posX, int posZ) {
-        val baseChunk = getChunkFromBlockCoords(posX, posZ);
-        if (baseChunk instanceof LumiChunk)
-            return (LumiChunk) baseChunk;
+        val chunkBase = getChunkFromBlockCoords(posX, posZ);
+        if (chunkBase instanceof LumiChunk)
+            return (LumiChunk) chunkBase;
         return null;
     }
 
     @Override
     @SuppressWarnings("InstanceofIncompatibleInterface")
     public @Nullable LumiChunk lumi$getChunkFromChunkPosIfExists(int chunkPosX, int chunkPosZ) {
-        val baseChunk = getChunkFromChunkCoords(chunkPosX, chunkPosZ);
-        if (baseChunk instanceof LumiChunk)
-            return (LumiChunk) baseChunk;
+        val chunkBase = getChunkFromChunkCoords(chunkPosX, chunkPosZ);
+        if (chunkBase instanceof LumiChunk)
+            return (LumiChunk) chunkBase;
         return null;
     }
 

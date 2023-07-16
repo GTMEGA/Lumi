@@ -157,7 +157,7 @@ public abstract class ChunkMixin {
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/block/Block;getLightOpacity(Lnet/minecraft/world/IBlockAccess;III)I"),
               require = 2)
-    private int alwaysZeroLightOpacity(Block block, IBlockAccess baseWorld, int posX, int posY, int posZ) {
+    private int alwaysZeroLightOpacity(Block block, IBlockAccess worldBase, int posX, int posY, int posZ) {
         return 0;
     }
 
@@ -191,9 +191,9 @@ public abstract class ChunkMixin {
                        args = "class=net/minecraft/world/chunk/storage/ExtendedBlockStorage"),
               require = 1)
     private ExtendedBlockStorage createSubChunkWithInitializedSkyLight(int posY, boolean hasSky) {
-        val baseSubChunk = new ExtendedBlockStorage(posY, hasSky);
-        LightingHooks.handleSubChunkInit(thiz(), baseSubChunk);
-        return baseSubChunk;
+        val subChunkBase = new ExtendedBlockStorage(posY, hasSky);
+        LightingHooks.handleSubChunkInit(thiz(), subChunkBase);
+        return subChunkBase;
     }
 
     /**

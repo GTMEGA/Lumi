@@ -34,10 +34,10 @@ public abstract class S21PacketChunkDataMixin {
     @Inject(method = "func_149269_a",
             at = @At("HEAD"),
             require = 1)
-    private static void processLightUpdatesOnReceive(Chunk baseChunk,
+    private static void processLightUpdatesOnReceive(Chunk chunkBase,
                                                      boolean hasSkyLight,
                                                      int changedSectionFilter,
                                                      CallbackInfoReturnable<S21PacketChunkData.Extracted> cir) {
-        LightingHooks.processLightUpdates(baseChunk.worldObj);
+        LightingHooks.processLightUpdates(chunkBase.worldObj);
     }
 }

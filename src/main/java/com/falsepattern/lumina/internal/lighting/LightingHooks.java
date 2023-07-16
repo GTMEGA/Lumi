@@ -40,18 +40,18 @@ import static cpw.mods.fml.relauncher.Side.CLIENT;
 public final class LightingHooks {
     private static final int DEFAULT_PRECIPITATION_HEIGHT = -999;
 
-    public static int getCurrentLightValue(Chunk baseChunk,
+    public static int getCurrentLightValue(Chunk chunkBase,
                                            EnumSkyBlock baseLightType,
                                            int subChunkPosX,
                                            int posY,
                                            int subChunkPosZ) {
-        val baseWorld = baseChunk.worldObj;
+        val worldBase = chunkBase.worldObj;
         val lightType = LightType.of(baseLightType);
-        val posX = (baseChunk.xPosition << 4) + subChunkPosX;
-        val posZ = (baseChunk.zPosition << 4) + subChunkPosZ;
+        val posX = (chunkBase.xPosition << 4) + subChunkPosX;
+        val posZ = (chunkBase.zPosition << 4) + subChunkPosZ;
 
         var maxLightValue = 0;
-        for (val world : lumiWorldsFromBaseWorld(baseWorld)) {
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val lightingEngine = world.lumi$lightingEngine();
             val lightValue = lightingEngine.getCurrentLightValue(lightType, posX, posY, posZ);
             maxLightValue = Math.max(maxLightValue, lightValue);
@@ -59,18 +59,18 @@ public final class LightingHooks {
         return maxLightValue;
     }
 
-    public static int getBrightnessAndLightValueMax(Chunk baseChunk,
+    public static int getBrightnessAndLightValueMax(Chunk chunkBase,
                                                     EnumSkyBlock baseLightType,
                                                     int subChunkPosX,
                                                     int posY,
                                                     int subChunkPosZ) {
-        val baseWorld = baseChunk.worldObj;
+        val worldBase = chunkBase.worldObj;
         val lightType = LightType.of(baseLightType);
-        val posX = (baseChunk.xPosition << 4) + subChunkPosX;
-        val posZ = (baseChunk.zPosition << 4) + subChunkPosZ;
+        val posX = (chunkBase.xPosition << 4) + subChunkPosX;
+        val posZ = (chunkBase.zPosition << 4) + subChunkPosZ;
 
         var maxLightValue = 0;
-        for (val world : lumiWorldsFromBaseWorld(baseWorld)) {
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val lightingEngine = world.lumi$lightingEngine();
             val lightValue = lightingEngine.getBrightnessAndLightValueMax(lightType, posX, posY, posZ);
             maxLightValue = Math.max(maxLightValue, lightValue);
@@ -78,127 +78,127 @@ public final class LightingHooks {
         return maxLightValue;
     }
 
-    public static boolean isChunkFullyLit(Chunk baseChunk) {
-        val baseWorld = baseChunk.worldObj;
+    public static boolean isChunkFullyLit(Chunk chunkBase) {
+        val worldBase = chunkBase.worldObj;
 
         var chunkHasLighting = true;
-        for (val world : lumiWorldsFromBaseWorld(baseWorld)) {
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val lightingEngine = world.lumi$lightingEngine();
-            val chunk = world.lumi$wrap(baseChunk);
+            val chunk = world.lumi$wrap(chunkBase);
             chunkHasLighting &= lightingEngine.isChunkFullyLit(chunk);
         }
         return chunkHasLighting;
     }
 
-    public static void handleChunkInit(Chunk baseChunk) {
-        val baseWorld = baseChunk.worldObj;
+    public static void handleChunkInit(Chunk chunkBase) {
+        val worldBase = chunkBase.worldObj;
 
-        resetPrecipitationHeightMap(baseChunk);
-        for (val world : lumiWorldsFromBaseWorld(baseWorld)) {
+        resetPrecipitationHeightMap(chunkBase);
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val lightingEngine = world.lumi$lightingEngine();
-            val chunk = world.lumi$wrap(baseChunk);
+            val chunk = world.lumi$wrap(chunkBase);
             lightingEngine.handleChunkInit(chunk);
         }
     }
 
     @SideOnly(CLIENT)
-    public static void handleClientChunkInit(Chunk baseChunk) {
-        val baseWorld = baseChunk.worldObj;
+    public static void handleClientChunkInit(Chunk chunkBase) {
+        val worldBase = chunkBase.worldObj;
 
-        resetPrecipitationHeightMap(baseChunk);
-        for (val world : lumiWorldsFromBaseWorld(baseWorld)) {
+        resetPrecipitationHeightMap(chunkBase);
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val lightingEngine = world.lumi$lightingEngine();
-            val chunk = world.lumi$wrap(baseChunk);
+            val chunk = world.lumi$wrap(chunkBase);
             lightingEngine.handleClientChunkInit(chunk);
         }
     }
 
     @SideOnly(CLIENT)
-    public static void markClientChunkLightingInitialized(Chunk baseChunk) {
-        val baseWorld = baseChunk.worldObj;
+    public static void markClientChunkLightingInitialized(Chunk chunkBase) {
+        val worldBase = chunkBase.worldObj;
 
-        for (val world : lumiWorldsFromBaseWorld(baseWorld)) {
-            val chunk = world.lumi$wrap(baseChunk);
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+            val chunk = world.lumi$wrap(chunkBase);
             chunk.lumi$isLightingInitialized(true);
         }
     }
 
-    public static void handleSubChunkInit(Chunk baseChunk, ExtendedBlockStorage baseSubChunk) {
-        val baseWorld = baseChunk.worldObj;
+    public static void handleSubChunkInit(Chunk chunkBase, ExtendedBlockStorage subChunkBase) {
+        val worldBase = chunkBase.worldObj;
 
-        for (val world : lumiWorldsFromBaseWorld(baseWorld)) {
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val lightingEngine = world.lumi$lightingEngine();
-            val chunk = world.lumi$wrap(baseChunk);
-            val subChunk = world.lumi$wrap(baseSubChunk);
+            val chunk = world.lumi$wrap(chunkBase);
+            val subChunk = world.lumi$wrap(subChunkBase);
             lightingEngine.handleSubChunkInit(chunk, subChunk);
         }
     }
 
-    public static void handleSubChunkInit(Chunk baseChunk, int chunkPosY) {
-        val baseWorld = baseChunk.worldObj;
+    public static void handleSubChunkInit(Chunk chunkBase, int chunkPosY) {
+        val worldBase = chunkBase.worldObj;
 
-        for (val world : lumiWorldsFromBaseWorld(baseWorld)) {
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val lightingEngine = world.lumi$lightingEngine();
-            val chunk = world.lumi$wrap(baseChunk);
+            val chunk = world.lumi$wrap(chunkBase);
             val subChunk = chunk.lumi$getSubChunk(chunkPosY);
             lightingEngine.handleSubChunkInit(chunk, subChunk);
         }
     }
 
-    public static void handleChunkLoad(Chunk baseChunk) {
-        val baseWorld = baseChunk.worldObj;
+    public static void handleChunkLoad(Chunk chunkBase) {
+        val worldBase = chunkBase.worldObj;
 
-        for (val world : lumiWorldsFromBaseWorld(baseWorld)) {
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val lightingEngine = world.lumi$lightingEngine();
-            val chunk = world.lumi$wrap(baseChunk);
+            val chunk = world.lumi$wrap(chunkBase);
             lightingEngine.handleChunkLoad(chunk);
         }
     }
 
-    public static void doRandomChunkLightingUpdates(Chunk baseChunk) {
-        val baseWorld = baseChunk.worldObj;
+    public static void doRandomChunkLightingUpdates(Chunk chunkBase) {
+        val worldBase = chunkBase.worldObj;
 
-        for (val world : lumiWorldsFromBaseWorld(baseWorld)) {
-            val chunk = world.lumi$wrap(baseChunk);
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+            val chunk = world.lumi$wrap(chunkBase);
             val lightingEngine = world.lumi$lightingEngine();
             lightingEngine.doRandomChunkLightingUpdates(chunk);
         }
     }
 
-    public static void updateLightingForBlock(Chunk baseChunk,
+    public static void updateLightingForBlock(Chunk chunkBase,
                                               int subChunkPosX,
                                               int posY,
                                               int subChunkPosZ) {
-        val baseWorld = baseChunk.worldObj;
-        val posX = (baseChunk.xPosition << 4) + subChunkPosX;
-        val posZ = (baseChunk.zPosition << 4) + subChunkPosZ;
+        val worldBase = chunkBase.worldObj;
+        val posX = (chunkBase.xPosition << 4) + subChunkPosX;
+        val posZ = (chunkBase.zPosition << 4) + subChunkPosZ;
 
-        for (val world : lumiWorldsFromBaseWorld(baseWorld)) {
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val lightingEngine = world.lumi$lightingEngine();
             lightingEngine.updateLightingForBlock(posX, posY, posZ);
         }
     }
 
-    public static void scheduleLightingUpdate(World baseWorld,
+    public static void scheduleLightingUpdate(World worldBase,
                                               EnumSkyBlock baseLightType,
                                               int posX,
                                               int posY,
                                               int posZ) {
         val lightType = LightType.of(baseLightType);
-        for (val world : lumiWorldsFromBaseWorld(baseWorld)) {
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val lightingEngine = world.lumi$lightingEngine();
             lightingEngine.scheduleLightingUpdate(lightType, posX, posY, posZ);
         }
     }
 
-    public static void processLightUpdates(World baseWorld) {
-        for (val world : lumiWorldsFromBaseWorld(baseWorld)) {
+    public static void processLightUpdates(World worldBase) {
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val lightingEngine = world.lumi$lightingEngine();
             lightingEngine.processLightingUpdatesForAllTypes();
         }
     }
 
-    private static void resetPrecipitationHeightMap(Chunk baseChunk) {
-        Arrays.fill(baseChunk.precipitationHeightMap, DEFAULT_PRECIPITATION_HEIGHT);
+    private static void resetPrecipitationHeightMap(Chunk chunkBase) {
+        Arrays.fill(chunkBase.precipitationHeightMap, DEFAULT_PRECIPITATION_HEIGHT);
     }
 }

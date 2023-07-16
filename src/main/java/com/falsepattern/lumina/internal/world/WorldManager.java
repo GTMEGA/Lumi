@@ -116,15 +116,15 @@ public final class WorldManager implements LumiWorldRegistry, LumiWorldWrapper {
 
     @Override
     @SuppressWarnings("ConstantValue")
-    public @NotNull @Unmodifiable Iterable<LumiWorld> lumiWorldsFromBaseWorld(@NotNull World baseWorld) {
-        if (baseWorld == null || !hasRegistered)
+    public @NotNull @Unmodifiable Iterable<LumiWorld> lumiWorldsFromBaseWorld(@NotNull World worldBase) {
+        if (worldBase == null || !hasRegistered)
             return Collections.emptyList();
-        return providedWorlds.computeIfAbsent(baseWorld, this::collectProvidedWorlds);
+        return providedWorlds.computeIfAbsent(worldBase, this::collectProvidedWorlds);
     }
 
-    private Iterable<LumiWorld> collectProvidedWorlds(World baseWorld) {
+    private Iterable<LumiWorld> collectProvidedWorlds(World worldBase) {
         val worldList = worldProviders.stream()
-                                      .map(worldProvider -> worldProvider.provideWorld(baseWorld))
+                                      .map(worldProvider -> worldProvider.provideWorld(worldBase))
                                       .filter(Objects::nonNull)
                                       .collect(Collectors.toCollection(ArrayList::new));
         return Collections.unmodifiableList(worldList);

@@ -66,14 +66,14 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
     }
 
     @Override
-    public void writeChunkToNBT(Chunk baseChunk, NBTTagCompound output) {
-        val chunk = (LumiChunk) baseChunk;
+    public void writeChunkToNBT(Chunk chunkBase, NBTTagCompound output) {
+        val chunk = (LumiChunk) chunkBase;
 
     }
 
     @Override
-    public void readChunkFromNBT(Chunk baseChunk, NBTTagCompound input) {
-        val chunk = (LumiChunk) baseChunk;
+    public void readChunkFromNBT(Chunk chunkBase, NBTTagCompound input) {
+        val chunk = (LumiChunk) chunkBase;
 
     }
 }

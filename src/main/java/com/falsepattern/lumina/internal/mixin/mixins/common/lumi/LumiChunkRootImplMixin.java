@@ -69,13 +69,13 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     @Override
     public void lumi$prepareSubChunk(int chunkPosY) {
         chunkPosY &= 15;
-        var baseSubChunk = storageArrays[chunkPosY];
+        var subChunkBase = storageArrays[chunkPosY];
 
-        if (baseSubChunk == null) {
+        if (subChunkBase == null) {
             val posY = chunkPosY << 4;
-            baseSubChunk = new ExtendedBlockStorage(posY, !worldObj.provider.hasNoSky);
-            storageArrays[chunkPosY] = baseSubChunk;
-            LightingHooks.handleSubChunkInit(thiz(), baseSubChunk);
+            subChunkBase = new ExtendedBlockStorage(posY, !worldObj.provider.hasNoSky);
+            storageArrays[chunkPosY] = subChunkBase;
+            LightingHooks.handleSubChunkInit(thiz(), subChunkBase);
         }
 
         lumi$markDirty();

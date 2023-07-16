@@ -71,11 +71,11 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
     }
 
     @Override
-    public void writeToBuffer(Chunk chunk, int ebsMask, boolean forceUpdate, ByteBuffer data) {
+    public void writeToBuffer(Chunk chunkBase, int subChunkMask, boolean forceUpdate, ByteBuffer data) {
     }
 
     @Override
-    public void readFromBuffer(Chunk baseChunk, int subChunkMask, boolean forceUpdate, ByteBuffer buffer) {
-        LightingHooks.markClientChunkLightingInitialized(baseChunk);
+    public void readFromBuffer(Chunk chunkBase, int subChunkMask, boolean forceUpdate, ByteBuffer data) {
+        LightingHooks.markClientChunkLightingInitialized(chunkBase);
     }
 }
