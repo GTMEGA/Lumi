@@ -39,7 +39,7 @@ import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorChunk.LIGHT_CHECK_FLAGS_LENGTH;
 
 @UtilityClass
-final class PhosporUtil {
+final class PhosphorUtil {
     private static final String NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME = "neighbor_light_checks";
 
     static void scheduleRelightChecksForChunkBoundaries(LumiWorld world, LumiChunk chunk) {
