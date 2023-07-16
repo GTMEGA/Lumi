@@ -19,27 +19,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.storage;
+package com.falsepattern.lumina.internal.data;
 
+import com.falsepattern.chunk.api.ChunkDataManager;
 import com.falsepattern.chunk.api.ChunkDataRegistry;
 import com.falsepattern.lumina.internal.Tags;
-import com.falsepattern.lumina.internal.lighting.LightingHooks;
 import com.falsepattern.lumina.internal.lighting.phosphor.LightingHooksOld;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import lombok.var;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.Chunk;
-
-import java.nio.ByteBuffer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import static com.falsepattern.lumina.api.LumiAPI.wrappedForBaseWorld;
 import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor(access = PRIVATE)
-public final class ChunkLightingDataManager implements com.falsepattern.chunk.api.ChunkDataManager.ChunkNBTDataManager,
-                                                       com.falsepattern.chunk.api.ChunkDataManager.PacketDataManager {
-    private static final ChunkLightingDataManager INSTANCE = new ChunkLightingDataManager();
+public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManager {
+    private static final Logger LOG = LogManager.getLogger(Tags.MOD_NAME + "|Chunk NBT Manager");
+
+    private static final ChunkNBTManager INSTANCE = new ChunkNBTManager();
 
     private static final String VERSION_NBT_TAG_NAME = Tags.MOD_ID + "_version";
     private static final String LIGHT_INITIALIZED_NBT_TAG_NAME = "lighting_initialized";
@@ -47,7 +48,7 @@ public final class ChunkLightingDataManager implements com.falsepattern.chunk.ap
 
     private boolean isRegistered = false;
 
-    public static ChunkLightingDataManager chunkLightingDataManager() {
+    public static ChunkNBTManager chunkNBTManager() {
         return INSTANCE;
     }
 
@@ -57,6 +58,7 @@ public final class ChunkLightingDataManager implements com.falsepattern.chunk.ap
 
         ChunkDataRegistry.registerDataManager(this);
         isRegistered = true;
+        LOG.info("Registered data manager");
     }
 
     @Override
@@ -132,19 +134,5 @@ public final class ChunkLightingDataManager implements com.falsepattern.chunk.ap
     @Override
     public String id() {
         return "extended";
-    }
-
-    @Override
-    public int maxPacketSize() {
-        return 0;
-    }
-
-    @Override
-    public void writeToBuffer(Chunk baseChunk, int subChunkMask, boolean forceUpdate, ByteBuffer buffer) {
-    }
-
-    @Override
-    public void readFromBuffer(Chunk baseChunk, int subChunkMask, boolean forceUpdate, ByteBuffer buffer) {
-        LightingHooks.markClientChunkLightingInitialized(baseChunk);
     }
 }
