@@ -95,12 +95,12 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     }
 
     @Override
-    public boolean lumi$doChunksExist(int minPosX, int minPosY, int minPosZ, int maxPosX, int maxPosY, int maxPosZ) {
+    public boolean lumi$doChunksExistInRange(int minPosX, int minPosY, int minPosZ, int maxPosX, int maxPosY, int maxPosZ) {
         return checkChunksExist(minPosX, minPosY, minPosZ, maxPosX, maxPosY, maxPosZ);
     }
 
     @Override
-    public boolean lumi$doChunksExist(int centerPosX, int centerPosY, int centerPosZ, int blockRange) {
+    public boolean lumi$doChunksExistInRange(int centerPosX, int centerPosY, int centerPosZ, int blockRange) {
         return doChunksNearChunkExist(centerPosX, centerPosY, centerPosZ, blockRange);
     }
 

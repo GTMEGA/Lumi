@@ -25,8 +25,6 @@ import com.falsepattern.lib.internal.Share;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.world.LumiWorld;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import lombok.experimental.UtilityClass;
 import lombok.val;
 import lombok.var;
@@ -42,7 +40,6 @@ import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorChunk.L
 @Deprecated
 @UtilityClass
 public final class LightingHooksOld {
-
     public static final String NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME = "neighbor_light_checks";
 
     @Deprecated
@@ -65,118 +62,6 @@ public final class LightingHooksOld {
             chunk.lumi$minSkyLightHeight(maxPosY);
 
         chunk.lumi$root().lumi$markDirty();
-    }
-
-    @Deprecated
-    // TODO: Make Lighting Engine handle this [0]
-    public static void initChunkSkyLight(LumiChunk chunk) {
-        val rootWorld = chunk.lumi$world().lumi$root();
-        val hasSky = rootWorld.lumi$hasSky();
-
-        val rootChunk = chunk.lumi$root();
-
-        val basePosX = chunk.lumi$chunkPosX() << 4;
-        val basePosY = rootChunk.lumi$topPreparedSubChunkBasePosY();
-        val basePosZ = chunk.lumi$chunkPosZ() << 4;
-
-        val maxPosY = basePosY + 15;
-
-        var minSkyLightHeight = Integer.MAX_VALUE;
-        for (int subChunkPosX = 0; subChunkPosX < 16; ++subChunkPosX) {
-            int subChunkPosZ = 0;
-            while (subChunkPosZ < 16) {
-                var skyLightHeight = maxPosY;
-
-                while (true) {
-                    if (skyLightHeight > 0) {
-                        val posY = skyLightHeight - 1;
-                        val blockOpacity = chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ);
-                        if (blockOpacity == 0) {
-                            skyLightHeight--;
-                            continue;
-                        }
-
-                        chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ, skyLightHeight);
-                        minSkyLightHeight = Math.min(minSkyLightHeight, skyLightHeight);
-                    }
-
-                    if (hasSky) {
-                        var lightLevel = 15;
-                        skyLightHeight = (basePosY + 16) - 1;
-
-                        do {
-                            var blockOpacity = chunk.lumi$getBlockOpacity(subChunkPosX, skyLightHeight, subChunkPosZ);
-                            if (blockOpacity == 0 && lightLevel != 15)
-                                blockOpacity = 1;
-
-                            lightLevel -= blockOpacity;
-                            if (lightLevel > 0) {
-                                val chunkPosY = skyLightHeight / 16;
-                                val subChunkPosY = skyLightHeight & 15;
-
-                                val subChunk = chunk.lumi$getSubChunkIfPrepared(chunkPosY);
-                                if (subChunk != null) {
-                                    val posX = basePosX + subChunkPosX;
-                                    val posZ = basePosZ + subChunkPosZ;
-
-                                    subChunk.lumi$setSkyLightValue(subChunkPosX,
-                                                                   subChunkPosY,
-                                                                   subChunkPosZ,
-                                                                   lightLevel);
-                                    rootWorld.lumi$markBlockForRenderUpdate(posX, skyLightHeight, posZ);
-                                }
-                            }
-
-                            skyLightHeight--;
-                        }
-                        while (skyLightHeight > 0 && lightLevel > 0);
-                    }
-
-                    subChunkPosZ++;
-                    break;
-                }
-            }
-        }
-
-        chunk.lumi$minSkyLightHeight(minSkyLightHeight);
-        rootChunk.lumi$markDirty();
-    }
-
-    @Deprecated
-    @SideOnly(Side.CLIENT)
-    public static void initClientChunkSkyLight(LumiChunk chunk) {
-        val rootChunk = chunk.lumi$root();
-
-        val basePosY = rootChunk.lumi$topPreparedSubChunkBasePosY();
-        val maxPosY = basePosY + 15;
-
-        var minSkyLightHeight = Integer.MAX_VALUE;
-        for (int subChunkPosX = 0; subChunkPosX < 16; ++subChunkPosX) {
-            var subChunkPosZ = 0;
-
-            while (subChunkPosZ < 16) {
-                var skyLightHeight = maxPosY;
-                while (true) {
-                    if (skyLightHeight > 0) {
-                        val posY = skyLightHeight - 1;
-                        val blockOpacity = chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ);
-                        if (blockOpacity == 0) {
-                            skyLightHeight--;
-                            continue;
-                        }
-
-                        chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ, skyLightHeight);
-                        minSkyLightHeight = Math.min(minSkyLightHeight, skyLightHeight);
-                    }
-
-                    subChunkPosZ++;
-                    break;
-                }
-            }
-        }
-
-        chunk.lumi$minSkyLightHeight(minSkyLightHeight);
-        rootChunk.lumi$markDirty();
     }
 
     @Deprecated
@@ -387,7 +272,7 @@ public final class LightingHooksOld {
             val blockRange = 16;
 
             val slice = new WorldChunkSlice(world, chunkPosX, chunkPosZ);
-            if (!worldRoot.lumi$doChunksExist(centerPosX, centerPosY, centerPosZ, blockRange))
+            if (!worldRoot.lumi$doChunksExistInRange(centerPosX, centerPosY, centerPosZ, blockRange))
                 break profilerSection;
 
             for (int subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++)
@@ -647,7 +532,7 @@ public final class LightingHooksOld {
         val maxPosY = 255;
         val maxPosZ = basePosZ + 31;
 
-        if (!world.lumi$root().lumi$doChunksExist(minPosX, minPosY, minPosZ, maxPosX, maxPosY, maxPosZ))
+        if (!world.lumi$root().lumi$doChunksExistInRange(minPosX, minPosY, minPosZ, maxPosX, maxPosY, maxPosZ))
             return;
 
         for (var chunkPosY = 0; chunkPosY < 16; chunkPosY++) {

@@ -29,6 +29,7 @@ import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngineProvider;
 import com.falsepattern.lumina.api.world.LumiWorld;
+import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import com.falsepattern.lumina.internal.Tags;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -50,6 +51,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.values;
 import static com.falsepattern.lumina.internal.lighting.phosphor.LightingHooksOld.getLoadedChunk;
+import static cpw.mods.fml.relauncher.Side.CLIENT;
 
 
 public final class Phosphor implements LumiLightingEngine {
@@ -159,6 +161,7 @@ public final class Phosphor implements LumiLightingEngine {
     private final ReentrantLock lock = new ReentrantLock();
 
     private final LumiWorld world;
+    private final LumiWorldRoot worldRoot;
     private final Profiler profiler;
 
     /**
@@ -196,6 +199,7 @@ public final class Phosphor implements LumiLightingEngine {
 
     private Phosphor(LumiWorld world, Profiler profiler) {
         this.world = world;
+        this.worldRoot = world.lumi$root();
         this.profiler = profiler;
 
         val queuePool = PooledLongQueue.createPool();
@@ -246,8 +250,119 @@ public final class Phosphor implements LumiLightingEngine {
     }
 
     @Override
+    public void initLightingForChunk(@NotNull LumiChunk chunk) {
+        val worldRoot = chunk.lumi$world().lumi$root();
+        val hasSky = worldRoot.lumi$hasSky();
+
+        val chunkRoot = chunk.lumi$root();
+
+        val basePosX = chunk.lumi$chunkPosX() << 4;
+        val basePosY = chunkRoot.lumi$topPreparedSubChunkBasePosY();
+        val basePosZ = chunk.lumi$chunkPosZ() << 4;
+
+        val maxPosY = basePosY + 15;
+
+        var minSkyLightHeight = Integer.MAX_VALUE;
+        for (int subChunkPosX = 0; subChunkPosX < 16; ++subChunkPosX) {
+            int subChunkPosZ = 0;
+            while (subChunkPosZ < 16) {
+                var skyLightHeight = maxPosY;
+
+                while (true) {
+                    if (skyLightHeight > 0) {
+                        val posY = skyLightHeight - 1;
+                        val blockOpacity = chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ);
+                        if (blockOpacity == 0) {
+                            skyLightHeight--;
+                            continue;
+                        }
+
+                        chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ, skyLightHeight);
+                        minSkyLightHeight = Math.min(minSkyLightHeight, skyLightHeight);
+                    }
+
+                    if (hasSky) {
+                        var lightLevel = 15;
+                        skyLightHeight = (basePosY + 16) - 1;
+
+                        do {
+                            var blockOpacity = chunk.lumi$getBlockOpacity(subChunkPosX, skyLightHeight, subChunkPosZ);
+                            if (blockOpacity == 0 && lightLevel != 15)
+                                blockOpacity = 1;
+
+                            lightLevel -= blockOpacity;
+                            if (lightLevel > 0) {
+                                val chunkPosY = skyLightHeight / 16;
+                                val subChunkPosY = skyLightHeight & 15;
+
+                                val subChunk = chunk.lumi$getSubChunkIfPrepared(chunkPosY);
+                                if (subChunk != null) {
+                                    val posX = basePosX + subChunkPosX;
+                                    val posZ = basePosZ + subChunkPosZ;
+
+                                    subChunk.lumi$setSkyLightValue(subChunkPosX,
+                                                                   subChunkPosY,
+                                                                   subChunkPosZ,
+                                                                   lightLevel);
+                                    worldRoot.lumi$markBlockForRenderUpdate(posX, skyLightHeight, posZ);
+                                }
+                            }
+
+                            skyLightHeight--;
+                        }
+                        while (skyLightHeight > 0 && lightLevel > 0);
+                    }
+
+                    subChunkPosZ++;
+                    break;
+                }
+            }
+        }
+
+        chunk.lumi$minSkyLightHeight(minSkyLightHeight);
+        chunkRoot.lumi$markDirty();
+    }
+
+    @Override
+    @SideOnly(CLIENT)
+    public void initLightingForClientChunk(@NotNull LumiChunk chunk) {
+        val chunkRoot = chunk.lumi$root();
+
+        val basePosY = chunkRoot.lumi$topPreparedSubChunkBasePosY();
+        val maxPosY = basePosY + 15;
+
+        var minSkyLightHeight = Integer.MAX_VALUE;
+        for (int subChunkPosX = 0; subChunkPosX < 16; ++subChunkPosX) {
+            var subChunkPosZ = 0;
+
+            while (subChunkPosZ < 16) {
+                var skyLightHeight = maxPosY;
+                while (true) {
+                    if (skyLightHeight > 0) {
+                        val posY = skyLightHeight - 1;
+                        val blockOpacity = chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ);
+                        if (blockOpacity == 0) {
+                            skyLightHeight--;
+                            continue;
+                        }
+
+                        chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ, skyLightHeight);
+                        minSkyLightHeight = Math.min(minSkyLightHeight, skyLightHeight);
+                    }
+
+                    subChunkPosZ++;
+                    break;
+                }
+            }
+        }
+
+        chunk.lumi$minSkyLightHeight(minSkyLightHeight);
+        chunkRoot.lumi$markDirty();
+    }
+
+    @Override
     public void initLightingForSubChunk(@NotNull LumiChunk chunk, @NotNull LumiSubChunk subChunk) {
-        if (!world.lumi$root().lumi$hasSky())
+        if (!worldRoot.lumi$hasSky())
             return;
 
         acquireLock();
@@ -376,7 +491,7 @@ public final class Phosphor implements LumiLightingEngine {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
-        if (world.lumi$root().lumi$isClientSide() && !isCallingFromClientThread())
+        if (worldRoot.lumi$isClientSide() && !isCallingFromClientThread())
             return;
 
         // Quickly check if the queue is empty before we acquire a more expensive lock.
@@ -400,7 +515,7 @@ public final class Phosphor implements LumiLightingEngine {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
-        if (world.lumi$root().lumi$isClientSide() && !isCallingFromClientThread())
+        if (worldRoot.lumi$isClientSide() && !isCallingFromClientThread())
             return;
 
         // Quickly check if the queue is empty before we acquire a more expensive lock.
@@ -524,8 +639,6 @@ public final class Phosphor implements LumiLightingEngine {
         }
 
         profiler.endSection();
-        val rootWorld = world.lumi$root();
-
         // Iterate through enqueued updates (brightening and darkening in parallel)
         // from brightest to darkest so that we only need to iterate once
         for (var queueIndex = MAX_LIGHT_VALUE; queueIndex >= 0; queueIndex--) {
@@ -592,7 +705,7 @@ public final class Phosphor implements LumiLightingEngine {
                     val posX = cursorBlockPos.getX();
                     val posY = cursorBlockPos.getY();
                     val posZ = cursorBlockPos.getZ();
-                    rootWorld.lumi$markBlockForRenderUpdate(posX, posY, posZ);
+                    worldRoot.lumi$markBlockForRenderUpdate(posX, posY, posZ);
                     if (queueIndex > 1)
                         spreadLightFromCursor(queueIndex, lightType);
                 }

@@ -24,6 +24,7 @@ package com.falsepattern.lumina.internal.lighting;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.internal.lighting.phosphor.LightingHooksOld;
+import cpw.mods.fml.relauncher.SideOnly;
 import lombok.experimental.UtilityClass;
 import lombok.val;
 import lombok.var;
@@ -36,28 +37,28 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import java.util.Arrays;
 
 import static com.falsepattern.lumina.api.LumiAPI.wrappedForBaseWorld;
+import static cpw.mods.fml.relauncher.Side.CLIENT;
 
 @UtilityClass
 public final class LightingHooks {
     private static final int DEFAULT_PRECIPITATION_HEIGHT = -999;
 
-    // TODO: Make Lighting Engine handle this [0]
-    @Deprecated
-    public static void initChunkSkyLight(World baseWorld, Chunk baseChunk) {
+    public static void initLightingForChunk(World baseWorld, Chunk baseChunk) {
         resetPrecipitationHeightMap(baseChunk);
         for (val world : wrappedForBaseWorld(baseWorld)) {
+            val lightingEngine = world.lumi$lightingEngine();
             val chunk = world.lumi$wrap(baseChunk);
-            LightingHooksOld.initChunkSkyLight(chunk);
+            lightingEngine.initLightingForChunk(chunk);
         }
     }
 
-    // TODO: Make Lighting Engine handle this [0]
-    @Deprecated
-    public static void initClientChunkSkyLight(World baseWorld, Chunk baseChunk) {
+    @SideOnly(CLIENT)
+    public static void initLightingForClientChunk(World baseWorld, Chunk baseChunk) {
         resetPrecipitationHeightMap(baseChunk);
         for (val world : wrappedForBaseWorld(baseWorld)) {
+            val lightingEngine = world.lumi$lightingEngine();
             val chunk = world.lumi$wrap(baseChunk);
-            LightingHooksOld.initClientChunkSkyLight(chunk);
+            lightingEngine.initLightingForClientChunk(chunk);
         }
     }
 

@@ -94,7 +94,7 @@ public abstract class ChunkMixin {
      */
     @Overwrite
     public void generateSkylightMap() {
-        LightingHooks.initChunkSkyLight(worldObj, thiz());
+        LightingHooks.initLightingForChunk(worldObj, thiz());
     }
 
     /**

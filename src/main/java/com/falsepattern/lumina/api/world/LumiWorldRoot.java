@@ -43,7 +43,7 @@ public interface LumiWorldRoot {
 
     @NotNull IChunkProvider lumi$chunkProvider();
 
-    boolean lumi$doChunksExist(int minPosX, int minPosY, int minPosZ, int maxPosX, int maxPosY, int maxPosZ);
+    boolean lumi$doChunksExistInRange(int minPosX, int minPosY, int minPosZ, int maxPosX, int maxPosY, int maxPosZ);
 
-    boolean lumi$doChunksExist(int centerPosX, int centerPosY, int centerPosZ, int blockRange);
+    boolean lumi$doChunksExistInRange(int centerPosX, int centerPosY, int centerPosZ, int blockRange);
 }

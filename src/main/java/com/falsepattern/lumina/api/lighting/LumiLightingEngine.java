@@ -24,7 +24,10 @@ package com.falsepattern.lumina.api.lighting;
 import com.falsepattern.lib.compat.BlockPos;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
+import cpw.mods.fml.relauncher.SideOnly;
 import org.jetbrains.annotations.NotNull;
+
+import static cpw.mods.fml.relauncher.Side.CLIENT;
 
 @SuppressWarnings("unused")
 public interface LumiLightingEngine {
@@ -33,6 +36,11 @@ public interface LumiLightingEngine {
     int getCurrentLightValue(@NotNull LightType lightType, @NotNull BlockPos blockPos);
 
     int getCurrentLightValue(@NotNull LightType lightType, int posX, int posY, int posZ);
+
+    void initLightingForChunk(@NotNull LumiChunk chunk);
+
+    @SideOnly(CLIENT)
+    void initLightingForClientChunk(@NotNull LumiChunk chunk);
 
     void initLightingForSubChunk(@NotNull LumiChunk chunk,
                                  @NotNull LumiSubChunk subChunk);

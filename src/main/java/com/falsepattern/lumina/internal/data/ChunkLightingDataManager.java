@@ -106,6 +106,7 @@ public final class ChunkLightingDataManager implements ChunkDataManager.ChunkNBT
         val forceRelight = !Tags.VERSION.equals(version);
 
         for (val world : wrappedForBaseWorld(baseChunk.worldObj)) {
+            val lightingEngine = world.lumi$lightingEngine();
             val chunk = world.lumi$wrap(baseChunk);
             val subTag = input.getCompoundTag(world.lumi$worldID());
 
@@ -134,9 +135,8 @@ public final class ChunkLightingDataManager implements ChunkDataManager.ChunkNBT
                 continue;
             }
 
-            // TODO: Make Lighting Engine handle this [0]
             chunk.lumi$isLightingInitialized(false);
-            LightingHooksOld.initChunkSkyLight(chunk);
+            lightingEngine.initLightingForChunk(chunk);
         }
     }
 
