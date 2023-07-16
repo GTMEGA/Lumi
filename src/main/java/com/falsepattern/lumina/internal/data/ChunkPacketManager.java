@@ -53,7 +53,7 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
     private static final int BLOCKS_PER_CHUNK = 16 * 16 * 256;
     private static final int BITS_PER_BLOCK = 4 + 4;
     private static final int BYTES_PER_BLOCK = BITS_PER_BLOCK / 8;
-    private static final int MAX_PACKET_SIZE_PER_WORLD_PROVIDER = BLOCKS_PER_CHUNK * BYTES_PER_BLOCK;
+    private static final int MAX_PACKET_SIZE_PER_WORLD_PROVIDER = BLOCKS_PER_CHUNK * BYTES_PER_BLOCK; // If I add 256 to this, it runs fine!
 
     @Getter
     private int maxPacketSize = 0;
@@ -87,8 +87,7 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
 
     @Override
     public void writeToBuffer(Chunk chunkBase, int subChunkMask, boolean forceUpdate, ByteBuffer buffer) {
-        val lightValuesData = new byte[2048];
-        val lightValues = new NibbleArray(lightValuesData, 4);
+        val lightValues = new NibbleArray(4096, 4);
 
         val worldBase = chunkBase.worldObj;
         for (val world : lumiWorldsFromBaseWorld(worldBase)) {
@@ -107,7 +106,7 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
                         }
                     }
                 }
-                buffer.put(lightValuesData);
+                buffer.put(lightValues.data);
 
                 if (!hasSky)
                     continue;
@@ -115,31 +114,31 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
                 for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
                     for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
                         for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
-                            val lightValue = subChunk.lumi$getBlockLightValue(subChunkPosX, subChunkPosY, subChunkPosZ);
+                            val lightValue = subChunk.lumi$getSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ);
                             lightValues.set(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
                         }
                     }
                 }
-                buffer.put(lightValuesData);
+                buffer.put(lightValues.data);
             }
         }
     }
 
     @Override
     public void readFromBuffer(Chunk chunkBase, int subChunkMask, boolean forceUpdate, ByteBuffer buffer) {
-        val lightValuesData = new byte[2048];
-        val lightValues = new NibbleArray(lightValuesData, 4);
+        val lightValues = new NibbleArray(4096, 4);
 
         val worldBase = chunkBase.worldObj;
         for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val hasSky = world.lumi$root().lumi$hasSky();
             val chunk = world.lumi$wrap(chunkBase);
+
             for (var chunkPosY = 0; chunkPosY < 16; chunkPosY++) {
                 val subChunk = getSubChunk(chunk, subChunkMask, chunkPosY);
                 if (subChunk == null)
                     continue;
 
-                buffer.get(lightValuesData);
+                buffer.get(lightValues.data);
                 for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
                     for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
                         for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
@@ -152,7 +151,7 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
                 if (!hasSky)
                     continue;
 
-                buffer.get(lightValuesData);
+                buffer.get(lightValues.data);
                 for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
                     for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
                         for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
@@ -162,6 +161,8 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
                     }
                 }
             }
+
+            chunk.lumi$isLightingInitialized(true);
         }
     }
 

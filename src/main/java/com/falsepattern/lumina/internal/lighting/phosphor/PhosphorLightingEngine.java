@@ -389,7 +389,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         }
 
         chunk.lumi$minSkyLightHeight(minSkyLightHeight);
-        chunkRoot.lumi$markDirty();
+        chunk.lumi$isLightingInitialized(true);
     }
 
     @Override

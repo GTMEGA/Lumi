@@ -113,16 +113,6 @@ public final class LightingHooks {
         }
     }
 
-    @SideOnly(CLIENT)
-    public static void markClientChunkLightingInitialized(Chunk chunkBase) {
-        val worldBase = chunkBase.worldObj;
-
-        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
-            val chunk = world.lumi$wrap(chunkBase);
-            chunk.lumi$isLightingInitialized(true);
-        }
-    }
-
     public static void handleSubChunkInit(Chunk chunkBase, ExtendedBlockStorage subChunkBase) {
         val worldBase = chunkBase.worldObj;
 
