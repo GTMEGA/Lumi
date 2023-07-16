@@ -83,7 +83,7 @@ public final class LightingHooksOld {
         }
     }
 
-    public static boolean checkChunkLighting(LumiWorld world, LumiChunk chunk) {
+    static boolean isChunkFullyLit(LumiWorld world, LumiChunk chunk) {
         if (!chunk.lumi$isLightingInitialized())
             initChunkLighting(world, chunk);
 

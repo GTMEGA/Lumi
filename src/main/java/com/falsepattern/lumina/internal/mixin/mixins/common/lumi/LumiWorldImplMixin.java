@@ -43,6 +43,8 @@ import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
+import java.util.Set;
+
 import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 
@@ -53,6 +55,10 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     @Final
     @Shadow
     public Profiler theProfiler;
+
+    @Shadow
+    @SuppressWarnings("rawtypes")
+    public Set activeChunkSet;
 
     @Shadow
     public abstract Chunk getChunkFromBlockCoords(int posX, int posZ);
@@ -127,6 +133,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     public @NotNull LumiLightingEngine lumi$lightingEngine() {
         return lumi$lightingEngine;
     }
+
 
     @Override
     public int lumi$getBrightnessAndLightValueMax(@NotNull LightType lightType, int posX, int posY, int posZ) {

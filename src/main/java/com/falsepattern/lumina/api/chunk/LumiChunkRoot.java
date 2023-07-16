@@ -36,5 +36,9 @@ public interface LumiChunkRoot {
 
     int lumi$topPreparedSubChunkBasePosY();
 
+    boolean lumi$isUpdating();
+
     void lumi$markDirty();
+
+    boolean lumi$isDirty();
 }

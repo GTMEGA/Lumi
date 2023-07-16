@@ -62,8 +62,8 @@ public abstract class ChunkMixin {
     @Inject(method = "onChunkLoad",
             at = @At("RETURN"),
             require = 1)
-    private void scheduleRelightOnLoad(CallbackInfo ci) {
-        LightingHooks.handleChunkLoad(worldObj, thiz());
+    private void handleChunkLoad(CallbackInfo ci) {
+        LightingHooks.handleChunkLoad(thiz());
     }
 
     @Redirect(method = "setLightValue",
@@ -77,7 +77,7 @@ public abstract class ChunkMixin {
                                            int subChunkPosZ,
                                            int value) {
         val chunkPosY = posY / 16;
-        LightingHooks.handleSubChunkInit(worldObj, thiz, chunkPosY);
+        LightingHooks.handleSubChunkInit(thiz, chunkPosY);
     }
 
     /**
@@ -94,7 +94,7 @@ public abstract class ChunkMixin {
      */
     @Overwrite
     public void generateSkylightMap() {
-        LightingHooks.handleChunkInit(worldObj, thiz());
+        LightingHooks.handleChunkInit(thiz());
     }
 
     /**
@@ -103,7 +103,7 @@ public abstract class ChunkMixin {
      */
     @Overwrite
     public int getSavedLightValue(EnumSkyBlock baseLightType, int subChunkPosX, int posY, int subChunkPosZ) {
-        return LightingHooks.getMaxCurrentLightValue(worldObj, thiz(), baseLightType, subChunkPosX, posY, subChunkPosZ);
+        return LightingHooks.getCurrentLightValue(thiz(), baseLightType, subChunkPosX, posY, subChunkPosZ);
     }
 
     /**
@@ -113,7 +113,7 @@ public abstract class ChunkMixin {
     @Overwrite
     public void func_150809_p() {
         isTerrainPopulated = true;
-        isLightPopulated = LightingHooks.doesChunkHaveLighting(worldObj, thiz());
+        isLightPopulated = LightingHooks.isChunkFullyLit(thiz());
     }
 
     /**
@@ -183,7 +183,7 @@ public abstract class ChunkMixin {
                                                 int l1,
                                                 int i2,
                                                 int k2) {
-        LightingHooks.updateLightingForBlock(worldObj, thiz(), subChunkPosX, posY, subChunkPosZ);
+        LightingHooks.updateLightingForBlock(thiz(), subChunkPosX, posY, subChunkPosZ);
     }
 
     @Redirect(method = "func_150807_a",
@@ -192,7 +192,7 @@ public abstract class ChunkMixin {
               require = 1)
     private ExtendedBlockStorage createSubChunkWithInitializedSkyLight(int posY, boolean hasSky) {
         val baseSubChunk = new ExtendedBlockStorage(posY, hasSky);
-        LightingHooks.handleSubChunkInit(worldObj, thiz(), baseSubChunk);
+        LightingHooks.handleSubChunkInit(thiz(), baseSubChunk);
         return baseSubChunk;
     }
 
@@ -202,7 +202,7 @@ public abstract class ChunkMixin {
      */
     @Overwrite
     public void enqueueRelightChecks() {
-        LightingHooks.randomLightUpdates(worldObj, thiz());
+        LightingHooks.doRandomChunkLightingUpdates(thiz());
     }
 
     private Chunk thiz() {

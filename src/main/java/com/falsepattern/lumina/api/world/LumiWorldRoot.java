@@ -35,11 +35,13 @@ public interface LumiWorldRoot {
 
     boolean lumi$hasSky();
 
+    void lumi$markBlockForRenderUpdate(int posX, int posY, int posZ);
+
+    void lumi$scheduleLightingUpdate(int posX, int posY, int posZ);
+
     @NotNull Block lumi$getBlock(int posX, int posY, int posZ);
 
     int lumi$getBlockMeta(int posX, int posY, int posZ);
-
-    void lumi$markBlockForRenderUpdate(int posX, int posY, int posZ);
 
     @NotNull IChunkProvider lumi$chunkProvider();
 

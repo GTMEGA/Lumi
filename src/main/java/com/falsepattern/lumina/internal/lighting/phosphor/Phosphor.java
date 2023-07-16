@@ -48,6 +48,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static com.falsepattern.lumina.api.chunk.LumiChunk.MAX_QUEUED_RANDOM_LIGHT_UPDATES;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.values;
 import static com.falsepattern.lumina.internal.lighting.phosphor.LightingHooksOld.getLoadedChunk;
@@ -250,6 +251,21 @@ public final class Phosphor implements LumiLightingEngine {
     }
 
     @Override
+    public int getBrightnessAndLightValueMax(@NotNull LightType lightType, @NotNull BlockPos blockPos) {
+        return getBrightnessAndLightValueMax(lightType, blockPos.getX(), blockPos.getY(), blockPos.getZ());
+    }
+
+    @Override
+    public int getBrightnessAndLightValueMax(@NotNull LightType lightType, int posX, int posY, int posZ) {
+        return world.lumi$getBrightnessAndLightValueMax(lightType, posX, posY, posZ);
+    }
+
+    @Override
+    public boolean isChunkFullyLit(@NotNull LumiChunk chunk) {
+        return LightingHooksOld.isChunkFullyLit(world, chunk);
+    }
+
+    @Override
     public void handleChunkInit(@NotNull LumiChunk chunk) {
         val worldRoot = chunk.lumi$world().lumi$root();
         val hasSky = worldRoot.lumi$hasSky();
@@ -387,6 +403,93 @@ public final class Phosphor implements LumiLightingEngine {
     @Override
     public void handleChunkLoad(@NotNull LumiChunk chunk) {
         LightingHooksOld.scheduleRelightChecksForChunkBoundaries(world, chunk);
+    }
+
+    @Override
+    public void doRandomChunkLightingUpdates(@NotNull LumiChunk chunk) {
+        val chunkRoot = chunk.lumi$root();
+
+        var queuedRandomLightUpdates = chunk.lumi$queuedRandomLightUpdates();
+        if (queuedRandomLightUpdates >= MAX_QUEUED_RANDOM_LIGHT_UPDATES)
+            return;
+
+        val isUpdating = chunkRoot.lumi$isUpdating();
+        val isClientSide = worldRoot.lumi$isClientSide();
+
+        final int maxUpdateIterations;
+        if (isClientSide && isUpdating) {
+            maxUpdateIterations = 256;
+        } else if (isClientSide) {
+            maxUpdateIterations = 64;
+        } else {
+            maxUpdateIterations = 32;
+        }
+
+        val chunkPosX = chunk.lumi$chunkPosX();
+        val chunkPosZ = chunk.lumi$chunkPosZ();
+        val minPosX = chunkPosX << 4;
+        val minPosZ = chunkPosZ << 4;
+
+        var remainingIterations = maxUpdateIterations;
+        while (remainingIterations > 0) {
+            if (queuedRandomLightUpdates >= MAX_QUEUED_RANDOM_LIGHT_UPDATES)
+                return;
+            remainingIterations--;
+
+            val chunkPosY = queuedRandomLightUpdates % 16;
+            val subChunkPosX = (queuedRandomLightUpdates / 16) % 16;
+            val subChunkPosZ = queuedRandomLightUpdates / (16 * 16);
+            queuedRandomLightUpdates++;
+
+            val minPosY = chunkPosY << 4;
+
+            val posX = minPosX + subChunkPosX;
+            val posZ = minPosZ + subChunkPosZ;
+
+
+            if (!chunkRoot.lumi$isSubChunkPrepared(chunkPosY))
+                continue;
+
+            for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
+                val posY = minPosY + subChunkPosY;
+
+                notCornerCheck:
+                {
+                    if (subChunkPosX != 0 && subChunkPosX != 15)
+                        break notCornerCheck;
+                    if (subChunkPosY != 0 && subChunkPosY != 15)
+                        break notCornerCheck;
+                    if (subChunkPosZ != 0 && subChunkPosZ != 15)
+                        break notCornerCheck;
+
+                    worldRoot.lumi$scheduleLightingUpdate(posX, posY, posZ);
+                    continue;
+                }
+
+                renderUpdateCheck:
+                {
+                    val blockOpacity = chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ);
+                    if (blockOpacity < 15)
+                        break renderUpdateCheck;
+
+                    val blockBrightness = chunk.lumi$getBlockBrightness(subChunkPosX, posY, subChunkPosZ);
+                    if (blockBrightness > 0)
+                        break renderUpdateCheck;
+
+                    val lightValue = chunk.lumi$getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
+                    if (lightValue == 0)
+                        continue;
+
+                    chunk.lumi$setBlockLightValue(subChunkPosX, posY, subChunkPosZ, 0);
+                    worldRoot.lumi$markBlockForRenderUpdate(posX, posY, posZ);
+                    break;
+                }
+
+                worldRoot.lumi$scheduleLightingUpdate(posX, posY, posZ);
+                break;
+            }
+
+        }
     }
 
     @Override

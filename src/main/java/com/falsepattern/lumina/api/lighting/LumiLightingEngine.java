@@ -37,6 +37,12 @@ public interface LumiLightingEngine {
 
     int getCurrentLightValue(@NotNull LightType lightType, int posX, int posY, int posZ);
 
+    int getBrightnessAndLightValueMax(@NotNull LightType lightType, @NotNull BlockPos blockPos);
+
+    int getBrightnessAndLightValueMax(@NotNull LightType lightType, int posX, int posY, int posZ);
+
+    boolean isChunkFullyLit(@NotNull LumiChunk chunk);
+
     void handleChunkInit(@NotNull LumiChunk chunk);
 
     @SideOnly(CLIENT)
@@ -46,6 +52,8 @@ public interface LumiLightingEngine {
                             @NotNull LumiSubChunk subChunk);
 
     void handleChunkLoad(@NotNull LumiChunk chunk);
+
+    void doRandomChunkLightingUpdates(@NotNull LumiChunk chunk);
 
     void updateLightingForBlock(@NotNull BlockPos blockPos);
 

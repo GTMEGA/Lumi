@@ -64,6 +64,9 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     @Shadow
     public abstract void func_147479_m(int posX, int posY, int posZ);
 
+    @Shadow
+    public abstract boolean func_147451_t(int posX, int posY, int posZ);
+
     @Override
     public Profiler lumi$profiler() {
         return theProfiler;
@@ -77,6 +80,16 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     @Override
     public boolean lumi$hasSky() {
         return !provider.hasNoSky;
+    }
+
+    @Override
+    public void lumi$markBlockForRenderUpdate(int posX, int posY, int posZ) {
+        func_147479_m(posX, posY, posZ);
+    }
+
+    @Override
+    public void lumi$scheduleLightingUpdate(int posX, int posY, int posZ) {
+        func_147451_t(posX, posY, posZ);
     }
 
     @Override
@@ -102,10 +115,5 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     @Override
     public boolean lumi$doChunksExistInRange(int centerPosX, int centerPosY, int centerPosZ, int blockRange) {
         return doChunksNearChunkExist(centerPosX, centerPosY, centerPosZ, blockRange);
-    }
-
-    @Override
-    public void lumi$markBlockForRenderUpdate(int posX, int posY, int posZ) {
-        func_147479_m(posX, posY, posZ);
     }
 }

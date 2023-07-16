@@ -66,6 +66,8 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     public int[] heightMap;
     @Shadow
     public int heightMapMinimum;
+    @Shadow
+    public int queuedLightChecks;
 
     private LumiChunkRoot lumi$root;
     private LumiWorld lumi$world;
@@ -92,20 +94,20 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    @SuppressWarnings("CastToIncompatibleInterface")
-    public @NotNull LumiSubChunk lumi$getSubChunk(int chunkPosY) {
-        lumi$root.lumi$prepareSubChunk(chunkPosY);
-        val subChunk = storageArrays[chunkPosY];
-        return (LumiSubChunk) subChunk;
-    }
-
-    @Override
     @SuppressWarnings("InstanceofIncompatibleInterface")
     public @Nullable LumiSubChunk lumi$getSubChunkIfPrepared(int chunkPosY) {
         val subChunk = storageArrays[chunkPosY];
         if (subChunk instanceof LumiSubChunk)
             return (LumiSubChunk) subChunk;
         return null;
+    }
+
+    @Override
+    @SuppressWarnings("CastToIncompatibleInterface")
+    public @NotNull LumiSubChunk lumi$getSubChunk(int chunkPosY) {
+        lumi$root.lumi$prepareSubChunk(chunkPosY);
+        val subChunk = storageArrays[chunkPosY];
+        return (LumiSubChunk) subChunk;
     }
 
     @Override
@@ -116,6 +118,16 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     @Override
     public int lumi$chunkPosZ() {
         return zPosition;
+    }
+
+    @Override
+    public void lumi$queuedRandomLightUpdates(int queuedRandomLightUpdates) {
+        this.queuedLightChecks = queuedRandomLightUpdates;
+    }
+
+    @Override
+    public int lumi$queuedRandomLightUpdates() {
+        return queuedLightChecks;
     }
 
     @Override

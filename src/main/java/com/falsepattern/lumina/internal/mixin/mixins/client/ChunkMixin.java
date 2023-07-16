@@ -42,7 +42,7 @@ public abstract class ChunkMixin {
     @Overwrite
     @SideOnly(Side.CLIENT)
     public void generateHeightMap() {
-        LightingHooks.handleClientChunkInit(worldObj, thiz());
+        LightingHooks.handleClientChunkInit(thiz());
     }
 
     private Chunk thiz() {

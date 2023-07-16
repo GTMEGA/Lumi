@@ -41,6 +41,8 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     private ExtendedBlockStorage[] storageArrays;
     @Shadow
     public World worldObj;
+    @Shadow
+    public boolean isModified;
 
     @Shadow
     public abstract int getTopFilledSegment();
@@ -73,7 +75,7 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
             val posY = chunkPosY << 4;
             baseSubChunk = new ExtendedBlockStorage(posY, !worldObj.provider.hasNoSky);
             storageArrays[chunkPosY] = baseSubChunk;
-            LightingHooks.handleSubChunkInit(worldObj, thiz(), baseSubChunk);
+            LightingHooks.handleSubChunkInit(thiz(), baseSubChunk);
         }
 
         lumi$markDirty();
@@ -92,8 +94,20 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     }
 
     @Override
+    public boolean lumi$isUpdating() {
+        if (isModified)
+            return true;
+        return worldObj.activeChunkSet.contains(thiz());
+    }
+
+    @Override
     public void lumi$markDirty() {
         setChunkModified();
+    }
+
+    @Override
+    public boolean lumi$isDirty() {
+        return isModified;
     }
 
     private Chunk thiz() {

@@ -29,6 +29,8 @@ import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public interface LumiChunk {
+    int MAX_QUEUED_RANDOM_LIGHT_UPDATES = 16 * 16 * 16;
+
     @NotNull LumiChunkRoot lumi$root();
 
     @NotNull LumiWorld lumi$world();
@@ -40,6 +42,10 @@ public interface LumiChunk {
     int lumi$chunkPosX();
 
     int lumi$chunkPosZ();
+
+    void lumi$queuedRandomLightUpdates(int remainingRandomLightUpdates);
+
+    int lumi$queuedRandomLightUpdates();
 
     int lumi$getBrightnessAndLightValueMax(@NotNull LightType lightType, int subChunkPosX, int posY, int subChunkPosZ);
 
