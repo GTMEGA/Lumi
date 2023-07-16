@@ -75,8 +75,7 @@ public interface LumiLightingEngine {
     @SideOnly(CLIENT)
     void handleClientChunkInit(@NotNull LumiChunk chunk);
 
-    void handleSubChunkInit(@NotNull LumiChunk chunk,
-                            @NotNull LumiSubChunk subChunk);
+    void handleSubChunkInit(@NotNull LumiChunk chunk, @NotNull LumiSubChunk subChunk);
 
     void handleChunkLoad(@NotNull LumiChunk chunk);
 

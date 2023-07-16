@@ -8,7 +8,8 @@
     "url": "https://github.com/FalsePattern/LUMINA",
     "updateUrl": "",
     "authorList": [
-      "FalsePattern"
+      "FalsePattern",
+      "Ven"
     ],
     "credits": "Special thanks to: CaffeineMC for Phosphor, embeddedt for the backport inside ArchaicFix.",
     "logoFile": "",

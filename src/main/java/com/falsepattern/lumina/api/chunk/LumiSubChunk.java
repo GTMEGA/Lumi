@@ -44,9 +44,16 @@ public interface LumiSubChunk {
 
     void lumi$readFromPacket(@NotNull ByteBuffer input);
 
-    void lumi$setLightValue(@NotNull LightType lightType, int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
+    void lumi$setLightValue(@NotNull LightType lightType,
+                            int subChunkPosX,
+                            int subChunkPosY,
+                            int subChunkPosZ,
+                            int lightValue);
 
-    int lumi$getLightValue(@NotNull LightType lightType, int subChunkPosX, int subChunkPosY, int subChunkPosZ);
+    int lumi$getLightValue(@NotNull LightType lightType,
+                           int subChunkPosX,
+                           int subChunkPosY,
+                           int subChunkPosZ);
 
     void lumi$setBlockLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
 
