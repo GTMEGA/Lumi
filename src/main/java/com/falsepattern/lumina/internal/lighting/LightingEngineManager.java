@@ -21,12 +21,12 @@
 
 package com.falsepattern.lumina.internal.lighting;
 
+import com.falsepattern.lumina.Tags;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngineProvider;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngineRegistry;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.internal.LumiDefaultValues;
-import com.falsepattern.lumina.internal.Tags;
 import com.falsepattern.lumina.internal.event.EventPoster;
 import lombok.NoArgsConstructor;
 import net.minecraft.profiler.Profiler;

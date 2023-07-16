@@ -23,9 +23,9 @@ package com.falsepattern.lumina.internal.data;
 
 import com.falsepattern.chunk.api.ChunkDataManager;
 import com.falsepattern.chunk.api.ChunkDataRegistry;
+import com.falsepattern.lumina.Tags;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
-import com.falsepattern.lumina.internal.Tags;
 import com.falsepattern.lumina.internal.event.EventPoster;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

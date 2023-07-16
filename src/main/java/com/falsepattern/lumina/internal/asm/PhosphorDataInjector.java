@@ -21,7 +21,7 @@
 
 package com.falsepattern.lumina.internal.asm;
 
-import com.falsepattern.lumina.internal.Tags;
+import com.falsepattern.lumina.Tags;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import lombok.var;

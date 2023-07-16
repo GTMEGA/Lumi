@@ -23,13 +23,13 @@ package com.falsepattern.lumina.internal.lighting.phosphor;
 
 import com.falsepattern.lib.compat.BlockPos;
 import com.falsepattern.lib.util.MathUtil;
+import com.falsepattern.lumina.Tags;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
-import com.falsepattern.lumina.internal.Tags;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import lombok.NoArgsConstructor;

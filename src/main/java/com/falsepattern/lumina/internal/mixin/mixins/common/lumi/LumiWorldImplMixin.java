@@ -21,6 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
+import com.falsepattern.lumina.Tags;
 import com.falsepattern.lumina.api.LumiAPI;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
@@ -28,7 +29,6 @@ import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
-import com.falsepattern.lumina.internal.Tags;
 import lombok.val;
 import net.minecraft.block.Block;
 import net.minecraft.profiler.Profiler;

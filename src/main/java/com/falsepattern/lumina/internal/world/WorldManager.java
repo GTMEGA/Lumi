@@ -21,12 +21,12 @@
 
 package com.falsepattern.lumina.internal.world;
 
+import com.falsepattern.lumina.Tags;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldProvider;
 import com.falsepattern.lumina.api.world.LumiWorldRegistry;
 import com.falsepattern.lumina.api.world.LumiWorldWrapper;
 import com.falsepattern.lumina.internal.LumiDefaultValues;
-import com.falsepattern.lumina.internal.Tags;
 import com.falsepattern.lumina.internal.collection.WeakIdentityHashMap;
 import com.falsepattern.lumina.internal.event.EventPoster;
 import lombok.NoArgsConstructor;

@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal;
+package com.falsepattern.lumina;
 
 import com.falsepattern.chunk.api.ChunkDataRegistry;
 import cpw.mods.fml.common.Mod;
@@ -30,7 +30,7 @@ import lombok.NoArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import static com.falsepattern.lumina.internal.Tags.*;
+import static com.falsepattern.lumina.Tags.*;
 import static com.falsepattern.lumina.internal.data.ChunkNBTManager.chunkNBTManager;
 import static com.falsepattern.lumina.internal.data.ChunkPacketManager.chunkPacketManager;
 import static com.falsepattern.lumina.internal.data.SubChunkNBTManager.subChunkNBTManager;
@@ -48,12 +48,13 @@ public final class LUMINA {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent evt) {
-        worldManager().registerWorldProviders();
-        lightingEngineManager().registerLightingEngineProvider();
     }
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent evt) {
+        worldManager().registerWorldProviders();
+        lightingEngineManager().registerLightingEngineProvider();
+
         chunkNBTManager().registerDataManager();
         subChunkNBTManager().registerDataManager();
         chunkPacketManager().registerDataManager();
