@@ -27,6 +27,7 @@ import com.falsepattern.lumina.api.world.LumiWorldRegistry;
 import com.falsepattern.lumina.api.world.LumiWorldWrapper;
 import com.falsepattern.lumina.internal.LumiDefaultValues;
 import com.falsepattern.lumina.internal.Tags;
+import com.falsepattern.lumina.internal.collection.WeakIdentityHashMap;
 import com.falsepattern.lumina.internal.event.EventPoster;
 import lombok.NoArgsConstructor;
 import lombok.val;
@@ -46,8 +47,7 @@ public final class WorldManager implements LumiWorldRegistry, LumiWorldWrapper {
     private static final WorldManager INSTANCE = new WorldManager();
 
     private final Set<LumiWorldProvider> worldProviders = Collections.newSetFromMap(new IdentityHashMap<>());
-    private final Map<World, Iterable<LumiWorld>> providedWorlds = new IdentityHashMap<>();
-
+    private final Map<World, Iterable<LumiWorld>> providedWorlds = new WeakIdentityHashMap<>();
     private boolean hasRegistered = false;
     private boolean isHijacked = false;
     private @Nullable String hijackingMod = null;
