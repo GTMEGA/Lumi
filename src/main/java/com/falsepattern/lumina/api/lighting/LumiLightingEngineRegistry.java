@@ -19,18 +19,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api;
+package com.falsepattern.lumina.api.lighting;
 
-import com.falsepattern.lumina.api.lighting.LumiLightingEngineProvider;
-import lombok.experimental.UtilityClass;
+import org.jetbrains.annotations.NotNull;
 
-import static com.falsepattern.lumina.internal.lighting.phosphor.Phosphor.createPhosphorProvider;
-
-@UtilityClass
-public final class LumiPhosphorAPI {
-    private static final LumiLightingEngineProvider PHOSPHOR_PROVIDER = createPhosphorProvider();
-
-    public static LumiLightingEngineProvider phosphorProvider() {
-        return PHOSPHOR_PROVIDER;
-    }
+public interface LumiLightingEngineRegistry {
+    void registerLightingEngineProvider(@NotNull LumiLightingEngineProvider lightingEngineProvider, boolean displace);
 }

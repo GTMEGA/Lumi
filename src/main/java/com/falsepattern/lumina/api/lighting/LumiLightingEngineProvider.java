@@ -23,8 +23,9 @@ package com.falsepattern.lumina.api.lighting;
 
 import com.falsepattern.lumina.api.world.LumiWorld;
 import net.minecraft.profiler.Profiler;
+import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface
 public interface LumiLightingEngineProvider {
-    LumiLightingEngine createLightingEngine(LumiWorld world, Profiler profiler);
+    LumiLightingEngine provideLightingEngine(@NotNull LumiWorld world, @NotNull Profiler profiler);
 }

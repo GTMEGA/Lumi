@@ -21,6 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.client.lumi;
 
+import com.falsepattern.lumina.api.LumiAPI;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
@@ -31,8 +32,6 @@ import org.spongepowered.asm.lib.Opcodes;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
-
-import static com.falsepattern.lumina.internal.world.LumiWorldManager.createLightingEngine;
 
 @Unique
 @Mixin(World.class)
@@ -61,6 +60,6 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
         this.theProfiler = profiler;
 
         this.lumi$root = (LumiWorldRoot) this;
-        this.lumi$lightingEngine = createLightingEngine(this, profiler);
+        this.lumi$lightingEngine = LumiAPI.provideLightingEngine(this, profiler);
     }
 }

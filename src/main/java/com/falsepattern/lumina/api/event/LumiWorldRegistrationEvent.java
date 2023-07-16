@@ -19,18 +19,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api;
+package com.falsepattern.lumina.api.event;
 
-import com.falsepattern.lumina.api.world.LumiWorldProvider;
-import com.falsepattern.lumina.internal.LUMINA;
-import com.falsepattern.lumina.internal.world.LumiWorldManager;
+import com.falsepattern.lumina.api.world.LumiWorldRegistry;
+import cpw.mods.fml.common.eventhandler.Event;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 
-public class LumiWorldProviderRegistry {
-    public static void hijack() {
-        LUMINA.hijack();
-    }
-
-    public static void registerWorldProvider(LumiWorldProvider provider) {
-        LumiWorldManager.addProvider(provider);
-    }
+@Getter
+@Accessors(fluent = true, chain = false)
+@AllArgsConstructor
+public final class LumiWorldRegistrationEvent extends Event {
+    private final LumiWorldRegistry registry;
 }

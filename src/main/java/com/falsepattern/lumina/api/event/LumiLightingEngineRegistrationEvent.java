@@ -19,11 +19,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api.world;
+package com.falsepattern.lumina.api.event;
 
-import net.minecraft.world.World;
+import com.falsepattern.lumina.api.lighting.LumiLightingEngineRegistry;
+import cpw.mods.fml.common.eventhandler.Event;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 
-@FunctionalInterface
-public interface LumiWorldProvider {
-    LumiWorld provideWorld(World world);
+@Getter
+@Accessors(fluent = true, chain = false)
+@AllArgsConstructor
+public final class LumiLightingEngineRegistrationEvent extends Event {
+    private final LumiLightingEngineRegistry registry;
 }

@@ -68,6 +68,7 @@ public final class LightingHooksOld {
     }
 
     @Deprecated
+    // TODO: Make Lighting Engine handle this [0]
     public static void initChunkSkyLight(LumiChunk chunk) {
         val rootWorld = chunk.lumi$world().lumi$root();
         val hasSky = rootWorld.lumi$hasSky();

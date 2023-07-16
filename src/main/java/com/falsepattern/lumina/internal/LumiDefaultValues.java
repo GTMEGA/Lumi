@@ -21,12 +21,19 @@
 
 package com.falsepattern.lumina.internal;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import com.falsepattern.lumina.api.lighting.LumiLightingEngineRegistry;
+import com.falsepattern.lumina.api.world.LumiWorld;
+import com.falsepattern.lumina.api.world.LumiWorldRegistry;
+import com.falsepattern.lumina.internal.lighting.phosphor.Phosphor;
+import lombok.experimental.UtilityClass;
 
-/**
- * Non-minecraft stuff to avoid accidental classloading in spaghetti code
- */
-public class Common {
-    public static final Logger LOG = LogManager.getLogger(Tags.MOD_ID);
+@UtilityClass
+public final class LumiDefaultValues {
+    public static void registerDefaultWorldProvider(LumiWorldRegistry registry) {
+        registry.registerWorldProvider(world -> (LumiWorld) world);
+    }
+
+    public static void registerDefaultLightingEngineProvider(LumiLightingEngineRegistry registry) {
+        registry.registerLightingEngineProvider(Phosphor.createPhosphorProvider(), false);
+    }
 }

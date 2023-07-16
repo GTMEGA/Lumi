@@ -21,10 +21,10 @@
 
 package com.falsepattern.lumina.internal.storage;
 
-import com.falsepattern.chunk.api.ChunkDataManager;
+import com.falsepattern.chunk.api.ChunkDataRegistry;
 import com.falsepattern.lumina.internal.Tags;
+import com.falsepattern.lumina.internal.lighting.LightingHooks;
 import com.falsepattern.lumina.internal.lighting.phosphor.LightingHooksOld;
-import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import lombok.var;
@@ -33,22 +33,42 @@ import net.minecraft.world.chunk.Chunk;
 
 import java.nio.ByteBuffer;
 
-@NoArgsConstructor
-public final class LuminaDataManager implements ChunkDataManager.ChunkNBTDataManager,
-                                                ChunkDataManager.PacketDataManager {
-    public static final String VERSION_NBT_TAG_NAME = Tags.MOD_ID + "_version";
-    public static final String LIGHT_INITIALIZED_NBT_TAG_NAME = "lighting_initialized";
-    public static final String SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME = "sky_light_height_map";
+import static com.falsepattern.lumina.api.LumiAPI.wrappedForBaseWorld;
+import static lombok.AccessLevel.PRIVATE;
+
+@NoArgsConstructor(access = PRIVATE)
+public final class ChunkLightingDataManager implements com.falsepattern.chunk.api.ChunkDataManager.ChunkNBTDataManager,
+                                                       com.falsepattern.chunk.api.ChunkDataManager.PacketDataManager {
+    private static final ChunkLightingDataManager INSTANCE = new ChunkLightingDataManager();
+
+    private static final String VERSION_NBT_TAG_NAME = Tags.MOD_ID + "_version";
+    private static final String LIGHT_INITIALIZED_NBT_TAG_NAME = "lighting_initialized";
+    private static final String SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME = "sky_light_height_map";
+
+    private boolean isRegistered = false;
+
+    public static ChunkLightingDataManager chunkLightingDataManager() {
+        return INSTANCE;
+    }
+
+    public void registerDataManager() {
+        if (isRegistered)
+            return;
+
+        ChunkDataRegistry.registerDataManager(this);
+        isRegistered = true;
+    }
 
     @Override
     public void writeChunkToNBT(Chunk baseChunk, NBTTagCompound output) {
         output.setString(VERSION_NBT_TAG_NAME, Tags.VERSION);
 
         val skyLightHeightMap = new int[256];
-        for (var i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
-            val world = LumiWorldManager.getWorld(baseChunk.worldObj, i);
+        for (val world : wrappedForBaseWorld(baseChunk.worldObj)) {
             val chunk = world.lumi$wrap(baseChunk);
             val subTag = new NBTTagCompound();
+
+            // TODO: Make Lighting Engine handle this [4]
             LightingHooksOld.writeNeighborLightChecksToNBT(chunk, subTag);
 
             subTag.setBoolean(LIGHT_INITIALIZED_NBT_TAG_NAME, chunk.lumi$isLightingInitialized());
@@ -69,10 +89,11 @@ public final class LuminaDataManager implements ChunkDataManager.ChunkNBTDataMan
         val version = input.getString(VERSION_NBT_TAG_NAME);
         val forceRelight = !Tags.VERSION.equals(version);
 
-        for (var i = 0; i < LumiWorldManager.lumiWorldCount(); i++) {
-            val world = LumiWorldManager.getWorld(baseChunk.worldObj, i);
+        for (val world : wrappedForBaseWorld(baseChunk.worldObj)) {
             val chunk = world.lumi$wrap(baseChunk);
             val subTag = input.getCompoundTag(world.lumi$worldID());
+
+            // TODO: Make Lighting Engine handle this [4]
             LightingHooksOld.readNeighborLightChecksFromNBT(chunk, subTag);
 
             skyLightHeightMapValidCheck:
@@ -97,6 +118,7 @@ public final class LuminaDataManager implements ChunkDataManager.ChunkNBTDataMan
                 continue;
             }
 
+            // TODO: Make Lighting Engine handle this [0]
             chunk.lumi$isLightingInitialized(false);
             LightingHooksOld.initChunkSkyLight(chunk);
         }
@@ -123,12 +145,6 @@ public final class LuminaDataManager implements ChunkDataManager.ChunkNBTDataMan
 
     @Override
     public void readFromBuffer(Chunk baseChunk, int subChunkMask, boolean forceUpdate, ByteBuffer buffer) {
-        val baseWorld = baseChunk.worldObj;
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(baseWorld, i);
-            val chunk = world.lumi$wrap(baseChunk);
-            chunk.lumi$isLightingInitialized(true);
-        }
+        LightingHooks.markClientChunkLightingInitialized(baseChunk);
     }
 }

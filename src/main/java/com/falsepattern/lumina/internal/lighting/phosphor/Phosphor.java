@@ -230,6 +230,11 @@ public final class Phosphor implements LumiLightingEngine {
     }
 
     @Override
+    public String lumi$engineID() {
+        return "Phosphor";
+    }
+
+    @Override
     public int getCurrentLightValue(@NotNull LightType lightType, @NotNull BlockPos blockPos) {
         return getCurrentLightValue(lightType, blockPos.getX(), blockPos.getY(), blockPos.getZ());
     }

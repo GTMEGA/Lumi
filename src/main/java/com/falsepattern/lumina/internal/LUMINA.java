@@ -22,52 +22,42 @@
 package com.falsepattern.lumina.internal;
 
 import com.falsepattern.chunk.api.ChunkDataRegistry;
-import com.falsepattern.lumina.api.LumiWorldProviderRegistry;
-import com.falsepattern.lumina.api.world.LumiWorld;
-import com.falsepattern.lumina.internal.storage.LuminaDataManager;
-import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import lombok.NoArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import static com.falsepattern.lumina.internal.Tags.*;
+import static com.falsepattern.lumina.internal.lighting.LightingEngineManager.lightingEngineManager;
+import static com.falsepattern.lumina.internal.storage.ChunkLightingDataManager.chunkLightingDataManager;
+import static com.falsepattern.lumina.internal.world.WorldManager.worldManager;
 
-@Mod(modid = Tags.MOD_ID,
-     version = Tags.VERSION,
-     name = Tags.MOD_NAME,
+@Mod(modid = MOD_ID,
+     version = VERSION,
+     name = MOD_NAME,
      acceptedMinecraftVersions = "[1.7.10]",
-     dependencies = "required-after:falsepatternlib@[0.11,);required-after:chunkapi@[0.2,)")
-public class LUMINA {
-    private static final AtomicBoolean hijacked = new AtomicBoolean(false);
-    private static final AtomicBoolean hijackLocked = new AtomicBoolean(false);
-    public static void hijack() {
-        if (hijackLocked.get())
-            throw new IllegalStateException("Hijacking the default lighting engine is only possible during preInit!");
+     dependencies = "required-after:falsepatternlib@[0.11,);required-after:chunkapi@[0.3,)")
+@NoArgsConstructor
+public final class LUMINA {
+    private static final Logger LOG = LogManager.getLogger(MOD_ID);
 
-        hijacked.set(true);
+    @Mod.EventHandler
+    public void preInit(FMLPreInitializationEvent evt) {
+        worldManager().registerWorldProviders();
+        lightingEngineManager().registerLightingEngineProvider();
     }
 
     @Mod.EventHandler
-    public void preInit(FMLPreInitializationEvent event) {
-        LumiWorldManager.startInit();
+    public void init(FMLInitializationEvent evt) {
+        chunkLightingDataManager().registerDataManager();
     }
 
     @Mod.EventHandler
-    public void init(FMLInitializationEvent event) {
-        hijackLocked.set(true);
-        if (!hijacked.get())
-            LumiWorldProviderRegistry.registerWorldProvider(world -> (LumiWorld) world);
-
-        ChunkDataRegistry.registerDataManager(new LuminaDataManager());
-    }
-
-    @Mod.EventHandler
-    public void postInit(FMLPostInitializationEvent event) {
-        LumiWorldManager.finishInit();
-        if (hijacked.get() && LumiWorldManager.lumiWorldCount() == 0)
-            throw new IllegalStateException("Lumina was hijacked but no default world manager was registered!");
-
+    public void postInit(FMLPostInitializationEvent evt) {
         ChunkDataRegistry.disableDataManager("minecraft", "lighting");
+        LOG.info("Disabled vanilla lighting data manager");
     }
 }

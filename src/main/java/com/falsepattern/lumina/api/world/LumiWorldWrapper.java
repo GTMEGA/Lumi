@@ -23,7 +23,6 @@ package com.falsepattern.lumina.api.world;
 
 import net.minecraft.world.World;
 
-@FunctionalInterface
-public interface LumiWorldProvider {
-    LumiWorld provideWorld(World world);
+public interface LumiWorldWrapper {
+    Iterable<LumiWorld> wrappedForBaseWorld(World baseWorld);
 }

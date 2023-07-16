@@ -24,7 +24,6 @@ package com.falsepattern.lumina.internal.lighting;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.internal.lighting.phosphor.LightingHooksOld;
-import com.falsepattern.lumina.internal.world.LumiWorldManager;
 import lombok.experimental.UtilityClass;
 import lombok.val;
 import lombok.var;
@@ -36,27 +35,27 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 import java.util.Arrays;
 
+import static com.falsepattern.lumina.api.LumiAPI.wrappedForBaseWorld;
+
 @UtilityClass
 public final class LightingHooks {
     private static final int DEFAULT_PRECIPITATION_HEIGHT = -999;
 
+    // TODO: Make Lighting Engine handle this [0]
     @Deprecated
     public static void initChunkSkyLight(World baseWorld, Chunk baseChunk) {
         resetPrecipitationHeightMap(baseChunk);
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(baseWorld, i);
+        for (val world : wrappedForBaseWorld(baseWorld)) {
             val chunk = world.lumi$wrap(baseChunk);
             LightingHooksOld.initChunkSkyLight(chunk);
         }
     }
 
+    // TODO: Make Lighting Engine handle this [0]
     @Deprecated
     public static void initClientChunkSkyLight(World baseWorld, Chunk baseChunk) {
         resetPrecipitationHeightMap(baseChunk);
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(baseWorld, i);
+        for (val world : wrappedForBaseWorld(baseWorld)) {
             val chunk = world.lumi$wrap(baseChunk);
             LightingHooksOld.initClientChunkSkyLight(chunk);
         }
@@ -73,9 +72,7 @@ public final class LightingHooks {
         val lightType = LightType.of(baseLightType);
 
         var maxLightValue = 0;
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(baseWorld, i);
+        for (val world : wrappedForBaseWorld(baseWorld)) {
             val lightingEngine = world.lumi$lightingEngine();
             lightingEngine.processLightingUpdatesForType(lightType);
             val lightValue = lightingEngine.getCurrentLightValue(lightType, posX, posY, posZ);
@@ -85,9 +82,7 @@ public final class LightingHooks {
     }
 
     public static void initSkyLightForSubChunk(World baseWorld, Chunk baseChunk, ExtendedBlockStorage baseSubChunk) {
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(baseWorld, i);
+        for (val world : wrappedForBaseWorld(baseWorld)) {
             val lightingEngine = world.lumi$lightingEngine();
             val chunk = world.lumi$wrap(baseChunk);
             val subChunk = world.lumi$wrap(baseSubChunk);
@@ -96,9 +91,7 @@ public final class LightingHooks {
     }
 
     public static void initSkyLightForSubChunk(World baseWorld, Chunk baseChunk, int chunkPosY) {
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(baseWorld, i);
+        for (val world : wrappedForBaseWorld(baseWorld)) {
             val lightingEngine = world.lumi$lightingEngine();
             val chunk = world.lumi$wrap(baseChunk);
             val subChunk = chunk.lumi$getSubChunk(chunkPosY);
@@ -112,23 +105,20 @@ public final class LightingHooks {
                                               int posY,
                                               int posZ) {
         val lightType = LightType.of(baseLightType);
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(baseWorld, i);
+        for (val world : wrappedForBaseWorld(baseWorld)) {
             val lightingEngine = world.lumi$lightingEngine();
             lightingEngine.scheduleLightingUpdate(lightType, posX, posY, posZ);
         }
     }
 
     public static void processLightUpdates(World baseWorld) {
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(baseWorld, i);
+        for (val world : wrappedForBaseWorld(baseWorld)) {
             val lightingEngine = world.lumi$lightingEngine();
             lightingEngine.processLightingUpdatesForAllTypes();
         }
     }
 
+    // TODO: Make Lighting Engine handle this [1]
     @Deprecated
     public static void updateSkyLightForBlock(World baseWorld,
                                               Chunk baseChunk,
@@ -136,20 +126,17 @@ public final class LightingHooks {
                                               int basePosY,
                                               int subChunkPosZ) {
         val posY = basePosY + 1;
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(baseWorld, i);
+        for (val world : wrappedForBaseWorld(baseWorld)) {
             val chunk = world.lumi$wrap(baseChunk);
             if (chunk.lumi$canBlockSeeSky(subChunkPosX, posY, subChunkPosZ))
                 LightingHooksOld.updateSkyLightForBlock(chunk, subChunkPosX, posY, subChunkPosZ);
         }
     }
 
+    // TODO: Make Lighting Engine handle this [2]
     @Deprecated
     public static void scheduleRelightChecksForChunkBoundaries(World baseWorld, Chunk baseChunk) {
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(baseWorld, i);
+        for (val world : wrappedForBaseWorld(baseWorld)) {
             val chunk = world.lumi$wrap(baseChunk);
             LightingHooksOld.scheduleRelightChecksForChunkBoundaries(world, chunk);
         }
@@ -167,15 +154,14 @@ public final class LightingHooks {
 
     public static boolean doesChunkHaveLighting(World baseWorld, Chunk baseChunk) {
         var chunkHasLighting = true;
-        val worldCount = LumiWorldManager.lumiWorldCount();
-        for (var i = 0; i < worldCount; i++) {
-            val world = LumiWorldManager.getWorld(baseWorld, i);
+        for (val world : wrappedForBaseWorld(baseWorld)) {
             val chunk = world.lumi$wrap(baseChunk);
             chunkHasLighting &= LightingHooksOld.checkChunkLighting(world, chunk);
         }
         return chunkHasLighting;
     }
 
+    // TODO: Make Lighting Engine handle this [3]
     @Deprecated
     public static void randomLightUpdates(World baseWorld, Chunk baseChunk) {
         if (baseChunk.queuedLightChecks >= (16 * 16 * 16))
@@ -198,8 +184,6 @@ public final class LightingHooks {
         val minPosX = chunkPosX << 4;
         val minPosZ = chunkPosZ << 4;
 
-        val worldCount = LumiWorldManager.lumiWorldCount();
-
         var remainingIterations = maxUpdateIterations;
         while (remainingIterations > 0) {
             if (baseChunk.queuedLightChecks >= (16 * 16 * 16))
@@ -216,8 +200,7 @@ public final class LightingHooks {
             val posX = minPosX + subChunkPosX;
             val posZ = minPosZ + subChunkPosZ;
 
-            for (var i = 0; i < worldCount; i++) {
-                val world = LumiWorldManager.getWorld(baseWorld, i);
+            for (val world : wrappedForBaseWorld(baseWorld)) {
                 val chunk = world.lumi$wrap(baseChunk);
                 if (!chunk.lumi$root().lumi$isSubChunkPrepared(chunkPosY))
                     continue;
@@ -263,6 +246,13 @@ public final class LightingHooks {
                     break;
                 }
             }
+        }
+    }
+
+    public static void markClientChunkLightingInitialized(Chunk baseChunk) {
+        for (val world : wrappedForBaseWorld(baseChunk.worldObj)) {
+            val chunk = world.lumi$wrap(baseChunk);
+            chunk.lumi$isLightingInitialized(true);
         }
     }
 
