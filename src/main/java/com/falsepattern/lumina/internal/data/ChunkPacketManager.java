@@ -53,7 +53,7 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
     private static final int BLOCKS_PER_CHUNK = 16 * 16 * 256;
     private static final int BITS_PER_BLOCK = 4 + 4;
     private static final int BYTES_PER_BLOCK = BITS_PER_BLOCK / 8;
-    private static final int MAX_PACKET_SIZE_PER_WORLD_PROVIDER = BLOCKS_PER_CHUNK * BYTES_PER_BLOCK; // If I add 256 to this, it runs fine!
+    private static final int MAX_PACKET_SIZE_PER_WORLD_PROVIDER = BLOCKS_PER_CHUNK * BYTES_PER_BLOCK + 256;
 
     @Getter
     private int maxPacketSize = 0;
@@ -88,7 +88,6 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
     @Override
     public void writeToBuffer(Chunk chunkBase, int subChunkMask, boolean forceUpdate, ByteBuffer buffer) {
         val lightValues = new NibbleArray(4096, 4);
-
         val worldBase = chunkBase.worldObj;
         for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val hasSky = world.lumi$root().lumi$hasSky();
@@ -127,7 +126,6 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
     @Override
     public void readFromBuffer(Chunk chunkBase, int subChunkMask, boolean forceUpdate, ByteBuffer buffer) {
         val lightValues = new NibbleArray(4096, 4);
-
         val worldBase = chunkBase.worldObj;
         for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val hasSky = world.lumi$root().lumi$hasSky();

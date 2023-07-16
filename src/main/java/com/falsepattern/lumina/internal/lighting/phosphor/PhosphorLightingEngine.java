@@ -237,10 +237,12 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     @Override
     public void lumi$writeToChunkNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound output) {
+        LightingHooksOld.writeNeighborLightChecksToNBT(chunk, output);
     }
 
     @Override
     public void lumi$readFromChunkNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound input) {
+        LightingHooksOld.readNeighborLightChecksFromNBT(chunk, input);
     }
 
     @Override

@@ -26,8 +26,10 @@ import com.falsepattern.chunk.api.ChunkDataRegistry;
 import com.falsepattern.lumina.internal.Tags;
 import lombok.NoArgsConstructor;
 import lombok.val;
+import lombok.var;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -76,6 +78,7 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
     public void writeSectionToNBT(Chunk chunkBase, ExtendedBlockStorage subChunkBase, NBTTagCompound output) {
         output.setString(VERSION_NBT_TAG_NAME, VERSION_NBT_TAG_VALUE);
 
+        val lightValues = new NibbleArray(4096, 4);
         val worldBase = chunkBase.worldObj;
         for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val worldTagName = world.lumi$worldID();
@@ -84,6 +87,31 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
             val subChunk = world.lumi$wrap(subChunkBase);
             val chunk = world.lumi$wrap(chunkBase);
             val lightingEngine = world.lumi$lightingEngine();
+            val hasSky = world.lumi$root().lumi$hasSky();
+
+            {
+                for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
+                    for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
+                        for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
+                            val lightValue = subChunk.lumi$getBlockLightValue(subChunkPosX, subChunkPosY, subChunkPosZ);
+                            lightValues.set(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+                        }
+                    }
+                }
+                worldTag.setByteArray(BLOCK_LIGHT_NBT_TAG_NAME, lightValues.data);
+            }
+
+            if (hasSky) {
+                for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
+                    for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
+                        for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
+                            val lightValue = subChunk.lumi$getSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ);
+                            lightValues.set(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+                        }
+                    }
+                }
+                worldTag.setByteArray(SKY_LIGHT_NBT_TAG_NAME, lightValues.data);
+            }
 
             {
                 val subChunkTagName = subChunk.lumi$subChunkID();
@@ -114,11 +142,38 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
             val chunk = world.lumi$wrap(chunkBase);
             val subChunk = world.lumi$wrap(subChunkBase);
             val lightingEngine = world.lumi$lightingEngine();
+            val hasSky = world.lumi$root().lumi$hasSky();
 
             val worldTagName = world.lumi$worldID();
             if (!input.hasKey(worldTagName, 10))
                 continue;
             val worldTag = input.getCompoundTag(worldTagName);
+
+            if (worldTag.hasKey(BLOCK_LIGHT_NBT_TAG_NAME, 7)) {
+                val blockLightData = worldTag.getByteArray(BLOCK_LIGHT_NBT_TAG_NAME);
+                val blockLightValues = new NibbleArray(blockLightData, 4);
+                for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
+                    for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
+                        for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
+                            val lightValue = blockLightValues.get(subChunkPosX, subChunkPosY, subChunkPosZ);
+                            subChunk.lumi$setBlockLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+                        }
+                    }
+                }
+            }
+
+            if (hasSky && worldTag.hasKey(SKY_LIGHT_NBT_TAG_NAME, 7)) {
+                val skyLightData = worldTag.getByteArray(SKY_LIGHT_NBT_TAG_NAME);
+                val skyLightValues = new NibbleArray(skyLightData, 4);
+                for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
+                    for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
+                        for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
+                            val lightValue = skyLightValues.get(subChunkPosX, subChunkPosY, subChunkPosZ);
+                            subChunk.lumi$setSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+                        }
+                    }
+                }
+            }
 
             val subChunkTagName = subChunk.lumi$subChunkID();
             if (worldTag.hasKey(subChunkTagName, 10)) {

@@ -24,7 +24,6 @@ package com.falsepattern.lumina.internal.data;
 import com.falsepattern.chunk.api.ChunkDataManager;
 import com.falsepattern.chunk.api.ChunkDataRegistry;
 import com.falsepattern.lumina.internal.Tags;
-import com.falsepattern.lumina.internal.lighting.phosphor.LightingHooksOld;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import lombok.var;
@@ -109,9 +108,6 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
                 val lightingEngineTag = new NBTTagCompound();
                 lightingEngine.lumi$writeToChunkNBT(chunk, lightingEngineTag);
                 worldTag.setTag(lightingEngineTagName, lightingEngineTag);
-
-                // TODO: Make Lighting Engine handle this [4]
-                LightingHooksOld.writeNeighborLightChecksToNBT(chunk, worldTag);
             }
 
             output.setTag(worldTagName, worldTag);
@@ -174,9 +170,6 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
                 val lightingEngineTag = worldTag.getCompoundTag(lightingEngineTagName);
                 lightingEngine.lumi$readFromChunkNBT(chunk, lightingEngineTag);
             }
-
-            // TODO: Make Lighting Engine handle this [4]
-            LightingHooksOld.readNeighborLightChecksFromNBT(chunk, worldTag);
         }
     }
 }
