@@ -116,7 +116,7 @@ public final class WorldManager implements LumiWorldRegistry, LumiWorldWrapper {
 
     @Override
     @SuppressWarnings("ConstantValue")
-    public @NotNull @Unmodifiable Iterable<LumiWorld> wrappedForBaseWorld(@NotNull World baseWorld) {
+    public @NotNull @Unmodifiable Iterable<LumiWorld> lumiWorldsFromBaseWorld(@NotNull World baseWorld) {
         if (baseWorld == null || !hasRegistered)
             return Collections.emptyList();
         return providedWorlds.computeIfAbsent(baseWorld, this::collectProvidedWorlds);

@@ -250,7 +250,7 @@ public final class Phosphor implements LumiLightingEngine {
     }
 
     @Override
-    public void initLightingForChunk(@NotNull LumiChunk chunk) {
+    public void handleChunkInit(@NotNull LumiChunk chunk) {
         val worldRoot = chunk.lumi$world().lumi$root();
         val hasSky = worldRoot.lumi$hasSky();
 
@@ -325,7 +325,7 @@ public final class Phosphor implements LumiLightingEngine {
 
     @Override
     @SideOnly(CLIENT)
-    public void initLightingForClientChunk(@NotNull LumiChunk chunk) {
+    public void handleClientChunkInit(@NotNull LumiChunk chunk) {
         val chunkRoot = chunk.lumi$root();
 
         val basePosY = chunkRoot.lumi$topPreparedSubChunkBasePosY();
@@ -361,7 +361,7 @@ public final class Phosphor implements LumiLightingEngine {
     }
 
     @Override
-    public void initLightingForSubChunk(@NotNull LumiChunk chunk, @NotNull LumiSubChunk subChunk) {
+    public void handleSubChunkInit(@NotNull LumiChunk chunk, @NotNull LumiSubChunk subChunk) {
         if (!worldRoot.lumi$hasSky())
             return;
 
@@ -381,6 +381,54 @@ public final class Phosphor implements LumiLightingEngine {
         } finally {
             releaseLock();
         }
+        chunk.lumi$root().lumi$markDirty();
+    }
+
+    @Override
+    public void handleChunkLoad(@NotNull LumiChunk chunk) {
+        LightingHooksOld.scheduleRelightChecksForChunkBoundaries(world, chunk);
+    }
+
+    @Override
+    public void updateLightingForBlock(@NotNull BlockPos blockPos) {
+        updateLightingForBlock(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+    }
+
+    @Override
+    public void updateLightingForBlock(int posX, int posY, int posZ) {
+        val chunk = world.lumi$getChunkFromBlockPosIfExists(posX, posZ);
+        if (chunk == null)
+            return;
+
+        val subChunkPosX = posX & 15;
+        val subChunkPosZ = posZ & 15;
+
+        var maxPosY = chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ) & 255;
+        var minPosY = Math.max((posY + 1) & 255, maxPosY);
+
+        if (!chunk.lumi$canBlockSeeSky(subChunkPosX, minPosY, subChunkPosZ))
+            return;
+
+        while (minPosY > 0 && chunk.lumi$getBlockOpacity(subChunkPosX, minPosY - 1, subChunkPosZ) == 0)
+            --minPosY;
+        if (minPosY == maxPosY)
+            return;
+
+        chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ, minPosY);
+
+        if (worldRoot.lumi$hasSky())
+            LightingHooksOld.relightSkyLightColumn(this,
+                                                   world,
+                                                   chunk,
+                                                   subChunkPosX,
+                                                   subChunkPosZ,
+                                                   maxPosY,
+                                                   minPosY);
+
+        maxPosY = chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ);
+        if (maxPosY < chunk.lumi$minSkyLightHeight())
+            chunk.lumi$minSkyLightHeight(maxPosY);
+
         chunk.lumi$root().lumi$markDirty();
     }
 

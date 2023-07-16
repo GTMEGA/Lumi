@@ -37,13 +37,19 @@ public interface LumiLightingEngine {
 
     int getCurrentLightValue(@NotNull LightType lightType, int posX, int posY, int posZ);
 
-    void initLightingForChunk(@NotNull LumiChunk chunk);
+    void handleChunkInit(@NotNull LumiChunk chunk);
 
     @SideOnly(CLIENT)
-    void initLightingForClientChunk(@NotNull LumiChunk chunk);
+    void handleClientChunkInit(@NotNull LumiChunk chunk);
 
-    void initLightingForSubChunk(@NotNull LumiChunk chunk,
-                                 @NotNull LumiSubChunk subChunk);
+    void handleSubChunkInit(@NotNull LumiChunk chunk,
+                            @NotNull LumiSubChunk subChunk);
+
+    void handleChunkLoad(@NotNull LumiChunk chunk);
+
+    void updateLightingForBlock(@NotNull BlockPos blockPos);
+
+    void updateLightingForBlock(int posX, int posY, int posZ);
 
     void scheduleLightingUpdateForRange(@NotNull LightType lightType,
                                         @NotNull BlockPos startBlockPos,

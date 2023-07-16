@@ -73,7 +73,7 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
             val posY = chunkPosY << 4;
             baseSubChunk = new ExtendedBlockStorage(posY, !worldObj.provider.hasNoSky);
             storageArrays[chunkPosY] = baseSubChunk;
-            LightingHooks.initSkyLightForSubChunk(worldObj, thiz(), baseSubChunk);
+            LightingHooks.handleSubChunkInit(worldObj, thiz(), baseSubChunk);
         }
 
         lumi$markDirty();

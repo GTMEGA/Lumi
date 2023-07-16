@@ -24,6 +24,7 @@ package com.falsepattern.lumina.internal.lighting.phosphor;
 import com.falsepattern.lib.internal.Share;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
+import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import lombok.experimental.UtilityClass;
 import lombok.val;
@@ -42,30 +43,7 @@ import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorChunk.L
 public final class LightingHooksOld {
     public static final String NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME = "neighbor_light_checks";
 
-    @Deprecated
-    public static void updateSkyLightForBlock(LumiChunk chunk, int subChunkPosX, int posY, int subChunkPosZ) {
-        var maxPosY = chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ) & 255;
-        var minPosY = Math.max(posY & 255, maxPosY);
-
-        while (minPosY > 0 && chunk.lumi$getBlockOpacity(subChunkPosX, minPosY - 1, subChunkPosZ) == 0)
-            --minPosY;
-        if (minPosY == maxPosY)
-            return;
-
-        chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ, minPosY);
-
-        if (chunk.lumi$world().lumi$root().lumi$hasSky())
-            relightSkylightColumn(chunk.lumi$world(), chunk, subChunkPosX, subChunkPosZ, maxPosY, minPosY);
-
-        maxPosY = chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ);
-        if (maxPosY < chunk.lumi$minSkyLightHeight())
-            chunk.lumi$minSkyLightHeight(maxPosY);
-
-        chunk.lumi$root().lumi$markDirty();
-    }
-
-    @Deprecated
-    public static void scheduleRelightChecksForChunkBoundaries(LumiWorld world, LumiChunk chunk) {
+    static void scheduleRelightChecksForChunkBoundaries(LumiWorld world, LumiChunk chunk) {
         val baseChunkPosX = chunk.lumi$chunkPosX();
         val baseChunkPosZ = chunk.lumi$chunkPosZ();
 
@@ -179,14 +157,13 @@ public final class LightingHooksOld {
         return world.lumi$wrap(baseChunk);
     }
 
-    private static void relightSkylightColumn(LumiWorld world,
-                                              LumiChunk chunk,
-                                              int subChunkPosX,
-                                              int subChunkPosZ,
-                                              int startPosY,
-                                              int endPosY) {
-        val lightingEngine = world.lumi$lightingEngine();
-
+    static void relightSkyLightColumn(LumiLightingEngine lightingEngine,
+                                      LumiWorld world,
+                                      LumiChunk chunk,
+                                      int subChunkPosX,
+                                      int subChunkPosZ,
+                                      int startPosY,
+                                      int endPosY) {
         {
             val minPosY = Math.min(startPosY, endPosY);
             val maxPosY = Math.max(startPosY, endPosY) - 1;

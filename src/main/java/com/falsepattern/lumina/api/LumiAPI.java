@@ -38,8 +38,8 @@ public final class LumiAPI {
     private static final LumiWorldWrapper WORLD_WRAPPER = worldManager();
     private static final LumiLightingEngineProvider LIGHTING_ENGINE_PROVIDER = lightingEngineManager();
 
-    public static @NotNull Iterable<LumiWorld> wrappedForBaseWorld(@NotNull World baseWorld) {
-        return WORLD_WRAPPER.wrappedForBaseWorld(baseWorld);
+    public static @NotNull Iterable<LumiWorld> lumiWorldsFromBaseWorld(@NotNull World baseWorld) {
+        return WORLD_WRAPPER.lumiWorldsFromBaseWorld(baseWorld);
     }
 
     public static @NotNull LumiLightingEngine provideLightingEngine(@NotNull LumiWorld world,

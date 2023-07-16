@@ -36,7 +36,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.nio.ByteBuffer;
 
-import static com.falsepattern.lumina.api.LumiAPI.wrappedForBaseWorld;
+import static com.falsepattern.lumina.api.LumiAPI.lumiWorldsFromBaseWorld;
 import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor(access = PRIVATE)
@@ -80,7 +80,7 @@ public final class ChunkLightingDataManager implements ChunkDataManager.ChunkNBT
         output.setString(VERSION_NBT_TAG_NAME, Tags.VERSION);
 
         val skyLightHeightMap = new int[256];
-        for (val world : wrappedForBaseWorld(baseChunk.worldObj)) {
+        for (val world : lumiWorldsFromBaseWorld(baseChunk.worldObj)) {
             val chunk = world.lumi$wrap(baseChunk);
             val subTag = new NBTTagCompound();
 
@@ -105,7 +105,7 @@ public final class ChunkLightingDataManager implements ChunkDataManager.ChunkNBT
         val version = input.getString(VERSION_NBT_TAG_NAME);
         val forceRelight = !Tags.VERSION.equals(version);
 
-        for (val world : wrappedForBaseWorld(baseChunk.worldObj)) {
+        for (val world : lumiWorldsFromBaseWorld(baseChunk.worldObj)) {
             val lightingEngine = world.lumi$lightingEngine();
             val chunk = world.lumi$wrap(baseChunk);
             val subTag = input.getCompoundTag(world.lumi$worldID());
@@ -136,7 +136,7 @@ public final class ChunkLightingDataManager implements ChunkDataManager.ChunkNBT
             }
 
             chunk.lumi$isLightingInitialized(false);
-            lightingEngine.initLightingForChunk(chunk);
+            lightingEngine.handleChunkInit(chunk);
         }
     }
 
