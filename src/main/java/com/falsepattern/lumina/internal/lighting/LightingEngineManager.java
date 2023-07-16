@@ -44,21 +44,21 @@ public final class LightingEngineManager implements LumiLightingEngineRegistry, 
 
     private LumiLightingEngineProvider delegate;
 
-    private boolean hasRegistered = false;
+    private boolean isRegistered = false;
 
     public static LightingEngineManager lightingEngineManager() {
         return INSTANCE;
     }
 
     public void registerLightingEngineProvider() {
-        if (hasRegistered)
+        if (isRegistered)
             return;
 
         EventPoster.postLumiLightingEngineRegistrationEvent(this);
         if (delegate == null)
             LumiDefaultValues.registerDefaultLightingEngineProvider(this);
 
-        hasRegistered = true;
+        isRegistered = true;
         LOG.info("Registered lighting engine provider");
     }
 
@@ -66,6 +66,11 @@ public final class LightingEngineManager implements LumiLightingEngineRegistry, 
     @SuppressWarnings("ConstantValue")
     public void registerLightingEngineProvider(@NotNull LumiLightingEngineProvider lightingEngineProvider,
                                                boolean displace) {
+        if (isRegistered) {
+            LOG.error("Cannot register lighting engine provider post registration", new IllegalStateException());
+            return;
+        }
+
         if (lightingEngineProvider == null) {
             LOG.error("Lighting engine provider can't be null", new IllegalArgumentException());
             return;

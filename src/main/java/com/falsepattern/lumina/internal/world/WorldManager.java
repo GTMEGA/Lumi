@@ -49,7 +49,7 @@ public final class WorldManager implements LumiWorldRegistry, LumiWorldWrapper {
 
     private final Set<LumiWorldProvider> worldProviders = Collections.newSetFromMap(new IdentityHashMap<>());
     private final Map<World, Iterable<LumiWorld>> providedWorlds = new WeakIdentityHashMap<>();
-    private boolean hasRegistered = false;
+    private boolean isRegistered = false;
     private boolean isHijacked = false;
     private @Nullable String hijackingMod = null;
 
@@ -58,7 +58,7 @@ public final class WorldManager implements LumiWorldRegistry, LumiWorldWrapper {
     }
 
     public void registerWorldProviders() {
-        if (hasRegistered)
+        if (isRegistered)
             return;
 
         EventPoster.postLumiWorldRegistrationEvent(this);
@@ -71,13 +71,18 @@ public final class WorldManager implements LumiWorldRegistry, LumiWorldWrapper {
         if (!isHijacked)
             LumiDefaultValues.registerDefaultWorldProvider(this);
 
-        hasRegistered = true;
+        isRegistered = true;
         LOG.info("Registered [{}] world providers", worldProviders.size());
     }
 
     @Override
     @SuppressWarnings("ConstantValue")
     public void hijackDefaultWorldProviders(@NotNull String modName) {
+        if (isRegistered) {
+            LOG.error("Cannot hijack default world providers post registration", new IllegalStateException());
+            return;
+        }
+
         if (isHijacked) {
             LOG.warn("Default world providers has already been hijacked by: {}," +
                      " but {} has tried to hijack it again. Things will probably work fine.", hijackingMod, modName);
@@ -89,9 +94,9 @@ public final class WorldManager implements LumiWorldRegistry, LumiWorldWrapper {
             LOG.info("Default world providers have been hijacked by: {}", modName);
         } else {
             hijackingMod = "UNKNOWN MOD";
-            val e = new IllegalArgumentException();
             LOG.error("A mod attempted to hijack the default world providers, but didn't provider did not name itself." +
-                      " The hijack *was* performed, and things should be fine. But please report this.", e);
+                      " The hijack *was* performed, and things should be fine. But please report this.",
+                      new IllegalArgumentException());
         }
 
         isHijacked = true;
@@ -100,6 +105,12 @@ public final class WorldManager implements LumiWorldRegistry, LumiWorldWrapper {
     @Override
     @SuppressWarnings("ConstantValue")
     public void registerWorldProvider(@NotNull LumiWorldProvider worldProvider) {
+        if (isRegistered) {
+            val e = new IllegalStateException();
+            LOG.error("Cannot registration world providers post registration", e);
+            return;
+        }
+
         if (worldProvider == null) {
             LOG.error("World provider can't be null", new IllegalArgumentException());
             return;
@@ -117,7 +128,7 @@ public final class WorldManager implements LumiWorldRegistry, LumiWorldWrapper {
     @Override
     @SuppressWarnings("ConstantValue")
     public @NotNull @Unmodifiable Iterable<LumiWorld> lumiWorldsFromBaseWorld(@NotNull World worldBase) {
-        if (worldBase == null || !hasRegistered)
+        if (worldBase == null || !isRegistered)
             return Collections.emptyList();
         return providedWorlds.computeIfAbsent(worldBase, this::collectProvidedWorlds);
     }

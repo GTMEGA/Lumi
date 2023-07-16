@@ -27,5 +27,5 @@ import org.jetbrains.annotations.Nullable;
 
 @FunctionalInterface
 public interface LumiWorldProvider {
-    @Nullable LumiWorld provideWorld(@NotNull World world);
+    @Nullable LumiWorld provideWorld(@NotNull World worldBase);
 }
