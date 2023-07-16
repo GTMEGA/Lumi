@@ -24,6 +24,7 @@ package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunkRoot;
 import com.falsepattern.lumina.api.lighting.LightType;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +46,19 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
     @SuppressWarnings("CastToIncompatibleInterface")
     public @NotNull LumiSubChunkRoot lumi$root() {
         return (LumiSubChunkRoot) this;
+    }
+
+    @Override
+    public @NotNull String lumi$subChunkID() {
+        return "lumi_sub_chunk";
+    }
+
+    @Override
+    public void lumi$writeToNBT(@NotNull NBTTagCompound output) {
+    }
+
+    @Override
+    public void lumi$readFromNBT(@NotNull NBTTagCompound output) {
     }
 
     @Override

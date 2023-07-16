@@ -39,6 +39,7 @@ import lombok.var;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.profiler.Profiler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -235,8 +236,26 @@ public final class Phosphor implements LumiLightingEngine {
     }
 
     @Override
-    public @NotNull String lumi$engineID() {
-        return "Phosphor";
+    public @NotNull String lightingEngineID() {
+        return "phosphor";
+    }
+
+    @Override
+    public void lumi$writeToChunkNBT(@NotNull NBTTagCompound output) {
+
+    }
+
+    @Override
+    public void lumi$readFromChunkNBT(@NotNull NBTTagCompound output) {
+
+    }
+
+    @Override
+    public void lumi$writeToSubChunkNBT(@NotNull NBTTagCompound output) {
+    }
+
+    @Override
+    public void lumi$readFromSubChunkNBT(@NotNull NBTTagCompound output) {
     }
 
     @Override

@@ -25,13 +25,22 @@ import com.falsepattern.lib.compat.BlockPos;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.nbt.NBTTagCompound;
 import org.jetbrains.annotations.NotNull;
 
 import static cpw.mods.fml.relauncher.Side.CLIENT;
 
 @SuppressWarnings("unused")
 public interface LumiLightingEngine {
-    @NotNull String lumi$engineID();
+    @NotNull String lightingEngineID();
+
+    void lumi$writeToChunkNBT(@NotNull NBTTagCompound output);
+
+    void lumi$readFromChunkNBT(@NotNull NBTTagCompound output);
+
+    void lumi$writeToSubChunkNBT(@NotNull NBTTagCompound output);
+
+    void lumi$readFromSubChunkNBT(@NotNull NBTTagCompound output);
 
     int getCurrentLightValue(@NotNull LightType lightType, @NotNull BlockPos blockPos);
 

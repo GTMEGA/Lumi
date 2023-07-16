@@ -22,11 +22,18 @@
 package com.falsepattern.lumina.api.chunk;
 
 import com.falsepattern.lumina.api.lighting.LightType;
+import net.minecraft.nbt.NBTTagCompound;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
 public interface LumiSubChunk {
     @NotNull LumiSubChunkRoot lumi$root();
+
+    @NotNull String lumi$subChunkID();
+
+    void lumi$writeToNBT(@NotNull NBTTagCompound output);
+
+    void lumi$readFromNBT(@NotNull NBTTagCompound output);
 
     void lumi$setLightValue(@NotNull LightType lightType, int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
 

@@ -28,6 +28,7 @@ import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import lombok.val;
 import net.minecraft.block.Block;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
@@ -91,6 +92,19 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     @Override
     public @NotNull LumiWorld lumi$world() {
         return lumi$world;
+    }
+
+    @Override
+    public @NotNull String lumi$chunkID() {
+        return "lumi_chunk";
+    }
+
+    @Override
+    public void lumi$writeToNBT(@NotNull NBTTagCompound output) {
+    }
+
+    @Override
+    public void lumi$readFromNBT(@NotNull NBTTagCompound output) {
     }
 
     @Override

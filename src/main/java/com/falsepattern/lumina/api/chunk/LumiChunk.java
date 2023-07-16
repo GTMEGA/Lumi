@@ -24,6 +24,7 @@ package com.falsepattern.lumina.api.chunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import net.minecraft.block.Block;
+import net.minecraft.nbt.NBTTagCompound;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,6 +35,12 @@ public interface LumiChunk {
     @NotNull LumiChunkRoot lumi$root();
 
     @NotNull LumiWorld lumi$world();
+
+    @NotNull String lumi$chunkID();
+
+    void lumi$writeToNBT(@NotNull NBTTagCompound output);
+
+    void lumi$readFromNBT(@NotNull NBTTagCompound output);
 
     @Nullable LumiSubChunk lumi$getSubChunkIfPrepared(int chunkPosY);
 
