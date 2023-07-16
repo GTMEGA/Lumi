@@ -34,6 +34,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
+import java.nio.ByteBuffer;
+
 @Unique
 @Mixin(ExtendedBlockStorage.class)
 public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
@@ -76,6 +78,20 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
             if (skyLightBytes.length == LIGHT_DATA_BYTE_SIZE)
                 System.arraycopy(skyLightBytes, 0, skylightArray.data, 0, LIGHT_DATA_BYTE_SIZE);
         }
+    }
+
+    @Override
+    public void lumi$writeToPacket(@NotNull ByteBuffer output) {
+        output.put(blocklightArray.data);
+        if (skylightArray != null)
+            output.put(skylightArray.data);
+    }
+
+    @Override
+    public void lumi$readFromPacket(@NotNull ByteBuffer input) {
+        input.get(blocklightArray.data);
+        if (skylightArray != null)
+            input.get(skylightArray.data);
     }
 
     @Override

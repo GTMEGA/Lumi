@@ -25,6 +25,8 @@ import com.falsepattern.lumina.api.lighting.LightType;
 import net.minecraft.nbt.NBTTagCompound;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.ByteBuffer;
+
 @SuppressWarnings("unused")
 public interface LumiSubChunk {
     String BLOCK_LIGHT_NBT_TAG_NAME = "block_light";
@@ -37,6 +39,10 @@ public interface LumiSubChunk {
     void lumi$writeToNBT(@NotNull NBTTagCompound output);
 
     void lumi$readFromNBT(@NotNull NBTTagCompound input);
+
+    void lumi$writeToPacket(@NotNull ByteBuffer output);
+
+    void lumi$readFromPacket(@NotNull ByteBuffer input);
 
     void lumi$setLightValue(@NotNull LightType lightType, int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
 

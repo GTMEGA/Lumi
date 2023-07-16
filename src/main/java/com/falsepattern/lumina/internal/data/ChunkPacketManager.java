@@ -26,13 +26,13 @@ import com.falsepattern.chunk.api.ChunkDataRegistry;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.internal.Tags;
+import com.falsepattern.lumina.internal.event.EventPoster;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.val;
 import lombok.var;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.NibbleArray;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -50,10 +50,10 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
 
     private static final ChunkPacketManager INSTANCE = new ChunkPacketManager();
 
-    private static final int BLOCKS_PER_CHUNK = 16 * 16 * 256;
+    private static final int BLOCKS_PER_SUB_CHUNK = 16 * 16 * 16;
     private static final int BITS_PER_BLOCK = 4 + 4;
     private static final int BYTES_PER_BLOCK = BITS_PER_BLOCK / 8;
-    private static final int MAX_PACKET_SIZE_PER_WORLD_PROVIDER = BLOCKS_PER_CHUNK * BYTES_PER_BLOCK + 256;
+    private static final int MAX_PACKET_SIZE_PER_WORLD_PROVIDER = BLOCKS_PER_SUB_CHUNK * BYTES_PER_BLOCK + 256;
 
     @Getter
     private int maxPacketSize = 0;
@@ -68,7 +68,10 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
         if (isRegistered)
             return;
 
-        maxPacketSize = MAX_PACKET_SIZE_PER_WORLD_PROVIDER * worldManager().worldProviderCount();
+        val subChunkMaxPacketSize = MAX_PACKET_SIZE_PER_WORLD_PROVIDER * worldManager().worldProviderCount();
+        maxPacketSize = EventPoster.postChunkPacketSizeEvent(0,
+                                                             subChunkMaxPacketSize,
+                                                             0);
 
         ChunkDataRegistry.registerDataManager(this);
         isRegistered = true;
@@ -86,81 +89,46 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
     }
 
     @Override
-    public void writeToBuffer(Chunk chunkBase, int subChunkMask, boolean forceUpdate, ByteBuffer buffer) {
-        val lightValues = new NibbleArray(4096, 4);
+    public void writeToBuffer(Chunk chunkBase, int subChunkMask, boolean forceUpdate, ByteBuffer output) {
         val worldBase = chunkBase.worldObj;
         for (val world : lumiWorldsFromBaseWorld(worldBase)) {
-            val hasSky = world.lumi$root().lumi$hasSky();
             val chunk = world.lumi$wrap(chunkBase);
+            val lightingEngine = world.lumi$lightingEngine();
+
+            chunk.lumi$writeToPacket(output);
             for (var chunkPosY = 0; chunkPosY < 16; chunkPosY++) {
                 val subChunk = getSubChunk(chunk, subChunkMask, chunkPosY);
-                if (subChunk == null)
-                    continue;
-
-                for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
-                    for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
-                        for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
-                            val lightValue = subChunk.lumi$getBlockLightValue(subChunkPosX, subChunkPosY, subChunkPosZ);
-                            lightValues.set(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
-                        }
-                    }
-                }
-                buffer.put(lightValues.data);
-
-                if (!hasSky)
-                    continue;
-
-                for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
-                    for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
-                        for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
-                            val lightValue = subChunk.lumi$getSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ);
-                            lightValues.set(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
-                        }
-                    }
-                }
-                buffer.put(lightValues.data);
+                if (subChunk != null)
+                    subChunk.lumi$writeToPacket(output);
+            }
+            lightingEngine.lumi$writeChunkToPacket(chunk, output);
+            for (var chunkPosY = 0; chunkPosY < 16; chunkPosY++) {
+                val subChunk = getSubChunk(chunk, subChunkMask, chunkPosY);
+                if (subChunk != null)
+                    lightingEngine.lumi$writeSubChunkToPacket(chunk, subChunk, output);
             }
         }
     }
 
     @Override
-    public void readFromBuffer(Chunk chunkBase, int subChunkMask, boolean forceUpdate, ByteBuffer buffer) {
-        val lightValues = new NibbleArray(4096, 4);
+    public void readFromBuffer(Chunk chunkBase, int subChunkMask, boolean forceUpdate, ByteBuffer input) {
         val worldBase = chunkBase.worldObj;
         for (val world : lumiWorldsFromBaseWorld(worldBase)) {
-            val hasSky = world.lumi$root().lumi$hasSky();
             val chunk = world.lumi$wrap(chunkBase);
+            val lightingEngine = world.lumi$lightingEngine();
 
+            chunk.lumi$readFromPacket(input);
             for (var chunkPosY = 0; chunkPosY < 16; chunkPosY++) {
                 val subChunk = getSubChunk(chunk, subChunkMask, chunkPosY);
-                if (subChunk == null)
-                    continue;
-
-                buffer.get(lightValues.data);
-                for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
-                    for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
-                        for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
-                            val lightValue = lightValues.get(subChunkPosX, subChunkPosY, subChunkPosZ);
-                            subChunk.lumi$setBlockLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
-                        }
-                    }
-                }
-
-                if (!hasSky)
-                    continue;
-
-                buffer.get(lightValues.data);
-                for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
-                    for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
-                        for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
-                            val lightValue = lightValues.get(subChunkPosX, subChunkPosY, subChunkPosZ);
-                            subChunk.lumi$setSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
-                        }
-                    }
-                }
+                if (subChunk != null)
+                    subChunk.lumi$readFromPacket(input);
             }
-
-            chunk.lumi$isLightingInitialized(true);
+            lightingEngine.lumi$readChunkFromPacket(chunk, input);
+            for (var chunkPosY = 0; chunkPosY < 16; chunkPosY++) {
+                val subChunk = getSubChunk(chunk, subChunkMask, chunkPosY);
+                if (subChunk != null)
+                    lightingEngine.lumi$readSubChunkFromPacket(chunk, subChunk, input);
+            }
         }
     }
 

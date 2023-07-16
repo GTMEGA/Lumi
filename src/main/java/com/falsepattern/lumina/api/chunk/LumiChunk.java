@@ -28,6 +28,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.ByteBuffer;
+
 @SuppressWarnings("unused")
 public interface LumiChunk {
     int SUB_CHUNK_ARRAY_SIZE = 16;
@@ -46,6 +48,10 @@ public interface LumiChunk {
     void lumi$writeToNBT(@NotNull NBTTagCompound output);
 
     void lumi$readFromNBT(@NotNull NBTTagCompound input);
+
+    void lumi$writeToPacket(@NotNull ByteBuffer output);
+
+    void lumi$readFromPacket(@NotNull ByteBuffer input);
 
     @Nullable LumiSubChunk lumi$getSubChunkIfPrepared(int chunkPosY);
 

@@ -42,6 +42,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
@@ -127,6 +128,15 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
         }
         if (!lumi$isLightingInitialized)
             lumi$world.lumi$lightingEngine().handleChunkInit(this);
+    }
+
+    @Override
+    public void lumi$writeToPacket(@NotNull ByteBuffer output) {
+    }
+
+    @Override
+    public void lumi$readFromPacket(@NotNull ByteBuffer input) {
+        lumi$isLightingInitialized = true;
     }
 
     @Override

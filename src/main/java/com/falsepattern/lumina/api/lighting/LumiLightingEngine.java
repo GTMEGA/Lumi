@@ -28,23 +28,37 @@ import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.nbt.NBTTagCompound;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.ByteBuffer;
+
 import static cpw.mods.fml.relauncher.Side.CLIENT;
 
 @SuppressWarnings("unused")
 public interface LumiLightingEngine {
     @NotNull String lightingEngineID();
 
-    void lumi$writeToChunkNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound output);
+    void lumi$writeChunkToNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound output);
 
-    void lumi$readFromChunkNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound input);
+    void lumi$readChunkFromNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound input);
 
-    void lumi$writeToSubChunkNBT(@NotNull LumiChunk chunk,
+    void lumi$writeSubChunkToNBT(@NotNull LumiChunk chunk,
                                  @NotNull LumiSubChunk subChunk,
                                  @NotNull NBTTagCompound output);
 
-    void lumi$readFromSubChunkNBT(@NotNull LumiChunk chunk,
+    void lumi$readSubChunkFromNBT(@NotNull LumiChunk chunk,
                                   @NotNull LumiSubChunk subChunk,
                                   @NotNull NBTTagCompound input);
+
+    void lumi$writeChunkToPacket(@NotNull LumiChunk chunk, @NotNull ByteBuffer output);
+
+    void lumi$readChunkFromPacket(@NotNull LumiChunk chunk, @NotNull ByteBuffer input);
+
+    void lumi$writeSubChunkToPacket(@NotNull LumiChunk chunk,
+                                    @NotNull LumiSubChunk subChunk,
+                                    @NotNull ByteBuffer input);
+
+    void lumi$readSubChunkFromPacket(@NotNull LumiChunk chunk,
+                                     @NotNull LumiSubChunk subChunk,
+                                     @NotNull ByteBuffer output);
 
     int getCurrentLightValue(@NotNull LightType lightType, @NotNull BlockPos blockPos);
 
