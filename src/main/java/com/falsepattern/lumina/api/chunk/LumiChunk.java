@@ -34,6 +34,9 @@ public interface LumiChunk {
     int HEIGHT_MAP_ARRAY_SIZE = 16 * 16;
     int MAX_QUEUED_RANDOM_LIGHT_UPDATES = 16 * 16 * 16;
 
+    String IS_LIGHT_INITIALIZED_NBT_TAG_NAME = "lighting_initialized";
+    String SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME = "sky_light_height_map";
+
     @NotNull LumiChunkRoot lumi$root();
 
     @NotNull LumiWorld lumi$world();

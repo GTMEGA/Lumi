@@ -101,10 +101,32 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
 
     @Override
     public void lumi$writeToNBT(@NotNull NBTTagCompound output) {
+        output.setIntArray(SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME, heightMap);
+        output.setBoolean(IS_LIGHT_INITIALIZED_NBT_TAG_NAME, lumi$isLightingInitialized);
     }
 
     @Override
     public void lumi$readFromNBT(@NotNull NBTTagCompound input) {
+        lumi$isLightingInitialized = false;
+        skyLightHeightMapValidCheck:
+        {
+            if (!input.hasKey(IS_LIGHT_INITIALIZED_NBT_TAG_NAME, 1))
+                break skyLightHeightMapValidCheck;
+            val isLightInitialized = input.getBoolean(IS_LIGHT_INITIALIZED_NBT_TAG_NAME);
+            if (!isLightInitialized)
+                break skyLightHeightMapValidCheck;
+
+            if (!input.hasKey(SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME, 11))
+                break skyLightHeightMapValidCheck;
+            val skyLightHeightMap = input.getIntArray(SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME);
+            if (skyLightHeightMap.length != HEIGHT_MAP_ARRAY_SIZE)
+                break skyLightHeightMapValidCheck;
+
+            System.arraycopy(skyLightHeightMap, 0, heightMap, 0, HEIGHT_MAP_ARRAY_SIZE);
+            lumi$isLightingInitialized = true;
+        }
+        if (!lumi$isLightingInitialized)
+            lumi$world.lumi$lightingEngine().handleChunkInit(this);
     }
 
     @Override

@@ -24,6 +24,7 @@ package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunkRoot;
 import com.falsepattern.lumina.api.lighting.LightType;
+import lombok.val;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
@@ -36,6 +37,8 @@ import org.spongepowered.asm.mixin.Unique;
 @Unique
 @Mixin(ExtendedBlockStorage.class)
 public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
+    private static int LIGHT_DATA_BYTE_SIZE = 2048;
+
     @Shadow
     private NibbleArray blocklightArray;
     @Shadow
@@ -55,10 +58,24 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
 
     @Override
     public void lumi$writeToNBT(@NotNull NBTTagCompound output) {
+        output.setByteArray(BLOCK_LIGHT_NBT_TAG_NAME, blocklightArray.data);
+        if (skylightArray != null)
+            output.setByteArray(SKY_LIGHT_NBT_TAG_NAME, skylightArray.data);
     }
 
     @Override
-    public void lumi$readFromNBT(@NotNull NBTTagCompound output) {
+    public void lumi$readFromNBT(@NotNull NBTTagCompound input) {
+        if (input.hasKey(BLOCK_LIGHT_NBT_TAG_NAME, 7)) {
+            val blockLightBytes = input.getByteArray(BLOCK_LIGHT_NBT_TAG_NAME);
+            if (blockLightBytes.length == LIGHT_DATA_BYTE_SIZE)
+                System.arraycopy(blockLightBytes, 0, blocklightArray.data, 0, LIGHT_DATA_BYTE_SIZE);
+        }
+
+        if (skylightArray != null && input.hasKey(SKY_LIGHT_NBT_TAG_NAME, 7)) {
+            val skyLightBytes = input.getByteArray(SKY_LIGHT_NBT_TAG_NAME);
+            if (skyLightBytes.length == LIGHT_DATA_BYTE_SIZE)
+                System.arraycopy(skyLightBytes, 0, skylightArray.data, 0, LIGHT_DATA_BYTE_SIZE);
+        }
     }
 
     @Override

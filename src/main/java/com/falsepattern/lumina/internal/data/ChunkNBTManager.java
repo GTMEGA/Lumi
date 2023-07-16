@@ -23,17 +23,17 @@ package com.falsepattern.lumina.internal.data;
 
 import com.falsepattern.chunk.api.ChunkDataManager;
 import com.falsepattern.chunk.api.ChunkDataRegistry;
+import com.falsepattern.lumina.api.chunk.LumiChunk;
+import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.internal.Tags;
 import lombok.NoArgsConstructor;
 import lombok.val;
-import lombok.var;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.Chunk;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import static com.falsepattern.lumina.api.LumiAPI.lumiWorldsFromBaseWorld;
-import static com.falsepattern.lumina.api.chunk.LumiChunk.HEIGHT_MAP_ARRAY_SIZE;
 import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor(access = PRIVATE)
@@ -43,8 +43,6 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
     private static final ChunkNBTManager INSTANCE = new ChunkNBTManager();
 
     private static final String VERSION_NBT_TAG_NAME = Tags.MOD_ID + "_version";
-    private static final String IS_LIGHT_INITIALIZED_NBT_TAG_NAME = "lighting_initialized";
-    private static final String SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME = "sky_light_height_map";
 
     private static final String VERSION_NBT_TAG_VALUE = Tags.VERSION;
 
@@ -76,8 +74,6 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
     @Override
     public void writeChunkToNBT(Chunk chunkBase, NBTTagCompound output) {
         output.setString(VERSION_NBT_TAG_NAME, VERSION_NBT_TAG_VALUE);
-        val skyLightHeightMap = new int[HEIGHT_MAP_ARRAY_SIZE];
-
         val worldBase = chunkBase.worldObj;
         for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val chunk = world.lumi$wrap(chunkBase);
@@ -85,33 +81,26 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
 
             val worldTagName = world.lumi$worldID();
             val worldTag = new NBTTagCompound();
-
-            for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
-                for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
-                    val index = (subChunkPosX + (subChunkPosZ * 16)) % 255;
-                    val skyLightHeight = chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ);
-                    skyLightHeightMap[index] = skyLightHeight;
-                }
-            }
-            worldTag.setIntArray(SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME, skyLightHeightMap);
-            worldTag.setBoolean(IS_LIGHT_INITIALIZED_NBT_TAG_NAME, chunk.lumi$isLightingInitialized());
-
-            {
-                val chunkTagName = chunk.lumi$chunkID();
-                val chunkTag = new NBTTagCompound();
-                chunk.lumi$writeToNBT(chunkTag);
-                worldTag.setTag(chunkTagName, chunkTag);
-            }
-
-            {
-                val lightingEngineTagName = lightingEngine.lightingEngineID();
-                val lightingEngineTag = new NBTTagCompound();
-                lightingEngine.lumi$writeToChunkNBT(chunk, lightingEngineTag);
-                worldTag.setTag(lightingEngineTagName, lightingEngineTag);
-            }
-
+            writeChunkData(chunk, worldTag);
+            writeLightingEngineData(chunk, lightingEngine, worldTag);
             output.setTag(worldTagName, worldTag);
         }
+    }
+
+    private static void writeLightingEngineData(LumiChunk chunk,
+                                                LumiLightingEngine lightingEngine,
+                                                NBTTagCompound output) {
+        val lightingEngineTagName = lightingEngine.lightingEngineID();
+        val lightingEngineTag = new NBTTagCompound();
+        lightingEngine.lumi$writeToChunkNBT(chunk, lightingEngineTag);
+        output.setTag(lightingEngineTagName, lightingEngineTag);
+    }
+
+    private static void writeChunkData(LumiChunk chunk, NBTTagCompound output) {
+        val chunkTagName = chunk.lumi$chunkID();
+        val chunkTag = new NBTTagCompound();
+        chunk.lumi$writeToNBT(chunkTag);
+        output.setTag(chunkTagName, chunkTag);
     }
 
     @Override
@@ -129,47 +118,26 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
             if (!input.hasKey(worldTagName, 10))
                 continue;
             val worldTag = input.getCompoundTag(worldTagName);
+            readChunkData(chunk, worldTag);
+            readLightingEngineData(chunk, lightingEngine, worldTag);
+        }
+    }
 
-            var isLightingInitialized = false;
-            skyLightHeightMapValidCheck:
-            {
-                if (!worldTag.hasKey(IS_LIGHT_INITIALIZED_NBT_TAG_NAME, 1))
-                    break skyLightHeightMapValidCheck;
-                val isLightInitialized = worldTag.getBoolean(IS_LIGHT_INITIALIZED_NBT_TAG_NAME);
-                if (!isLightInitialized)
-                    break skyLightHeightMapValidCheck;
+    private static void readLightingEngineData(LumiChunk chunk,
+                                               LumiLightingEngine lightingEngine,
+                                               NBTTagCompound input) {
+        val lightingEngineTagName = lightingEngine.lightingEngineID();
+        if (input.hasKey(lightingEngineTagName, 10)) {
+            val lightingEngineTag = input.getCompoundTag(lightingEngineTagName);
+            lightingEngine.lumi$readFromChunkNBT(chunk, lightingEngineTag);
+        }
+    }
 
-                if (!worldTag.hasKey(SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME, 11))
-                    break skyLightHeightMapValidCheck;
-                val skyLightHeightMap = worldTag.getIntArray(SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME);
-                if (skyLightHeightMap.length != HEIGHT_MAP_ARRAY_SIZE)
-                    break skyLightHeightMapValidCheck;
-
-                for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
-                    for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
-                        val index = subChunkPosX + (subChunkPosZ * 16) % 255;
-                        val skyLightHeight = skyLightHeightMap[index];
-                        chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ, skyLightHeight);
-                    }
-                }
-
-                isLightingInitialized = true;
-            }
-            chunk.lumi$isLightingInitialized(isLightingInitialized);
-            if (!isLightingInitialized)
-                lightingEngine.handleChunkInit(chunk);
-
-            val chunkTagName = chunk.lumi$chunkID();
-            if (worldTag.hasKey(chunkTagName, 10)) {
-                val chunkTag = worldTag.getCompoundTag(chunkTagName);
-                chunk.lumi$readFromNBT(chunkTag);
-            }
-
-            val lightingEngineTagName = lightingEngine.lightingEngineID();
-            if (worldTag.hasKey(lightingEngineTagName, 10)) {
-                val lightingEngineTag = worldTag.getCompoundTag(lightingEngineTagName);
-                lightingEngine.lumi$readFromChunkNBT(chunk, lightingEngineTag);
-            }
+    private static void readChunkData(LumiChunk chunk, NBTTagCompound input) {
+        val chunkTagName = chunk.lumi$chunkID();
+        if (input.hasKey(chunkTagName, 10)) {
+            val chunkTag = input.getCompoundTag(chunkTagName);
+            chunk.lumi$readFromNBT(chunkTag);
         }
     }
 }

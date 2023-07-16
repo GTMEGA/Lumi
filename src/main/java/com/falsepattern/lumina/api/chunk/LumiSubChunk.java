@@ -27,13 +27,16 @@ import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
 public interface LumiSubChunk {
+    String BLOCK_LIGHT_NBT_TAG_NAME = "block_light";
+    String SKY_LIGHT_NBT_TAG_NAME = "sky_light";
+
     @NotNull LumiSubChunkRoot lumi$root();
 
     @NotNull String lumi$subChunkID();
 
     void lumi$writeToNBT(@NotNull NBTTagCompound output);
 
-    void lumi$readFromNBT(@NotNull NBTTagCompound output);
+    void lumi$readFromNBT(@NotNull NBTTagCompound input);
 
     void lumi$setLightValue(@NotNull LightType lightType, int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
 
