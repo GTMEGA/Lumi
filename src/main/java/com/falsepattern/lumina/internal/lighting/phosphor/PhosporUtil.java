@@ -38,10 +38,9 @@ import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorChunk.LIGHT_CHECK_FLAGS_LENGTH;
 
-@Deprecated
 @UtilityClass
-public final class LightingHooksOld {
-    public static final String NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME = "neighbor_light_checks";
+final class PhosporUtil {
+    private static final String NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME = "neighbor_light_checks";
 
     static void scheduleRelightChecksForChunkBoundaries(LumiWorld world, LumiChunk chunk) {
         val chunkBasePosX = chunk.lumi$chunkPosX();
@@ -104,7 +103,7 @@ public final class LightingHooksOld {
         return true;
     }
 
-    public static void writeNeighborLightChecksToNBT(LumiChunk lumiChunk, NBTTagCompound output) {
+    static void writeNeighborLightChecksToNBT(LumiChunk lumiChunk, NBTTagCompound output) {
         if (!(lumiChunk instanceof PhosphorChunk))
             return;
         val chunk = (PhosphorChunk) lumiChunk;
@@ -123,7 +122,7 @@ public final class LightingHooksOld {
             output.setTag(NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME, flagList);
     }
 
-    public static void readNeighborLightChecksFromNBT(LumiChunk lumiChunk, NBTTagCompound input) {
+    static void readNeighborLightChecksFromNBT(LumiChunk lumiChunk, NBTTagCompound input) {
         if (!(lumiChunk instanceof PhosphorChunk))
             return;
         val chunk = (PhosphorChunk) lumiChunk;
@@ -148,7 +147,7 @@ public final class LightingHooksOld {
         }
     }
 
-    public static @Nullable LumiChunk getLoadedChunk(LumiWorld world, int chunkPosX, int chunkPosZ) {
+    static @Nullable LumiChunk getLoadedChunk(LumiWorld world, int chunkPosX, int chunkPosZ) {
         val provider = world.lumi$root().lumi$chunkProvider();
         if (!provider.chunkExists(chunkPosX, chunkPosZ))
             return null;

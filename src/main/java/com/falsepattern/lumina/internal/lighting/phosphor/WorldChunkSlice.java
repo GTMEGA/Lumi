@@ -24,7 +24,7 @@ package com.falsepattern.lumina.internal.lighting.phosphor;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.world.LumiWorld;
 
-import static com.falsepattern.lumina.internal.lighting.phosphor.LightingHooksOld.getLoadedChunk;
+import static com.falsepattern.lumina.internal.lighting.phosphor.PhosporUtil.getLoadedChunk;
 
 final class WorldChunkSlice {
     private static final int DIAMETER = 5;

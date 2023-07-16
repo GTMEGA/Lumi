@@ -51,7 +51,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import static com.falsepattern.lumina.api.chunk.LumiChunk.MAX_QUEUED_RANDOM_LIGHT_UPDATES;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.values;
-import static com.falsepattern.lumina.internal.lighting.phosphor.LightingHooksOld.getLoadedChunk;
+import static com.falsepattern.lumina.internal.lighting.phosphor.PhosporUtil.getLoadedChunk;
 import static cpw.mods.fml.relauncher.Side.CLIENT;
 
 
@@ -237,12 +237,12 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     @Override
     public void lumi$writeToChunkNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound output) {
-        LightingHooksOld.writeNeighborLightChecksToNBT(chunk, output);
+        PhosporUtil.writeNeighborLightChecksToNBT(chunk, output);
     }
 
     @Override
     public void lumi$readFromChunkNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound input) {
-        LightingHooksOld.readNeighborLightChecksFromNBT(chunk, input);
+        PhosporUtil.readNeighborLightChecksFromNBT(chunk, input);
     }
 
     @Override
@@ -280,7 +280,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     @Override
     public boolean isChunkFullyLit(@NotNull LumiChunk chunk) {
-        return LightingHooksOld.isChunkFullyLit(world, chunk);
+        return PhosporUtil.isChunkFullyLit(world, chunk);
     }
 
     @Override
@@ -420,7 +420,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     @Override
     public void handleChunkLoad(@NotNull LumiChunk chunk) {
-        LightingHooksOld.scheduleRelightChecksForChunkBoundaries(world, chunk);
+        PhosporUtil.scheduleRelightChecksForChunkBoundaries(world, chunk);
     }
 
     @Override
@@ -538,13 +538,13 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ, minPosY);
 
         if (worldRoot.lumi$hasSky())
-            LightingHooksOld.relightSkyLightColumn(this,
-                                                   world,
-                                                   chunk,
-                                                   subChunkPosX,
-                                                   subChunkPosZ,
-                                                   maxPosY,
-                                                   minPosY);
+            PhosporUtil.relightSkyLightColumn(this,
+                                              world,
+                                              chunk,
+                                              subChunkPosX,
+                                              subChunkPosZ,
+                                              maxPosY,
+                                              minPosY);
 
         maxPosY = chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ);
         if (maxPosY < chunk.lumi$minSkyLightHeight())
