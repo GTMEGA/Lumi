@@ -36,6 +36,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -112,8 +113,10 @@ public final class WorldManager implements LumiWorldRegistry, LumiWorldWrapper {
         worldProviders.add(worldProvider);
     }
 
+
     @Override
-    public Iterable<LumiWorld> wrappedForBaseWorld(World baseWorld) {
+    @SuppressWarnings("ConstantValue")
+    public @NotNull @Unmodifiable Iterable<LumiWorld> wrappedForBaseWorld(@NotNull World baseWorld) {
         if (baseWorld == null || !hasRegistered)
             return Collections.emptyList();
         return providedWorlds.computeIfAbsent(baseWorld, this::collectProvidedWorlds);

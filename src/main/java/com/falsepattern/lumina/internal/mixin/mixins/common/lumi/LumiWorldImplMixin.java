@@ -36,6 +36,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.lib.Opcodes;
 import org.spongepowered.asm.mixin.*;
@@ -74,6 +75,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
                        target = "Lnet/minecraft/world/World;" +
                                 "theProfiler:Lnet/minecraft/profiler/Profiler;"),
               require = 1)
+    @SuppressWarnings("CastToIncompatibleInterface")
     private void lumiWorldInit(World thiz, Profiler profiler) {
         this.theProfiler = profiler;
 
@@ -82,27 +84,30 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     }
 
     @Override
-    public LumiWorldRoot lumi$root() {
+    public @NotNull LumiWorldRoot lumi$root() {
         return lumi$root;
     }
 
     @Override
-    public String lumi$worldID() {
+    public @NotNull String lumi$worldID() {
         return Tags.MOD_ID;
     }
 
     @Override
-    public LumiChunk lumi$wrap(Chunk baseChunk) {
+    @SuppressWarnings("CastToIncompatibleInterface")
+    public @NotNull LumiChunk lumi$wrap(@NotNull Chunk baseChunk) {
         return (LumiChunk) baseChunk;
     }
 
     @Override
-    public LumiSubChunk lumi$wrap(ExtendedBlockStorage baseSubChunk) {
+    @SuppressWarnings("CastToIncompatibleInterface")
+    public @NotNull LumiSubChunk lumi$wrap(@NotNull ExtendedBlockStorage baseSubChunk) {
         return (LumiSubChunk) baseSubChunk;
     }
 
     @Override
-    public @Nullable LumiChunk lumi$getChunkFromBlockPos(int posX, int posZ) {
+    @SuppressWarnings("InstanceofIncompatibleInterface")
+    public @Nullable LumiChunk lumi$getChunkFromBlockPosIfExists(int posX, int posZ) {
         val baseChunk = getChunkFromBlockCoords(posX, posZ);
         if (baseChunk instanceof LumiChunk)
             return (LumiChunk) baseChunk;
@@ -110,7 +115,8 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     }
 
     @Override
-    public @Nullable LumiChunk lumi$getChunkFromChunkPos(int chunkPosX, int chunkPosZ) {
+    @SuppressWarnings("InstanceofIncompatibleInterface")
+    public @Nullable LumiChunk lumi$getChunkFromChunkPosIfExists(int chunkPosX, int chunkPosZ) {
         val baseChunk = getChunkFromChunkCoords(chunkPosX, chunkPosZ);
         if (baseChunk instanceof LumiChunk)
             return (LumiChunk) baseChunk;
@@ -118,12 +124,12 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     }
 
     @Override
-    public LumiLightingEngine lumi$lightingEngine() {
+    public @NotNull LumiLightingEngine lumi$lightingEngine() {
         return lumi$lightingEngine;
     }
 
     @Override
-    public int lumi$getBrightnessAndLightValueMax(LightType lightType, int posX, int posY, int posZ) {
+    public int lumi$getBrightnessAndLightValueMax(@NotNull LightType lightType, int posX, int posY, int posZ) {
         switch (lightType) {
             case BLOCK_LIGHT_TYPE:
                 return lumi$getBrightnessAndBlockLightValueMax(posX, posY, posZ);
@@ -136,7 +142,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
 
     @Override
     public int lumi$getBrightnessAndBlockLightValueMax(int posX, int posY, int posZ) {
-        val chunk = lumi$getChunkFromBlockPos(posX, posZ);
+        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
@@ -148,7 +154,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
 
     @Override
     public int lumi$getLightValueMax(int posX, int posY, int posZ) {
-        val chunk = lumi$getChunkFromBlockPos(posX, posZ);
+        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
@@ -158,8 +164,8 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     }
 
     @Override
-    public void lumi$setLightValue(LightType lightType, int posX, int posY, int posZ, int lightValue) {
-        val chunk = lumi$getChunkFromBlockPos(posX, posZ);
+    public void lumi$setLightValue(@NotNull LightType lightType, int posX, int posY, int posZ, int lightValue) {
+        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
@@ -168,8 +174,8 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     }
 
     @Override
-    public int lumi$getLightValue(LightType lightType, int posX, int posY, int posZ) {
-        val chunk = lumi$getChunkFromBlockPos(posX, posZ);
+    public int lumi$getLightValue(@NotNull LightType lightType, int posX, int posY, int posZ) {
+        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
@@ -190,7 +196,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
 
     @Override
     public void lumi$setBlockLightValue(int posX, int posY, int posZ, int lightValue) {
-        val chunk = lumi$getChunkFromBlockPos(posX, posZ);
+        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
@@ -200,7 +206,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
 
     @Override
     public int lumi$getBlockLightValue(int posX, int posY, int posZ) {
-        val chunk = lumi$getChunkFromBlockPos(posX, posZ);
+        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
@@ -214,7 +220,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
         if (!lumi$root().lumi$hasSky())
             return;
 
-        val chunk = lumi$getChunkFromBlockPos(posX, posZ);
+        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
@@ -227,7 +233,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
         if (!lumi$root().lumi$hasSky())
             return 0;
 
-        val chunk = lumi$getChunkFromBlockPos(posX, posZ);
+        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
@@ -250,12 +256,12 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     }
 
     @Override
-    public int lumi$getBlockBrightness(Block block, int blockMeta, int posX, int posY, int posZ) {
+    public int lumi$getBlockBrightness(@NotNull Block block, int blockMeta, int posX, int posY, int posZ) {
         return block.getLightValue(this, posX, posY, posZ);
     }
 
     @Override
-    public int lumi$getBlockOpacity(Block block, int blockMeta, int posX, int posY, int posZ) {
+    public int lumi$getBlockOpacity(@NotNull Block block, int blockMeta, int posX, int posY, int posZ) {
         return block.getLightOpacity(this, posX, posY, posZ);
     }
 }

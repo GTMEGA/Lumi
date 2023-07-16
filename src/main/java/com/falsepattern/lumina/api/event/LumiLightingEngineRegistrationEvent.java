@@ -23,13 +23,17 @@ package com.falsepattern.lumina.api.event;
 
 import com.falsepattern.lumina.api.lighting.LumiLightingEngineRegistry;
 import cpw.mods.fml.common.eventhandler.Event;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.experimental.Accessors;
+import org.jetbrains.annotations.NotNull;
 
-@Getter
-@Accessors(fluent = true, chain = false)
-@AllArgsConstructor
+@SuppressWarnings("unused")
 public final class LumiLightingEngineRegistrationEvent extends Event {
-    private final LumiLightingEngineRegistry registry;
+    private final @NotNull LumiLightingEngineRegistry registry;
+
+    public LumiLightingEngineRegistrationEvent(@NotNull LumiLightingEngineRegistry registry) {
+        this.registry = registry;
+    }
+
+    public @NotNull LumiLightingEngineRegistry registry() {
+        return this.registry;
+    }
 }

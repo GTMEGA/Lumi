@@ -22,8 +22,10 @@
 package com.falsepattern.lumina.api.world;
 
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @FunctionalInterface
 public interface LumiWorldProvider {
-    LumiWorld provideWorld(World world);
+    @Nullable LumiWorld provideWorld(@NotNull World world);
 }

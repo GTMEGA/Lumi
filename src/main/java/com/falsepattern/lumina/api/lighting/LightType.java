@@ -21,15 +21,11 @@
 
 package com.falsepattern.lumina.api.lighting;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.experimental.Accessors;
 import lombok.val;
 import lombok.var;
 import net.minecraft.world.EnumSkyBlock;
 
-@AllArgsConstructor
-@Accessors(fluent = true, chain = false)
+@SuppressWarnings("unused")
 public enum LightType {
     BLOCK_LIGHT_TYPE(EnumSkyBlock.Block.defaultLightValue),
     SKY_LIGHT_TYPE(EnumSkyBlock.Sky.defaultLightValue),
@@ -50,8 +46,11 @@ public enum LightType {
         MAX_BASE_LIGHT_VALUE = maxBaseLightValue;
     }
 
-    @Getter
     private final int defaultLightValue;
+
+    LightType(int defaultLightValue) {
+        this.defaultLightValue = defaultLightValue;
+    }
 
     public static LightType of(EnumSkyBlock baseLightType) {
         switch (baseLightType) {
@@ -69,5 +68,9 @@ public enum LightType {
 
     public static int maxBaseLightValue() {
         return MAX_BASE_LIGHT_VALUE;
+    }
+
+    public int defaultLightValue() {
+        return this.defaultLightValue;
     }
 }

@@ -22,11 +22,13 @@
 package com.falsepattern.lumina.api.chunk;
 
 import net.minecraft.block.Block;
+import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("unused")
 public interface LumiSubChunkRoot {
     int lumi$posY();
 
-    Block lumi$getBlock(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
+    @NotNull Block lumi$getBlock(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 
     int lumi$getBlockMeta(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 }

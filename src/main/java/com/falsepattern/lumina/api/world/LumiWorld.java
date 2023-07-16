@@ -28,32 +28,34 @@ import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import net.minecraft.block.Block;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@SuppressWarnings("unused")
 public interface LumiWorld {
-    LumiWorldRoot lumi$root();
+    @NotNull LumiWorldRoot lumi$root();
 
-    String lumi$worldID();
+    @NotNull String lumi$worldID();
 
-    LumiChunk lumi$wrap(Chunk baseChunk);
+    @NotNull LumiChunk lumi$wrap(@NotNull Chunk baseChunk);
 
-    LumiSubChunk lumi$wrap(ExtendedBlockStorage baseSubChunk);
+    @NotNull LumiSubChunk lumi$wrap(@NotNull ExtendedBlockStorage baseSubChunk);
 
-    @Nullable LumiChunk lumi$getChunkFromBlockPos(int posX, int posZ);
+    @Nullable LumiChunk lumi$getChunkFromBlockPosIfExists(int posX, int posZ);
 
-    @Nullable LumiChunk lumi$getChunkFromChunkPos(int chunkPosX, int chunkPosZ);
+    @Nullable LumiChunk lumi$getChunkFromChunkPosIfExists(int chunkPosX, int chunkPosZ);
 
-    LumiLightingEngine lumi$lightingEngine();
+    @NotNull LumiLightingEngine lumi$lightingEngine();
 
-    int lumi$getBrightnessAndLightValueMax(LightType lightType, int posX, int posY, int posZ);
+    int lumi$getBrightnessAndLightValueMax(@NotNull LightType lightType, int posX, int posY, int posZ);
 
     int lumi$getBrightnessAndBlockLightValueMax(int posX, int posY, int posZ);
 
     int lumi$getLightValueMax(int posX, int posY, int posZ);
 
-    void lumi$setLightValue(LightType lightType, int posX, int posY, int posZ, int lightValue);
+    void lumi$setLightValue(@NotNull LightType lightType, int posX, int posY, int posZ, int lightValue);
 
-    int lumi$getLightValue(LightType lightType, int posX, int posY, int posZ);
+    int lumi$getLightValue(@NotNull LightType lightType, int posX, int posY, int posZ);
 
     void lumi$setBlockLightValue(int posX, int posY, int posZ, int lightValue);
 
@@ -67,7 +69,7 @@ public interface LumiWorld {
 
     int lumi$getBlockOpacity(int posX, int posY, int posZ);
 
-    int lumi$getBlockBrightness(Block block, int blockMeta, int posX, int posY, int posZ);
+    int lumi$getBlockBrightness(@NotNull Block block, int blockMeta, int posX, int posY, int posZ);
 
-    int lumi$getBlockOpacity(Block block, int blockMeta, int posX, int posY, int posZ);
+    int lumi$getBlockOpacity(@NotNull Block block, int blockMeta, int posX, int posY, int posZ);
 }

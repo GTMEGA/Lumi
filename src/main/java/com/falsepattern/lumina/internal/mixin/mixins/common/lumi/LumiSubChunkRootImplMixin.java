@@ -24,6 +24,7 @@ package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 import com.falsepattern.lumina.api.chunk.LumiSubChunkRoot;
 import net.minecraft.block.Block;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -41,7 +42,7 @@ public abstract class LumiSubChunkRootImplMixin implements LumiSubChunkRoot {
     public abstract int getExtBlockMetadata(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 
     @Override
-    public Block lumi$getBlock(int subChunkPosX, int subChunkPosY, int subChunkPosZ) {
+    public @NotNull Block lumi$getBlock(int subChunkPosX, int subChunkPosY, int subChunkPosZ) {
         return getBlockByExtId(subChunkPosX, subChunkPosY, subChunkPosZ);
     }
 

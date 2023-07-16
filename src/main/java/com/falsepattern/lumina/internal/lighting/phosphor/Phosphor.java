@@ -230,7 +230,7 @@ public final class Phosphor implements LumiLightingEngine {
     }
 
     @Override
-    public String lumi$engineID() {
+    public @NotNull String lumi$engineID() {
         return "Phosphor";
     }
 

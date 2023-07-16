@@ -31,6 +31,7 @@ import net.minecraft.block.Block;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -81,18 +82,18 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public LumiChunkRoot lumi$root() {
+    public @NotNull LumiChunkRoot lumi$root() {
         return lumi$root;
     }
 
     @Override
-    public LumiWorld lumi$world() {
+    public @NotNull LumiWorld lumi$world() {
         return lumi$world;
     }
 
     @Override
     @SuppressWarnings("CastToIncompatibleInterface")
-    public LumiSubChunk lumi$getSubChunk(int chunkPosY) {
+    public @NotNull LumiSubChunk lumi$getSubChunk(int chunkPosY) {
         lumi$root.lumi$prepareSubChunk(chunkPosY);
         val subChunk = storageArrays[chunkPosY];
         return (LumiSubChunk) subChunk;
@@ -118,7 +119,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public int lumi$getBrightnessAndLightValueMax(LightType lightType, int subChunkPosX, int posY, int subChunkPosZ) {
+    public int lumi$getBrightnessAndLightValueMax(@NotNull LightType lightType, int subChunkPosX, int posY, int subChunkPosZ) {
         switch (lightType) {
             case BLOCK_LIGHT_TYPE:
                 return lumi$getBrightnessAndBlockLightValueMax(subChunkPosX, posY, subChunkPosZ);
@@ -144,7 +145,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public void lumi$setLightValue(LightType lightType, int subChunkPosX, int posY, int subChunkPosZ, int lightValue) {
+    public void lumi$setLightValue(@NotNull LightType lightType, int subChunkPosX, int posY, int subChunkPosZ, int lightValue) {
         switch (lightType) {
             case BLOCK_LIGHT_TYPE:
                 lumi$setBlockLightValue(subChunkPosX, posY, subChunkPosZ, lightValue);
@@ -158,7 +159,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public int lumi$getLightValue(LightType lightType, int subChunkPosX, int posY, int subChunkPosZ) {
+    public int lumi$getLightValue(@NotNull LightType lightType, int subChunkPosX, int posY, int subChunkPosZ) {
         switch (lightType) {
             case BLOCK_LIGHT_TYPE:
                 return lumi$getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
@@ -251,14 +252,14 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public int lumi$getBlockBrightness(Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ) {
+    public int lumi$getBlockBrightness(@NotNull Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ) {
         val posX = (xPosition << 4) + subChunkPosX;
         val posZ = (zPosition << 4) + subChunkPosZ;
         return lumi$world.lumi$getBlockBrightness(block, blockMeta, posX, posY, posZ);
     }
 
     @Override
-    public int lumi$getBlockOpacity(Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ) {
+    public int lumi$getBlockOpacity(@NotNull Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ) {
         val posX = (xPosition << 4) + subChunkPosX;
         val posZ = (zPosition << 4) + subChunkPosZ;
         return lumi$world.lumi$getBlockOpacity(block, blockMeta, posX, posY, posZ);

@@ -26,8 +26,9 @@ import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("unused")
 public interface LumiLightingEngine {
-    String lumi$engineID();
+    @NotNull String lumi$engineID();
 
     int getCurrentLightValue(@NotNull LightType lightType, @NotNull BlockPos blockPos);
 

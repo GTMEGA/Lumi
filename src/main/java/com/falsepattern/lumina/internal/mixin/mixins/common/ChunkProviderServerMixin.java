@@ -36,6 +36,7 @@ import java.util.Set;
 @Mixin(ChunkProviderServer.class)
 public abstract class ChunkProviderServerMixin {
     @Shadow
+    @SuppressWarnings("rawtypes")
     private Set chunksToUnload;
     @Shadow
     public WorldServer worldObj;

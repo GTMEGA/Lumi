@@ -83,7 +83,7 @@ public final class LightingEngineManager implements LumiLightingEngineRegistry, 
     }
 
     @Override
-    public LumiLightingEngine provideLightingEngine(@NotNull LumiWorld world, @NotNull Profiler profiler) {
+    public @NotNull LumiLightingEngine provideLightingEngine(@NotNull LumiWorld world, @NotNull Profiler profiler) {
         return delegate.provideLightingEngine(world, profiler);
     }
 }

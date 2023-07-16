@@ -87,13 +87,11 @@ public abstract class NibbleArrayMixin {
         var currentValue = data[index];
         if (parity == 0) {
             currentValue &= 0xF0;
-            value |= currentValue;
         } else {
             value <<= 4;
             currentValue &= 0x0F;
-            value |= currentValue;
         }
 
-        data[index] = (byte) value;
+        data[index] = (byte) (value | currentValue);
     }
 }

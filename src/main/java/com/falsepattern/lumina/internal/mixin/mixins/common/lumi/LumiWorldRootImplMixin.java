@@ -28,6 +28,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.chunk.IChunkProvider;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -79,7 +80,7 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     }
 
     @Override
-    public Block lumi$getBlock(int posX, int posY, int posZ) {
+    public @NotNull Block lumi$getBlock(int posX, int posY, int posZ) {
         return getBlock(posX, posY, posZ);
     }
 
@@ -89,7 +90,7 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     }
 
     @Override
-    public IChunkProvider lumi$chunkProvider() {
+    public @NotNull IChunkProvider lumi$chunkProvider() {
         return chunkProvider;
     }
 

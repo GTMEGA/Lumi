@@ -24,6 +24,7 @@ package com.falsepattern.lumina.internal.data;
 import com.falsepattern.chunk.api.ChunkDataManager;
 import com.falsepattern.chunk.api.ChunkDataRegistry;
 import com.falsepattern.lumina.internal.Tags;
+import com.falsepattern.lumina.internal.lighting.LightingHooks;
 import com.falsepattern.lumina.internal.lighting.phosphor.LightingHooksOld;
 import lombok.NoArgsConstructor;
 import lombok.val;
@@ -33,14 +34,17 @@ import net.minecraft.world.chunk.Chunk;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.nio.ByteBuffer;
+
 import static com.falsepattern.lumina.api.LumiAPI.wrappedForBaseWorld;
 import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor(access = PRIVATE)
-public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManager {
-    private static final Logger LOG = LogManager.getLogger(Tags.MOD_NAME + "|Chunk NBT Manager");
+public final class ChunkLightingDataManager implements ChunkDataManager.ChunkNBTDataManager,
+                                                       ChunkDataManager.PacketDataManager {
+    private static final Logger LOG = LogManager.getLogger(Tags.MOD_NAME + "|Chunk Lighting Data Manager");
 
-    private static final ChunkNBTManager INSTANCE = new ChunkNBTManager();
+    private static final ChunkLightingDataManager INSTANCE = new ChunkLightingDataManager();
 
     private static final String VERSION_NBT_TAG_NAME = Tags.MOD_ID + "_version";
     private static final String LIGHT_INITIALIZED_NBT_TAG_NAME = "lighting_initialized";
@@ -48,7 +52,7 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
 
     private boolean isRegistered = false;
 
-    public static ChunkNBTManager chunkNBTManager() {
+    public static ChunkLightingDataManager chunkDataManager() {
         return INSTANCE;
     }
 
@@ -59,6 +63,16 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
         ChunkDataRegistry.registerDataManager(this);
         isRegistered = true;
         LOG.info("Registered data manager");
+    }
+
+    @Override
+    public String domain() {
+        return Tags.MOD_NAME;
+    }
+
+    @Override
+    public String id() {
+        return "lighting";
     }
 
     @Override
@@ -127,12 +141,16 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
     }
 
     @Override
-    public String domain() {
-        return Tags.MOD_NAME;
+    public int maxPacketSize() {
+        return 0;
     }
 
     @Override
-    public String id() {
-        return "extended";
+    public void writeToBuffer(Chunk baseChunk, int subChunkMask, boolean forceUpdate, ByteBuffer buffer) {
+    }
+
+    @Override
+    public void readFromBuffer(Chunk baseChunk, int subChunkMask, boolean forceUpdate, ByteBuffer buffer) {
+        LightingHooks.markClientChunkLightingInitialized(baseChunk);
     }
 }

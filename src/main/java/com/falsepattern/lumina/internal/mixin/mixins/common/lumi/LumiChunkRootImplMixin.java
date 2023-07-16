@@ -29,6 +29,7 @@ import net.minecraft.block.Block;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -54,7 +55,7 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     public abstract void setChunkModified();
 
     @Override
-    public Block lumi$getBlock(int subChunkPosX, int posY, int subChunkPosZ) {
+    public @NotNull Block lumi$getBlock(int subChunkPosX, int posY, int subChunkPosZ) {
         return getBlock(subChunkPosX, posY, subChunkPosZ);
     }
 

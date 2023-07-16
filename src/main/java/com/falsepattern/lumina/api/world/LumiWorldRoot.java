@@ -24,7 +24,9 @@ package com.falsepattern.lumina.api.world;
 import net.minecraft.block.Block;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.world.chunk.IChunkProvider;
+import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("unused")
 public interface LumiWorldRoot {
     @Deprecated
     Profiler lumi$profiler();
@@ -33,13 +35,13 @@ public interface LumiWorldRoot {
 
     boolean lumi$hasSky();
 
-    Block lumi$getBlock(int posX, int posY, int posZ);
+    @NotNull Block lumi$getBlock(int posX, int posY, int posZ);
 
     int lumi$getBlockMeta(int posX, int posY, int posZ);
 
     void lumi$markBlockForRenderUpdate(int posX, int posY, int posZ);
 
-    IChunkProvider lumi$chunkProvider();
+    @NotNull IChunkProvider lumi$chunkProvider();
 
     boolean lumi$doChunksExist(int minPosX, int minPosY, int minPosZ, int maxPosX, int maxPosY, int maxPosZ);
 

@@ -23,6 +23,7 @@ package com.falsepattern.lumina.api.world;
 
 import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("unused")
 public interface LumiWorldRegistry {
     void hijackDefaultWorldProviders(@NotNull String modName);
 

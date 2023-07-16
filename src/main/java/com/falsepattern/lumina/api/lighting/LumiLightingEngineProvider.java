@@ -27,5 +27,5 @@ import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface
 public interface LumiLightingEngineProvider {
-    LumiLightingEngine provideLightingEngine(@NotNull LumiWorld world, @NotNull Profiler profiler);
+    @NotNull LumiLightingEngine provideLightingEngine(@NotNull LumiWorld world, @NotNull Profiler profiler);
 }

@@ -22,7 +22,10 @@
 package com.falsepattern.lumina.api.world;
 
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
+@FunctionalInterface
 public interface LumiWorldWrapper {
-    Iterable<LumiWorld> wrappedForBaseWorld(World baseWorld);
+    @NotNull @Unmodifiable Iterable<LumiWorld> wrappedForBaseWorld(@NotNull World baseWorld);
 }

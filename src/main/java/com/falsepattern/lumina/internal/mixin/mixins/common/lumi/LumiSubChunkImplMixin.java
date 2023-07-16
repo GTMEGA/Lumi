@@ -26,6 +26,7 @@ import com.falsepattern.lumina.api.chunk.LumiSubChunkRoot;
 import com.falsepattern.lumina.api.lighting.LightType;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -41,7 +42,13 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
     private NibbleArray skylightArray;
 
     @Override
-    public void lumi$setLightValue(LightType lightType,
+    @SuppressWarnings("CastToIncompatibleInterface")
+    public @NotNull LumiSubChunkRoot lumi$root() {
+        return (LumiSubChunkRoot) this;
+    }
+
+    @Override
+    public void lumi$setLightValue(@NotNull LightType lightType,
                                    int subChunkPosX,
                                    int subChunkPosY,
                                    int subChunkPosZ,
@@ -59,7 +66,7 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
     }
 
     @Override
-    public int lumi$getLightValue(LightType lightType,
+    public int lumi$getLightValue(@NotNull LightType lightType,
                                   int subChunkPosX,
                                   int subChunkPosY,
                                   int subChunkPosZ) {
@@ -95,10 +102,5 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
         if (skylightArray != null)
             return skylightArray.get(subChunkPosX, subChunkPosY, subChunkPosZ);
         return 0;
-    }
-
-    @Override
-    public LumiSubChunkRoot lumi$root() {
-        return (LumiSubChunkRoot) this;
     }
 }

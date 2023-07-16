@@ -24,30 +24,32 @@ package com.falsepattern.lumina.api.chunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import net.minecraft.block.Block;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@SuppressWarnings("unused")
 public interface LumiChunk {
-    LumiChunkRoot lumi$root();
+    @NotNull LumiChunkRoot lumi$root();
 
-    LumiWorld lumi$world();
+    @NotNull LumiWorld lumi$world();
 
     @Nullable LumiSubChunk lumi$getSubChunkIfPrepared(int chunkPosY);
 
-    LumiSubChunk lumi$getSubChunk(int chunkPosY);
+    @NotNull LumiSubChunk lumi$getSubChunk(int chunkPosY);
 
     int lumi$chunkPosX();
 
     int lumi$chunkPosZ();
 
-    int lumi$getBrightnessAndLightValueMax(LightType lightType, int subChunkPosX, int posY, int subChunkPosZ);
+    int lumi$getBrightnessAndLightValueMax(@NotNull LightType lightType, int subChunkPosX, int posY, int subChunkPosZ);
 
     int lumi$getBrightnessAndBlockLightValueMax(int subChunkPosX, int posY, int subChunkPosZ);
 
     int lumi$getLightValueMax(int subChunkPosX, int posY, int subChunkPosZ);
 
-    void lumi$setLightValue(LightType lightType, int subChunkPosX, int posY, int subChunkPosZ, int lightValue);
+    void lumi$setLightValue(@NotNull LightType lightType, int subChunkPosX, int posY, int subChunkPosZ, int lightValue);
 
-    int lumi$getLightValue(LightType lightType, int subChunkPosX, int posY, int subChunkPosZ);
+    int lumi$getLightValue(@NotNull LightType lightType, int subChunkPosX, int posY, int subChunkPosZ);
 
     void lumi$setBlockLightValue(int subChunkPosX, int posY, int subChunkPosZ, int lightValue);
 
@@ -61,9 +63,9 @@ public interface LumiChunk {
 
     int lumi$getBlockOpacity(int subChunkPosX, int posY, int subChunkPosZ);
 
-    int lumi$getBlockBrightness(Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ);
+    int lumi$getBlockBrightness(@NotNull Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ);
 
-    int lumi$getBlockOpacity(Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ);
+    int lumi$getBlockOpacity(@NotNull Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ);
 
     boolean lumi$canBlockSeeSky(int subChunkPosX, int posY, int subChunkPosZ);
 

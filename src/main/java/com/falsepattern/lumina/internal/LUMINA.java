@@ -31,8 +31,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import static com.falsepattern.lumina.internal.Tags.*;
-import static com.falsepattern.lumina.internal.data.ChunkNBTManager.chunkNBTManager;
-import static com.falsepattern.lumina.internal.data.ChunkPacketManager.chunkPacketManager;
+import static com.falsepattern.lumina.internal.data.ChunkLightingDataManager.chunkDataManager;
 import static com.falsepattern.lumina.internal.lighting.LightingEngineManager.lightingEngineManager;
 import static com.falsepattern.lumina.internal.world.WorldManager.worldManager;
 
@@ -53,8 +52,7 @@ public final class LUMINA {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent evt) {
-        chunkNBTManager().registerDataManager();
-        chunkPacketManager().registerDataManager();
+        chunkDataManager().registerDataManager();
     }
 
     @Mod.EventHandler

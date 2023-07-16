@@ -22,13 +22,15 @@
 package com.falsepattern.lumina.api.chunk;
 
 import com.falsepattern.lumina.api.lighting.LightType;
+import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("unused")
 public interface LumiSubChunk {
-    LumiSubChunkRoot lumi$root();
+    @NotNull LumiSubChunkRoot lumi$root();
 
-    void lumi$setLightValue(LightType lightType, int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
+    void lumi$setLightValue(@NotNull LightType lightType, int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
 
-    int lumi$getLightValue(LightType lightType, int subChunkPosX, int subChunkPosY, int subChunkPosZ);
+    int lumi$getLightValue(@NotNull LightType lightType, int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 
     void lumi$setBlockLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
 
