@@ -394,4 +394,10 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     public boolean lumi$isLightingInitialized() {
         return lumi$isLightingInitialized;
     }
+
+    @Override
+    public void lumi$resetLighting() {
+        lumi$isLightingInitialized = false;
+        lumi$world.lumi$lightingEngine().handleChunkInit(this);
+    }
 }

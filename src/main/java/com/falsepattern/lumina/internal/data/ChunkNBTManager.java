@@ -87,6 +87,28 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
         }
     }
 
+    @Override
+    public void readChunkFromNBT(Chunk chunkBase, NBTTagCompound input) {
+        val version = input.getString(VERSION_NBT_TAG_NAME);
+        if (!VERSION_NBT_TAG_VALUE.equals(version)) {
+            forceUpdateChunkLighting(chunkBase);
+            return;
+        }
+
+        val worldBase = chunkBase.worldObj;
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+            val chunk = world.lumi$wrap(chunkBase);
+            val lightingEngine = world.lumi$lightingEngine();
+
+            val worldTagName = world.lumi$worldID();
+            if (!input.hasKey(worldTagName, 10))
+                continue;
+            val worldTag = input.getCompoundTag(worldTagName);
+            readChunkData(chunk, worldTag);
+            readLightingEngineData(chunk, lightingEngine, worldTag);
+        }
+    }
+
     private static void writeLightingEngineData(LumiChunk chunk,
                                                 LumiLightingEngine lightingEngine,
                                                 NBTTagCompound output) {
@@ -103,23 +125,12 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
         output.setTag(chunkTagName, chunkTag);
     }
 
-    @Override
-    public void readChunkFromNBT(Chunk chunkBase, NBTTagCompound input) {
-        val version = input.getString(VERSION_NBT_TAG_NAME);
-        if (!VERSION_NBT_TAG_VALUE.equals(version))
-            return;
-
+    private static void forceUpdateChunkLighting(Chunk chunkBase) {
         val worldBase = chunkBase.worldObj;
         for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val chunk = world.lumi$wrap(chunkBase);
             val lightingEngine = world.lumi$lightingEngine();
-
-            val worldTagName = world.lumi$worldID();
-            if (!input.hasKey(worldTagName, 10))
-                continue;
-            val worldTag = input.getCompoundTag(worldTagName);
-            readChunkData(chunk, worldTag);
-            readLightingEngineData(chunk, lightingEngine, worldTag);
+            lightingEngine.handleChunkInit(chunk);
         }
     }
 

@@ -309,6 +309,8 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     @Override
     public void handleChunkInit(@NotNull LumiChunk chunk) {
+        chunk.lumi$isLightingInitialized(false);
+
         val worldRoot = chunk.lumi$world().lumi$root();
         val hasSky = worldRoot.lumi$hasSky();
 
@@ -423,21 +425,16 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         if (!worldRoot.lumi$hasSky())
             return;
 
-        acquireLock();
-        try {
-            val maxPosY = subChunk.lumi$root().lumi$posY() + 15;
-            val lightValue = SKY_LIGHT_TYPE.defaultLightValue();
-            for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
-                for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
-                    if (chunk.lumi$canBlockSeeSky(subChunkPosX, maxPosY, subChunkPosZ)) {
-                        for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
-                            subChunk.lumi$setSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
-                        }
+        val maxPosY = subChunk.lumi$root().lumi$posY() + 15;
+        val lightValue = SKY_LIGHT_TYPE.defaultLightValue();
+        for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
+            for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
+                if (chunk.lumi$canBlockSeeSky(subChunkPosX, maxPosY, subChunkPosZ)) {
+                    for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
+                        subChunk.lumi$setSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
                     }
                 }
             }
-        } finally {
-            releaseLock();
         }
         chunk.lumi$root().lumi$markDirty();
     }

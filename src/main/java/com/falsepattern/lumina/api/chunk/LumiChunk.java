@@ -112,4 +112,6 @@ public interface LumiChunk {
     void lumi$isLightingInitialized(boolean lightingInitialized);
 
     boolean lumi$isLightingInitialized();
+
+    void lumi$resetLighting();
 }

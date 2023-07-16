@@ -93,8 +93,10 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
     @Override
     public void readSectionFromNBT(Chunk chunkBase, ExtendedBlockStorage subChunkBase, NBTTagCompound input) {
         val version = input.getString(VERSION_NBT_TAG_NAME);
-        if (!VERSION_NBT_TAG_VALUE.equals(version))
+        if (!VERSION_NBT_TAG_VALUE.equals(version)) {
+            forceUpdateSubChunkLighting(chunkBase, subChunkBase);
             return;
+        }
 
         val worldBase = chunkBase.worldObj;
         for (val world : lumiWorldsFromBaseWorld(worldBase)) {
@@ -126,6 +128,16 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
         val lightingEngineTag = new NBTTagCompound();
         lightingEngine.lumi$writeSubChunkToNBT(chunk, subChunk, lightingEngineTag);
         worldTag.setTag(lightingEngineTagName, lightingEngineTag);
+    }
+
+    private static void forceUpdateSubChunkLighting(Chunk chunkBase, ExtendedBlockStorage subChunkBase) {
+        val worldBase = chunkBase.worldObj;
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+            val chunk = world.lumi$wrap(chunkBase);
+            val subChunk = world.lumi$wrap(subChunkBase);
+            val lightingEngine = world.lumi$lightingEngine();
+            lightingEngine.handleSubChunkInit(chunk, subChunk);
+        }
     }
 
     private static void readSubChunkData(LumiSubChunk subChunk, NBTTagCompound input) {
