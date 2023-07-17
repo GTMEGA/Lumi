@@ -48,14 +48,18 @@ public enum Mixin implements IMixin {
     client_ChunkCacheMixin(CLIENT, always(), "ChunkCacheMixin"),
     client_WorldMixin(CLIENT, always(), "WorldMixin"),
 
+    common_init_LumiChunkBaseInitImplMixin(COMMON, always(), "init.LumiChunkBaseInitImplMixin"),
+    common_init_LumiSubChunkBaseInitImplMixin(COMMON, always(), "init.LumiSubChunkBaseInitImplMixin"),
+    common_init_LumiWorldBaseInitImplMixin(COMMON, always(), "init.LumiWorldBaseInitImplMixin"),
+
+    client_init_LumiWorldBaseInitImplMixin(CLIENT, always(), "init.LumiWorldBaseInitImplMixin"),
+
     common_lumi_LumiWorldImplMixin(COMMON, always(), "lumi.LumiWorldImplMixin"),
     common_lumi_LumiWorldRootImplMixin(COMMON, always(), "lumi.LumiWorldRootImplMixin"),
     common_lumi_LumiChunkImplMixin(COMMON, always(), "lumi.LumiChunkImplMixin"),
     common_lumi_LumiChunkRootImplMixin(COMMON, always(), "lumi.LumiChunkRootImplMixin"),
     common_lumi_LumiSubChunkImplMixin(COMMON, always(), "lumi.LumiSubChunkImplMixin"),
     common_lumi_LumiSubChunkRootImplMixin(COMMON, always(), "lumi.LumiSubChunkRootImplMixin"),
-
-    client_lumi_LumiWorldImplMixin(CLIENT, always(), "lumi.LumiWorldImplMixin"),
 
     client_phosphor_PhosphorChunkImplMixin(COMMON, always(), "phosphor.PhosphorChunkImplMixin"),
 

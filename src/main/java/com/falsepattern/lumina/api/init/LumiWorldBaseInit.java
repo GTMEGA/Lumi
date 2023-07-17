@@ -19,30 +19,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.mixin.plugin;
+package com.falsepattern.lumina.api.init;
 
-import com.falsepattern.lib.mixin.IMixin;
-import com.falsepattern.lib.mixin.IMixinPlugin;
-import com.falsepattern.lib.mixin.ITargetedMod;
-import com.falsepattern.lumina.Tags;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.apache.logging.log4j.Logger;
+public interface LumiWorldBaseInit {
+    String LUMI_WORLD_BASE_INIT_METHOD_REFERENCE = "lumi$worldBaseInit()V";
 
-@NoArgsConstructor
-public final class MixinPlugin implements IMixinPlugin {
-    public static final int LATE_MIXIN_PRIORITY = 1010;
-
-    @Getter
-    private final Logger logger = IMixinPlugin.createLogger(Tags.MOD_NAME);
-
-    @Override
-    public ITargetedMod[] getTargetedModEnumValues() {
-        return TargetedMod.values();
-    }
-
-    @Override
-    public IMixin[] getMixinEnumValues() {
-        return Mixin.values();
-    }
+    void lumi$worldBaseInit();
 }

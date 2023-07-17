@@ -19,30 +19,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.mixin.mixins.client.lumi;
+package com.falsepattern.lumina.internal.mixin.mixins.client.init;
 
-import com.falsepattern.lumina.api.LumiAPI;
-import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
-import com.falsepattern.lumina.api.world.LumiWorld;
-import com.falsepattern.lumina.api.world.LumiWorldRoot;
+import com.falsepattern.lumina.api.init.LumiWorldBaseInit;
 import net.minecraft.profiler.Profiler;
-import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import org.spongepowered.asm.lib.Opcodes;
-import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Mutable;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-@Unique
 @Mixin(World.class)
-public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
+public abstract class LumiWorldBaseInitImplMixin implements LumiWorldBaseInit {
     @Mutable
     @Final
     @Shadow
     public Profiler theProfiler;
-
-    private LumiWorldRoot lumi$root = null;
-    private LumiLightingEngine lumi$lightingEngine = null;
 
     @Redirect(method = "<init>(" +
                        "Lnet/minecraft/world/storage/ISaveHandler;" +
@@ -56,10 +51,8 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
                        target = "Lnet/minecraft/world/World;" +
                                 "theProfiler:Lnet/minecraft/profiler/Profiler;"),
               require = 1)
-    private void lumiClientWorldInit(World thiz, Profiler profiler) {
+    private void lumiClientWorldBaseInit(World thiz, Profiler profiler) {
         this.theProfiler = profiler;
-
-        this.lumi$root = (LumiWorldRoot) this;
-        this.lumi$lightingEngine = LumiAPI.provideLightingEngine(this, profiler);
+        lumi$worldBaseInit();
     }
 }

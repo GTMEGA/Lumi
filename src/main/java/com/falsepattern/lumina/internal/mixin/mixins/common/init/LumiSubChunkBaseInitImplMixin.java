@@ -19,30 +19,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.mixin.plugin;
+package com.falsepattern.lumina.internal.mixin.mixins.common.init;
 
-import com.falsepattern.lib.mixin.IMixin;
-import com.falsepattern.lib.mixin.IMixinPlugin;
-import com.falsepattern.lib.mixin.ITargetedMod;
-import com.falsepattern.lumina.Tags;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.apache.logging.log4j.Logger;
+import com.falsepattern.lumina.api.init.LumiSubChunkBaseInit;
+import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@NoArgsConstructor
-public final class MixinPlugin implements IMixinPlugin {
-    public static final int LATE_MIXIN_PRIORITY = 1010;
-
-    @Getter
-    private final Logger logger = IMixinPlugin.createLogger(Tags.MOD_NAME);
-
-    @Override
-    public ITargetedMod[] getTargetedModEnumValues() {
-        return TargetedMod.values();
+@Mixin(ExtendedBlockStorage.class)
+public abstract class LumiSubChunkBaseInitImplMixin implements LumiSubChunkBaseInit {
+    @Inject(method = "<init>*",
+            at = @At("RETURN"),
+            require = 1)
+    private void lumiChunkBaseInit(CallbackInfo ci) {
+        lumi$subChunkBaseInit();
     }
 
     @Override
-    public IMixin[] getMixinEnumValues() {
-        return Mixin.values();
+    public void lumi$subChunkBaseInit() {
     }
 }

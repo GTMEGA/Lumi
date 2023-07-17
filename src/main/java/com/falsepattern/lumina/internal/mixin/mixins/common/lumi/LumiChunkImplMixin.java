@@ -26,6 +26,7 @@ import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.world.LumiWorld;
+import com.falsepattern.lumina.internal.mixin.mixins.common.init.LumiChunkBaseInitImplMixin;
 import lombok.val;
 import net.minecraft.block.Block;
 import net.minecraft.nbt.NBTTagCompound;
@@ -34,10 +35,7 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -45,6 +43,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import static com.falsepattern.lumina.api.init.LumiChunkBaseInit.LUMI_CHUNK_BASE_INIT_METHOD_REFERENCE;
 import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 
@@ -61,6 +60,8 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     @Shadow
     private ExtendedBlockStorage[] storageArrays;
     @Shadow
+    private int queuedLightChecks;
+    @Shadow
     public boolean[] updateSkylightColumns;
     @Shadow
     public World worldObj;
@@ -68,17 +69,17 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     public int[] heightMap;
     @Shadow
     public int heightMapMinimum;
-    @Shadow
-    public int queuedLightChecks;
 
     private LumiChunkRoot lumi$root;
     private LumiWorld lumi$world;
     private boolean lumi$isLightingInitialized;
 
-    @Inject(method = "<init>*",
+    @Inject(method = LUMI_CHUNK_BASE_INIT_METHOD_REFERENCE,
             at = @At("RETURN"),
+            remap = false,
             require = 1)
-    @SuppressWarnings("CastToIncompatibleInterface")
+    @SuppressWarnings({"ReferenceToMixin", "CastToIncompatibleInterface"})
+    @Dynamic(mixin = LumiChunkBaseInitImplMixin.class)
     private void lumiChunkInit(CallbackInfo ci) {
         this.lumi$root = (LumiChunkRoot) this;
         this.lumi$world = (LumiWorld) worldObj;

@@ -24,33 +24,50 @@ package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunkRoot;
 import com.falsepattern.lumina.api.lighting.LightType;
+import com.falsepattern.lumina.internal.mixin.mixins.common.init.LumiSubChunkBaseInitImplMixin;
 import lombok.val;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.nio.ByteBuffer;
+
+import static com.falsepattern.lumina.api.init.LumiSubChunkBaseInit.LUMI_SUB_CHUNK_BASE_INIT_METHOD_REFERENCE;
 
 @Unique
 @Mixin(ExtendedBlockStorage.class)
 public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
-    private static int LIGHT_DATA_BYTE_SIZE = 2048;
-
     @Shadow
     private NibbleArray blocklightArray;
     @Shadow
     @Nullable
     private NibbleArray skylightArray;
 
+    private LumiSubChunkRoot lumi$root;
+
+
+    @Inject(method = LUMI_SUB_CHUNK_BASE_INIT_METHOD_REFERENCE,
+            at = @At("RETURN"),
+            remap = false,
+            require = 1)
+    @SuppressWarnings({"ReferenceToMixin", "CastToIncompatibleInterface"})
+    @Dynamic(mixin = LumiSubChunkBaseInitImplMixin.class)
+    private void lumiSubChunkInit(CallbackInfo ci) {
+        this.lumi$root = (LumiSubChunkRoot) this;
+    }
+
     @Override
-    @SuppressWarnings("CastToIncompatibleInterface")
     public @NotNull LumiSubChunkRoot lumi$root() {
-        return (LumiSubChunkRoot) this;
+        return lumi$root;
     }
 
     @Override
@@ -69,14 +86,14 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
     public void lumi$readFromNBT(@NotNull NBTTagCompound input) {
         if (input.hasKey(BLOCK_LIGHT_NBT_TAG_NAME, 7)) {
             val blockLightBytes = input.getByteArray(BLOCK_LIGHT_NBT_TAG_NAME);
-            if (blockLightBytes.length == LIGHT_DATA_BYTE_SIZE)
-                System.arraycopy(blockLightBytes, 0, blocklightArray.data, 0, LIGHT_DATA_BYTE_SIZE);
+            if (blockLightBytes.length == 2048)
+                System.arraycopy(blockLightBytes, 0, blocklightArray.data, 0, 2048);
         }
 
         if (skylightArray != null && input.hasKey(SKY_LIGHT_NBT_TAG_NAME, 7)) {
             val skyLightBytes = input.getByteArray(SKY_LIGHT_NBT_TAG_NAME);
-            if (skyLightBytes.length == LIGHT_DATA_BYTE_SIZE)
-                System.arraycopy(skyLightBytes, 0, skylightArray.data, 0, LIGHT_DATA_BYTE_SIZE);
+            if (skyLightBytes.length == 2048)
+                System.arraycopy(skyLightBytes, 0, skylightArray.data, 0, 2048);
         }
     }
 
