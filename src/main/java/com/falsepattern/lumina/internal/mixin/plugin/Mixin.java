@@ -37,6 +37,7 @@ import static com.falsepattern.lumina.internal.mixin.plugin.TargetedMod.ARCHAIC_
 
 @RequiredArgsConstructor
 public enum Mixin implements IMixin {
+    // region Lighting Hooks
     common_AnvilChunkLoaderMixin(COMMON, always(), "AnvilChunkLoaderMixin"),
     common_ChunkMixin(COMMON, always(), "ChunkMixin"),
     common_ChunkProviderServerMixin(COMMON, always(), "ChunkProviderServerMixin"),
@@ -47,25 +48,34 @@ public enum Mixin implements IMixin {
     client_ChunkMixin(CLIENT, always(), "ChunkMixin"),
     client_ChunkCacheMixin(CLIENT, always(), "ChunkCacheMixin"),
     client_WorldMixin(CLIENT, always(), "WorldMixin"),
+    // endregion
 
+    // region Fixes & Optimizations
+    common_ExtendedBlockStorageMixin(COMMON, always(), "ExtendedBlockStorageMixin"),
+    common_NibbleArrayMixin(COMMON, always(), "NibbleArrayMixin"),
+    common_MixinLongHashMap(COMMON, avoid(ARCHAIC_FIX), "LongHashMapMixin"),
+    // endregion
+
+    // region LUMINA Initialization
     common_init_LumiChunkBaseInitImplMixin(COMMON, always(), "init.LumiChunkBaseInitImplMixin"),
     common_init_LumiSubChunkBaseInitImplMixin(COMMON, always(), "init.LumiSubChunkBaseInitImplMixin"),
     common_init_LumiWorldBaseInitImplMixin(COMMON, always(), "init.LumiWorldBaseInitImplMixin"),
 
     client_init_LumiWorldBaseInitImplMixin(CLIENT, always(), "init.LumiWorldBaseInitImplMixin"),
+    // endregion
 
+    // region LUMINA Implementation
     common_lumi_LumiWorldImplMixin(COMMON, always(), "lumi.LumiWorldImplMixin"),
     common_lumi_LumiWorldRootImplMixin(COMMON, always(), "lumi.LumiWorldRootImplMixin"),
     common_lumi_LumiChunkImplMixin(COMMON, always(), "lumi.LumiChunkImplMixin"),
     common_lumi_LumiChunkRootImplMixin(COMMON, always(), "lumi.LumiChunkRootImplMixin"),
     common_lumi_LumiSubChunkImplMixin(COMMON, always(), "lumi.LumiSubChunkImplMixin"),
     common_lumi_LumiSubChunkRootImplMixin(COMMON, always(), "lumi.LumiSubChunkRootImplMixin"),
+    // endregion
 
+    // region Phosphor implementation
     client_phosphor_PhosphorChunkImplMixin(COMMON, always(), "phosphor.PhosphorChunkImplMixin"),
-
-    common_ExtendedBlockStorageMixin(COMMON, always(), "ExtendedBlockStorageMixin"),
-    common_NibbleArrayMixin(COMMON, always(), "NibbleArrayMixin"),
-    common_MixinLongHashMap(COMMON, avoid(ARCHAIC_FIX), "LongHashMapMixin"),
+    // endregion
     ;
 
     @Getter
