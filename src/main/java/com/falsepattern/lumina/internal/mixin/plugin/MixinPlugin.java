@@ -26,9 +26,14 @@ import com.falsepattern.lib.mixin.IMixinPlugin;
 import com.falsepattern.lib.mixin.ITargetedMod;
 import com.falsepattern.lumina.Tags;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.apache.logging.log4j.Logger;
 
-public class MixinPlugin implements IMixinPlugin {
+@NoArgsConstructor
+public final class MixinPlugin implements IMixinPlugin {
+    public static final int INIT_MIXIN_PRIORITY = 990;
+    public static final int LATE_MIXIN_PRIORITY = 1010;
+
     @Getter
     private final Logger logger = IMixinPlugin.createLogger(Tags.MOD_NAME);
 

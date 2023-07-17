@@ -33,7 +33,7 @@ import static com.falsepattern.lib.mixin.IMixin.PredicateHelpers.always;
 import static com.falsepattern.lib.mixin.IMixin.PredicateHelpers.avoid;
 import static com.falsepattern.lib.mixin.IMixin.Side.CLIENT;
 import static com.falsepattern.lib.mixin.IMixin.Side.COMMON;
-import static com.falsepattern.lumina.internal.mixin.plugin.TargetedMod.ARCHAICFIX;
+import static com.falsepattern.lumina.internal.mixin.plugin.TargetedMod.ARCHAIC_FIX;
 
 @RequiredArgsConstructor
 public enum Mixin implements IMixin {
@@ -61,7 +61,7 @@ public enum Mixin implements IMixin {
 
     common_ExtendedBlockStorageMixin(COMMON, always(), "ExtendedBlockStorageMixin"),
     common_NibbleArrayMixin(COMMON, always(), "NibbleArrayMixin"),
-    common_MixinLongHashMap(COMMON, avoid(ARCHAICFIX), "LongHashMapMixin"),
+    common_MixinLongHashMap(COMMON, avoid(ARCHAIC_FIX), "LongHashMapMixin"),
     ;
 
     @Getter

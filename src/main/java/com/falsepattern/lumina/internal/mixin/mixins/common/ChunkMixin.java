@@ -56,7 +56,7 @@ public abstract class ChunkMixin {
                                                int subChunkPosZ,
                                                int subtract,
                                                CallbackInfoReturnable<Integer> cir) {
-        LightingHooks.processLightUpdates(worldObj);
+        LightingHooks.processLightUpdates(thiz());
     }
 
     @Inject(method = "onChunkLoad",

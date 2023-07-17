@@ -181,6 +181,11 @@ public final class LightingHooks {
         }
     }
 
+    public static void processLightUpdates(Chunk chunkBase) {
+        val worldBase = chunkBase.worldObj;
+        processLightUpdates(worldBase);
+    }
+
     public static void processLightUpdates(World worldBase) {
         for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val lightingEngine = world.lumi$lightingEngine();

@@ -23,7 +23,6 @@ package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import net.minecraft.block.Block;
-import net.minecraft.profiler.Profiler;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
@@ -40,9 +39,6 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     @Final
     @Shadow
     public WorldProvider provider;
-    @Final
-    @Shadow
-    public Profiler theProfiler;
 
     @Shadow
     protected IChunkProvider chunkProvider;

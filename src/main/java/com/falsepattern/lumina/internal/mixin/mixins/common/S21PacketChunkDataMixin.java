@@ -28,16 +28,18 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-@Mixin(value = S21PacketChunkData.class,
-       priority = 1001)
+
+import static com.falsepattern.lumina.internal.mixin.plugin.MixinPlugin.LATE_MIXIN_PRIORITY;
+
+@Mixin(value = S21PacketChunkData.class, priority = LATE_MIXIN_PRIORITY)
 public abstract class S21PacketChunkDataMixin {
     @Inject(method = "func_149269_a",
             at = @At("HEAD"),
             require = 1)
     private static void processLightUpdatesOnReceive(Chunk chunkBase,
-                                                     boolean hasSkyLight,
-                                                     int changedSectionFilter,
+                                                     boolean hasSky,
+                                                     int subChunkMask,
                                                      CallbackInfoReturnable<S21PacketChunkData.Extracted> cir) {
-        LightingHooks.processLightUpdates(chunkBase.worldObj);
+        LightingHooks.processLightUpdates(chunkBase);
     }
 }
