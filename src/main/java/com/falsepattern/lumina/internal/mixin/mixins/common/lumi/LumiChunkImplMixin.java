@@ -26,7 +26,6 @@ import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.world.LumiWorld;
-import com.falsepattern.lumina.internal.mixin.mixins.common.init.LumiChunkBaseInitImplMixin;
 import lombok.val;
 import net.minecraft.block.Block;
 import net.minecraft.nbt.NBTTagCompound;
@@ -44,6 +43,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import static com.falsepattern.lumina.api.init.LumiChunkBaseInit.LUMI_CHUNK_BASE_INIT_METHOD_REFERENCE;
+import static com.falsepattern.lumina.api.init.LumiChunkBaseInit.LUMI_CHUNK_BASE_INIT_MIXIN_VALUE;
 import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 
@@ -78,8 +78,8 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
             at = @At("RETURN"),
             remap = false,
             require = 1)
-    @SuppressWarnings({"ReferenceToMixin", "CastToIncompatibleInterface"})
-    @Dynamic(mixin = LumiChunkBaseInitImplMixin.class)
+    @SuppressWarnings("CastToIncompatibleInterface")
+    @Dynamic(LUMI_CHUNK_BASE_INIT_MIXIN_VALUE)
     private void lumiChunkInit(CallbackInfo ci) {
         this.lumi$root = (LumiChunkRoot) this;
         this.lumi$world = (LumiWorld) worldObj;

@@ -24,7 +24,6 @@ package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunkRoot;
 import com.falsepattern.lumina.api.lighting.LightType;
-import com.falsepattern.lumina.internal.mixin.mixins.common.init.LumiSubChunkBaseInitImplMixin;
 import lombok.val;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.NibbleArray;
@@ -42,6 +41,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.nio.ByteBuffer;
 
 import static com.falsepattern.lumina.api.init.LumiSubChunkBaseInit.LUMI_SUB_CHUNK_BASE_INIT_METHOD_REFERENCE;
+import static com.falsepattern.lumina.api.init.LumiSubChunkBaseInit.LUMI_SUB_CHUNK_BASE_INIT_MIXIN_VALUE;
 
 @Unique
 @Mixin(ExtendedBlockStorage.class)
@@ -59,8 +59,8 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
             at = @At("RETURN"),
             remap = false,
             require = 1)
-    @SuppressWarnings({"ReferenceToMixin", "CastToIncompatibleInterface"})
-    @Dynamic(mixin = LumiSubChunkBaseInitImplMixin.class)
+    @SuppressWarnings("CastToIncompatibleInterface")
+    @Dynamic(LUMI_SUB_CHUNK_BASE_INIT_MIXIN_VALUE)
     private void lumiSubChunkInit(CallbackInfo ci) {
         this.lumi$root = (LumiSubChunkRoot) this;
     }

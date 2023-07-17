@@ -29,7 +29,6 @@ import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
-import com.falsepattern.lumina.internal.mixin.mixins.common.init.LumiWorldBaseInitImplMixin;
 import lombok.val;
 import net.minecraft.block.Block;
 import net.minecraft.profiler.Profiler;
@@ -45,6 +44,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static com.falsepattern.lumina.api.init.LumiWorldBaseInit.LUMI_WORLD_BASE_INIT_METHOD_REFERENCE;
+import static com.falsepattern.lumina.api.init.LumiWorldBaseInit.LUMI_WORLD_BASE_INIT_MIXIN_VALUE;
 import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 
@@ -69,8 +69,8 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
             at = @At("RETURN"),
             remap = false,
             require = 1)
-    @SuppressWarnings({"ReferenceToMixin", "CastToIncompatibleInterface"})
-    @Dynamic(mixin = LumiWorldBaseInitImplMixin.class)
+    @SuppressWarnings("CastToIncompatibleInterface")
+    @Dynamic(LUMI_WORLD_BASE_INIT_MIXIN_VALUE)
     private void lumiWorldInit(CallbackInfo ci) {
         this.lumi$root = (LumiWorldRoot) this;
         this.lumi$lightingEngine = LumiAPI.provideLightingEngine(this, theProfiler);

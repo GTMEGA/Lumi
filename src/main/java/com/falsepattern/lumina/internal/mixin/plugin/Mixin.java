@@ -73,7 +73,7 @@ public enum Mixin implements IMixin {
     common_lumi_LumiSubChunkRootImplMixin(COMMON, always(), "lumi.LumiSubChunkRootImplMixin"),
     // endregion
 
-    // region Phosphor implementation
+    // region Phosphor Implementation
     client_phosphor_PhosphorChunkImplMixin(COMMON, always(), "phosphor.PhosphorChunkImplMixin"),
     // endregion
     ;

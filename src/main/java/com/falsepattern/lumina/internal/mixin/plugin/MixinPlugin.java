@@ -31,7 +31,7 @@ import org.apache.logging.log4j.Logger;
 
 @NoArgsConstructor
 public final class MixinPlugin implements IMixinPlugin {
-    public static final int LATE_MIXIN_PRIORITY = 1010;
+    public static final int POST_CHUNK_API_MIXIN_PRIORITY = 1010;
 
     @Getter
     private final Logger logger = IMixinPlugin.createLogger(Tags.MOD_NAME);

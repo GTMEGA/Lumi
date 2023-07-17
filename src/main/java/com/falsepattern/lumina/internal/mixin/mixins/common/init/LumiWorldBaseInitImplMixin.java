@@ -25,13 +25,11 @@ import com.falsepattern.lumina.api.init.LumiWorldBaseInit;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.world.World;
 import org.spongepowered.asm.lib.Opcodes;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
+@Unique
 @Mixin(World.class)
 public abstract class LumiWorldBaseInitImplMixin implements LumiWorldBaseInit {
     @Mutable

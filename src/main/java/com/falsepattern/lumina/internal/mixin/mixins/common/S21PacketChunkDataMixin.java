@@ -29,9 +29,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import static com.falsepattern.lumina.internal.mixin.plugin.MixinPlugin.LATE_MIXIN_PRIORITY;
+import static com.falsepattern.lumina.internal.mixin.plugin.MixinPlugin.POST_CHUNK_API_MIXIN_PRIORITY;
 
-@Mixin(value = S21PacketChunkData.class, priority = LATE_MIXIN_PRIORITY)
+@Mixin(value = S21PacketChunkData.class, priority = POST_CHUNK_API_MIXIN_PRIORITY)
 public abstract class S21PacketChunkDataMixin {
     @Inject(method = "func_149269_a",
             at = @At("HEAD"),

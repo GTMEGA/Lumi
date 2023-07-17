@@ -24,10 +24,12 @@ package com.falsepattern.lumina.internal.mixin.mixins.common.init;
 import com.falsepattern.lumina.api.init.LumiChunkBaseInit;
 import net.minecraft.world.chunk.Chunk;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+@Unique
 @Mixin(Chunk.class)
 public abstract class LumiChunkBaseInitImplMixin implements LumiChunkBaseInit {
     @Inject(method = "<init>*",
