@@ -114,17 +114,17 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
         {
             if (!input.hasKey(IS_LIGHT_INITIALIZED_NBT_TAG_NAME, 1))
                 break skyLightHeightMapValidCheck;
-            val isLightInitialized = input.getBoolean(IS_LIGHT_INITIALIZED_NBT_TAG_NAME);
-            if (!isLightInitialized)
+            val isLightInitializedInput = input.getBoolean(IS_LIGHT_INITIALIZED_NBT_TAG_NAME);
+            if (!isLightInitializedInput)
                 break skyLightHeightMapValidCheck;
 
             if (!input.hasKey(SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME, 11))
                 break skyLightHeightMapValidCheck;
-            val skyLightHeightMap = input.getIntArray(SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME);
-            if (skyLightHeightMap.length != HEIGHT_MAP_ARRAY_SIZE)
+            val skyLightHeightMapInput = input.getIntArray(SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME);
+            if (skyLightHeightMapInput.length != HEIGHT_MAP_ARRAY_SIZE)
                 break skyLightHeightMapValidCheck;
 
-            System.arraycopy(skyLightHeightMap, 0, heightMap, 0, HEIGHT_MAP_ARRAY_SIZE);
+            System.arraycopy(skyLightHeightMapInput, 0, heightMap, 0, HEIGHT_MAP_ARRAY_SIZE);
             lumi$isLightingInitialized = true;
         }
         if (!lumi$isLightingInitialized)
@@ -183,7 +183,10 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public int lumi$getBrightnessAndLightValueMax(@NotNull LightType lightType, int subChunkPosX, int posY, int subChunkPosZ) {
+    public int lumi$getBrightnessAndLightValueMax(@NotNull LightType lightType,
+                                                  int subChunkPosX,
+                                                  int posY,
+                                                  int subChunkPosZ) {
         switch (lightType) {
             case BLOCK_LIGHT_TYPE:
                 return lumi$getBrightnessAndBlockLightValueMax(subChunkPosX, posY, subChunkPosZ);
@@ -209,7 +212,11 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public void lumi$setLightValue(@NotNull LightType lightType, int subChunkPosX, int posY, int subChunkPosZ, int lightValue) {
+    public void lumi$setLightValue(@NotNull LightType lightType,
+                                   int subChunkPosX,
+                                   int posY,
+                                   int subChunkPosZ,
+                                   int lightValue) {
         switch (lightType) {
             case BLOCK_LIGHT_TYPE:
                 lumi$setBlockLightValue(subChunkPosX, posY, subChunkPosZ, lightValue);
@@ -316,14 +323,22 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public int lumi$getBlockBrightness(@NotNull Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ) {
+    public int lumi$getBlockBrightness(@NotNull Block block,
+                                       int blockMeta,
+                                       int subChunkPosX,
+                                       int posY,
+                                       int subChunkPosZ) {
         val posX = (xPosition << 4) + subChunkPosX;
         val posZ = (zPosition << 4) + subChunkPosZ;
         return lumi$world.lumi$getBlockBrightness(block, blockMeta, posX, posY, posZ);
     }
 
     @Override
-    public int lumi$getBlockOpacity(@NotNull Block block, int blockMeta, int subChunkPosX, int posY, int subChunkPosZ) {
+    public int lumi$getBlockOpacity(@NotNull Block block,
+                                    int blockMeta,
+                                    int subChunkPosX,
+                                    int posY,
+                                    int subChunkPosZ) {
         val posX = (xPosition << 4) + subChunkPosX;
         val posZ = (zPosition << 4) + subChunkPosZ;
         return lumi$world.lumi$getBlockOpacity(block, blockMeta, posX, posY, posZ);
@@ -392,8 +407,8 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public void lumi$isLightingInitialized(boolean lightingInitialized) {
-        this.lumi$isLightingInitialized = lightingInitialized;
+    public void lumi$isLightingInitialized(boolean isLightingInitialized) {
+        this.lumi$isLightingInitialized = isLightingInitialized;
     }
 
     @Override

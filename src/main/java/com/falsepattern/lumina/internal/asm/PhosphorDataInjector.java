@@ -25,10 +25,8 @@ import com.falsepattern.lumina.Tags;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import lombok.var;
-import net.minecraft.client.Minecraft;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.Launch;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,7 +34,6 @@ import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.GeneratorAdapter;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -58,8 +55,6 @@ public final class PhosphorDataInjector implements IClassTransformer {
 
             val transformedBytes = implementInterface(classBytes);
             LOG.info("Injected Phosphor Data into: {}", name);
-
-            FileUtils.writeByteArrayToFile(new File(Minecraft.getMinecraft().mcDataDir, "asm_out/Dummy.class"), transformedBytes);
             return transformedBytes;
         } catch (Throwable ignored) {
             LOG.warn("I'm so sorry");
@@ -124,8 +119,8 @@ public final class PhosphorDataInjector implements IClassTransformer {
         val fieldDesc = fieldType.getDescriptor();
         val getterDesc = getMethodDescriptor(fieldType);
 
-        val fieldName = "phosphor$neighborLightCheckFlags";
-        val getterName = "phosphor$neighborLightCheckFlags";
+        val fieldName = "phosphor$lightCheckFlags";
+        val getterName = "phosphor$lightCheckFlags";
 
         val fieldAcc = Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL;
         val getterAcc = Opcodes.ACC_PUBLIC;

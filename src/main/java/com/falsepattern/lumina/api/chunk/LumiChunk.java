@@ -99,7 +99,7 @@ public interface LumiChunk {
 
     int lumi$skyLightHeight(int subChunkPosX, int subChunkPosZ);
 
-    void lumi$minSkyLightHeight(int minSkyLightPosY);
+    void lumi$minSkyLightHeight(int minSkyLightHeight);
 
     int lumi$minSkyLightHeight();
 
@@ -111,7 +111,7 @@ public interface LumiChunk {
 
     void lumi$resetOutdatedHeightFlags();
 
-    void lumi$isLightingInitialized(boolean lightingInitialized);
+    void lumi$isLightingInitialized(boolean isLightingInitialized);
 
     boolean lumi$isLightingInitialized();
 

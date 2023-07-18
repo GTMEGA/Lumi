@@ -29,12 +29,12 @@ import org.spongepowered.asm.mixin.Unique;
 @Unique
 @Mixin(Chunk.class)
 public abstract class PhosphorChunkImplMixin implements PhosphorChunk {
-    private short[] phosphor$neighborLightCheckFlags;
+    private short[] phosphor$lightCheckFlags;
 
     @Override
     public short[] phosphor$lightCheckFlags() {
-        if (phosphor$neighborLightCheckFlags == null)
-            phosphor$neighborLightCheckFlags = new short[LIGHT_CHECK_FLAGS_LENGTH];
-        return phosphor$neighborLightCheckFlags;
+        if (phosphor$lightCheckFlags == null)
+            phosphor$lightCheckFlags = new short[LIGHT_CHECK_FLAGS_LENGTH];
+        return phosphor$lightCheckFlags;
     }
 }
