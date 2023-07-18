@@ -196,6 +196,13 @@ public abstract class ChunkMixin {
         return subChunkBase;
     }
 
+    @Inject(method = "resetRelightChecks",
+            at = @At("RETURN"),
+            require = 1)
+    private void resetQueuedRandomLightUpdates(CallbackInfo cir) {
+        LightingHooks.resetQueuedRandomLightUpdates(thiz());
+    }
+
     /**
      * @author embeddedt
      * @reason optimize random light checks so they complete faster

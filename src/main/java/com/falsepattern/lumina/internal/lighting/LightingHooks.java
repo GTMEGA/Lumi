@@ -155,6 +155,15 @@ public final class LightingHooks {
         }
     }
 
+    public static void resetQueuedRandomLightUpdates(Chunk chunkBase) {
+        val worldBase = chunkBase.worldObj;
+
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+            val chunk = world.lumi$wrap(chunkBase);
+            chunk.lumi$resetQueuedRandomLightUpdates();
+        }
+    }
+
     public static void updateLightingForBlock(Chunk chunkBase,
                                               int subChunkPosX,
                                               int posY,

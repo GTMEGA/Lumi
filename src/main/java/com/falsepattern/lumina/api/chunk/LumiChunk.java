@@ -61,9 +61,11 @@ public interface LumiChunk {
 
     int lumi$chunkPosZ();
 
-    void lumi$queuedRandomLightUpdates(int remainingRandomLightUpdates);
+    void lumi$queuedRandomLightUpdates(int queuedRandomLightUpdates);
 
     int lumi$queuedRandomLightUpdates();
+
+    void lumi$resetQueuedRandomLightUpdates();
 
     int lumi$getBrightnessAndLightValueMax(@NotNull LightType lightType, int subChunkPosX, int posY, int subChunkPosZ);
 

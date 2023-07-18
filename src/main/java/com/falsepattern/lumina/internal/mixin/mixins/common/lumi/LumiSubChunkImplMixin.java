@@ -156,9 +156,8 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
 
     @Override
     public void lumi$setSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue) {
-        if (skylightArray == null)
-            return;
-        skylightArray.set(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+        if (skylightArray != null)
+            skylightArray.set(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
     }
 
     @Override

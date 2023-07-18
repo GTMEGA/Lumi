@@ -178,6 +178,11 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
+    public void lumi$resetQueuedRandomLightUpdates() {
+        queuedLightChecks = 0;
+    }
+
+    @Override
     public int lumi$getBrightnessAndLightValueMax(@NotNull LightType lightType, int subChunkPosX, int posY, int subChunkPosZ) {
         switch (lightType) {
             case BLOCK_LIGHT_TYPE:
