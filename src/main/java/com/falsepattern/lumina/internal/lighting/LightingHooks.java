@@ -59,11 +59,11 @@ public final class LightingHooks {
         return maxLightValue;
     }
 
-    public static int getBrightnessAndLightValueMax(Chunk chunkBase,
-                                                    EnumSkyBlock baseLightType,
-                                                    int subChunkPosX,
-                                                    int posY,
-                                                    int subChunkPosZ) {
+    public static int getMaxBrightness(Chunk chunkBase,
+                                       EnumSkyBlock baseLightType,
+                                       int subChunkPosX,
+                                       int posY,
+                                       int subChunkPosZ) {
         val worldBase = chunkBase.worldObj;
         val lightType = LightType.of(baseLightType);
         val posX = (chunkBase.xPosition << 4) + subChunkPosX;

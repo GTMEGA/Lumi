@@ -205,7 +205,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public int lumi$getLightValueMax(int subChunkPosX, int posY, int subChunkPosZ) {
+    public int lumi$getLightValue(int subChunkPosX, int posY, int subChunkPosZ) {
         val blockLightValue = lumi$getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
         val skyLightValue = lumi$getSkyLightValue(subChunkPosX, posY, subChunkPosZ);
         return Math.max(blockLightValue, skyLightValue);

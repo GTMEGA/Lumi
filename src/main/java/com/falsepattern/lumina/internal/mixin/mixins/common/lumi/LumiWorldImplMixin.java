@@ -152,7 +152,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
-            return chunk.lumi$getLightValueMax(subChunkPosX, posY, subChunkPosZ);
+            return chunk.lumi$getLightValue(subChunkPosX, posY, subChunkPosZ);
         }
         return LightType.maxBaseLightValue();
     }

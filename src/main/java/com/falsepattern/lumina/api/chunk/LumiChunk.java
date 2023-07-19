@@ -71,7 +71,7 @@ public interface LumiChunk {
 
     int lumi$getBrightness(int subChunkPosX, int posY, int subChunkPosZ);
 
-    int lumi$getLightValueMax(int subChunkPosX, int posY, int subChunkPosZ);
+    int lumi$getLightValue(int subChunkPosX, int posY, int subChunkPosZ);
 
     void lumi$setLightValue(@NotNull LightType lightType, int subChunkPosX, int posY, int subChunkPosZ, int lightValue);
 

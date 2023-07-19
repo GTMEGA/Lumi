@@ -41,6 +41,6 @@ public abstract class WorldMixin implements IBlockAccess {
                                               int subChunkPosX,
                                               int posY,
                                               int subChunkPosZ) {
-        return LightingHooks.getBrightnessAndLightValueMax(chunkBase, baseLightType, subChunkPosX, posY, subChunkPosZ);
+        return LightingHooks.getMaxBrightness(chunkBase, baseLightType, subChunkPosX, posY, subChunkPosZ);
     }
 }
