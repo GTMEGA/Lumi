@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.lighting;
+package com.falsepattern.lumina.internal.mixin.hook;
 
 import com.falsepattern.lumina.api.lighting.LightType;
 import cpw.mods.fml.relauncher.SideOnly;

@@ -21,7 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
-import com.falsepattern.lumina.internal.lighting.LightingHooks;
+import com.falsepattern.lumina.internal.mixin.hook.LightingHooks;
 import lombok.val;
 import net.minecraft.block.Block;
 import net.minecraft.world.EnumSkyBlock;

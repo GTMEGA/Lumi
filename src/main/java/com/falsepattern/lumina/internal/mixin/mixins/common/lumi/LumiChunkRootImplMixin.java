@@ -22,7 +22,7 @@
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
-import com.falsepattern.lumina.internal.lighting.LightingHooks;
+import com.falsepattern.lumina.internal.mixin.hook.LightingHooks;
 import lombok.val;
 import lombok.var;
 import net.minecraft.block.Block;
