@@ -124,7 +124,7 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
                                                NBTTagCompound worldTag) {
         val lightingEngineTagName = lightingEngine.lightingEngineID();
         val lightingEngineTag = new NBTTagCompound();
-        lightingEngine.lumi$writeSubChunkToNBT(chunk, subChunk, lightingEngineTag);
+        lightingEngine.writeSubChunkToNBT(chunk, subChunk, lightingEngineTag);
         worldTag.setTag(lightingEngineTagName, lightingEngineTag);
     }
 
@@ -143,7 +143,7 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
         val lightingEngineTagName = lightingEngine.lightingEngineID();
         if (input.hasKey(lightingEngineTagName, 10)) {
             val lightingEngineTag = input.getCompoundTag(lightingEngineTagName);
-            lightingEngine.lumi$readSubChunkFromNBT(chunk, subChunk, lightingEngineTag);
+            lightingEngine.readSubChunkFromNBT(chunk, subChunk, lightingEngineTag);
         }
     }
 }

@@ -23,8 +23,10 @@ package com.falsepattern.lumina.api.world;
 
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
+@SuppressWarnings("unused")
 public interface LumiWorldWrapper {
-    @NotNull @Unmodifiable Iterable<LumiWorld> lumiWorldsFromBaseWorld(@NotNull World worldBase);
+    @NotNull @Unmodifiable Iterable<LumiWorld> lumiWorldsFromBaseWorld(@Nullable World worldBase);
 }

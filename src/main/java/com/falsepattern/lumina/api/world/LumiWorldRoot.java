@@ -27,6 +27,8 @@ import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
 public interface LumiWorldRoot {
+    @NotNull String lumi$worldRootID();
+
     boolean lumi$isClientSide();
 
     boolean lumi$hasSky();

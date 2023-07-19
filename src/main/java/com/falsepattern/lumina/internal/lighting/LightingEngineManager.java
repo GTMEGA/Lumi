@@ -88,6 +88,11 @@ public final class LightingEngineManager implements LumiLightingEngineRegistry, 
     }
 
     @Override
+    public @NotNull String lightingEngineProviderID() {
+        return "lumi_lighting_engine_provider";
+    }
+
+    @Override
     public @NotNull LumiLightingEngine provideLightingEngine(@NotNull LumiWorld world, @NotNull Profiler profiler) {
         return delegate.provideLightingEngine(world, profiler);
     }

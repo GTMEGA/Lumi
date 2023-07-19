@@ -29,8 +29,11 @@ import com.falsepattern.lumina.api.world.LumiWorldWrapper;
 import com.falsepattern.lumina.internal.LumiDefaultValues;
 import com.falsepattern.lumina.internal.collection.WeakIdentityHashMap;
 import com.falsepattern.lumina.internal.event.EventPoster;
+import gnu.trove.map.TObjectIntMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
 import lombok.NoArgsConstructor;
 import lombok.val;
+import lombok.var;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,13 +44,16 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@NoArgsConstructor
+import static lombok.AccessLevel.PRIVATE;
+
+@NoArgsConstructor(access = PRIVATE)
 public final class WorldManager implements LumiWorldRegistry, LumiWorldWrapper {
     private static final Logger LOG = LogManager.getLogger(Tags.MOD_NAME + "|World Provider Manager");
 
     private static final WorldManager INSTANCE = new WorldManager();
 
-    private final Set<LumiWorldProvider> worldProviders = Collections.newSetFromMap(new IdentityHashMap<>());
+    private final List<LumiWorldProvider> worldProviders = new ArrayList<>();
+    private final TObjectIntMap<LumiWorldProvider> worldProviderToID = new TObjectIntHashMap<>();
     private final Map<World, Iterable<LumiWorld>> providedWorlds = new WeakIdentityHashMap<>();
     private boolean isRegistered = false;
     private boolean isHijacked = false;
@@ -68,8 +74,22 @@ public final class WorldManager implements LumiWorldRegistry, LumiWorldWrapper {
             isHijacked = false;
         }
 
+
+        if (worldProviders.isEmpty()) {
+            LOG.error("World providers have been hijacked, but no providers have been registered!" +
+                      " It's very likely things will not work as expected and the game may crash on world load." +
+                      " Report the hijacking mod: {}", hijackingMod);
+            isHijacked = false;
+        }
+
         if (!isHijacked)
             LumiDefaultValues.registerDefaultWorldProvider(this);
+
+        val providerCount = worldProviders.size();
+        for (var i = 0; i < providerCount; i++) {
+            val worldProvider = worldProviders.get(i);
+            worldProviderToID.put(worldProvider, i);
+        }
 
         isRegistered = true;
         LOG.info("Registered [{}] world providers", worldProviders.size());
@@ -124,13 +144,29 @@ public final class WorldManager implements LumiWorldRegistry, LumiWorldWrapper {
         worldProviders.add(worldProvider);
     }
 
-
     @Override
-    @SuppressWarnings("ConstantValue")
-    public @NotNull @Unmodifiable Iterable<LumiWorld> lumiWorldsFromBaseWorld(@NotNull World worldBase) {
-        if (worldBase == null || !isRegistered)
+    public @NotNull @Unmodifiable Iterable<LumiWorld> lumiWorldsFromBaseWorld(@Nullable World worldBase) {
+        if (!isRegistered) {
+            LOG.error("No world providers exist during registration," +
+                      " an empty iterable will be returned. Report this stacktrace:",
+                      new IllegalStateException());
+            return Collections.emptyList();
+        }
+        if (worldBase == null)
             return Collections.emptyList();
         return providedWorlds.computeIfAbsent(worldBase, this::collectProvidedWorlds);
+    }
+
+    public @Nullable LumiWorldProvider getWorldProviderByInternalID(int internalWorldProviderID) {
+        if (internalWorldProviderID >= 0 && internalWorldProviderID < worldProviders.size())
+            return worldProviders.get(internalWorldProviderID);
+        return null;
+    }
+
+    public int getWorldProviderInternalID(LumiWorldProvider worldProvider) {
+        if (worldProvider != null && worldProviderToID.containsKey(worldProvider))
+            return worldProviderToID.get(worldProvider);
+        return -1;
     }
 
     public int worldProviderCount() {

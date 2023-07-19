@@ -35,6 +35,11 @@ public abstract class LumiSubChunkRootImplMixin implements LumiSubChunkRoot {
     @Shadow
     private int yBase;
 
+    @Override
+    public @NotNull String lumi$subChunkRootID() {
+        return "lumi_sub_chunk_root";
+    }
+
     @Shadow
     public abstract Block getBlockByExtId(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 

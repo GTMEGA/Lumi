@@ -19,15 +19,35 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api.world;
+package com.falsepattern.lumina.internal.world;
 
+import com.falsepattern.lumina.api.world.LumiWorld;
+import com.falsepattern.lumina.api.world.LumiWorldProvider;
+import lombok.NoArgsConstructor;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings("unused")
-public interface LumiWorldProvider {
-    @NotNull String worldProviderID();
+import static lombok.AccessLevel.PRIVATE;
 
-    @Nullable LumiWorld provideWorld(@NotNull World worldBase);
+@NoArgsConstructor(access = PRIVATE)
+public final class DefaultWorldProvider implements LumiWorldProvider {
+    private static final DefaultWorldProvider INSTANCE = new DefaultWorldProvider();
+
+    public static DefaultWorldProvider defaultWorldProvider() {
+        return INSTANCE;
+    }
+
+    @Override
+    public @NotNull String worldProviderID() {
+        return "lumi_world_provider";
+    }
+
+    @Override
+    @SuppressWarnings("InstanceofIncompatibleInterface")
+    public @Nullable LumiWorld provideWorld(@NotNull World worldBase) {
+        if (worldBase instanceof LumiWorld)
+            return (LumiWorld) worldBase;
+        return null;
+    }
 }

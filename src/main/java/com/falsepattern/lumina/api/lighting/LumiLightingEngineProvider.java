@@ -25,7 +25,9 @@ import com.falsepattern.lumina.api.world.LumiWorld;
 import net.minecraft.profiler.Profiler;
 import org.jetbrains.annotations.NotNull;
 
-@FunctionalInterface
+@SuppressWarnings("unused")
 public interface LumiLightingEngineProvider {
+    @NotNull String lightingEngineProviderID();
+
     @NotNull LumiLightingEngine provideLightingEngine(@NotNull LumiWorld world, @NotNull Profiler profiler);
 }

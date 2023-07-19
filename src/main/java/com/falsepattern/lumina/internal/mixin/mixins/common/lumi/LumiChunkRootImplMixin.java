@@ -57,6 +57,11 @@ public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     public abstract void setChunkModified();
 
     @Override
+    public @NotNull String lumi$chunkRootID() {
+        return "lumi_sub_chunk_root";
+    }
+
+    @Override
     public boolean lumi$isUpdating() {
         return worldObj.activeChunkSet.contains(thiz());
     }

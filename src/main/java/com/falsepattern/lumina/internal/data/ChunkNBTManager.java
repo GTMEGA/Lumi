@@ -114,7 +114,7 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
                                                 NBTTagCompound output) {
         val lightingEngineTagName = lightingEngine.lightingEngineID();
         val lightingEngineTag = new NBTTagCompound();
-        lightingEngine.lumi$writeChunkToNBT(chunk, lightingEngineTag);
+        lightingEngine.writeChunkToNBT(chunk, lightingEngineTag);
         output.setTag(lightingEngineTagName, lightingEngineTag);
     }
 
@@ -140,7 +140,7 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
         val lightingEngineTagName = lightingEngine.lightingEngineID();
         if (input.hasKey(lightingEngineTagName, 10)) {
             val lightingEngineTag = input.getCompoundTag(lightingEngineTagName);
-            lightingEngine.lumi$readChunkFromNBT(chunk, lightingEngineTag);
+            lightingEngine.readChunkFromNBT(chunk, lightingEngineTag);
         }
     }
 

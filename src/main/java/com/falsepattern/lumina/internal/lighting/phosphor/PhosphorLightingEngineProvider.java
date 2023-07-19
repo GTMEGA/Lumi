@@ -21,12 +21,30 @@
 
 package com.falsepattern.lumina.internal.lighting.phosphor;
 
+import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngineProvider;
-import lombok.experimental.UtilityClass;
+import com.falsepattern.lumina.api.world.LumiWorld;
+import lombok.NoArgsConstructor;
+import net.minecraft.profiler.Profiler;
+import org.jetbrains.annotations.NotNull;
 
-@UtilityClass
-public final class Phosphor {
-    public static LumiLightingEngineProvider createPhosphorProvider() {
-        return PhosphorLightingEngine::new;
+import static lombok.AccessLevel.PRIVATE;
+
+@NoArgsConstructor(access = PRIVATE)
+public final class PhosphorLightingEngineProvider implements LumiLightingEngineProvider {
+    private static final PhosphorLightingEngineProvider INSTANCE = new PhosphorLightingEngineProvider();
+
+    public static PhosphorLightingEngineProvider phosphorLightingEngineProvider() {
+        return INSTANCE;
+    }
+
+    @Override
+    public @NotNull String lightingEngineProviderID() {
+        return "phosphor_lighting_engine_provider";
+    }
+
+    @Override
+    public @NotNull LumiLightingEngine provideLightingEngine(@NotNull LumiWorld world, @NotNull Profiler profiler) {
+        return new PhosphorLightingEngine(world, profiler);
     }
 }

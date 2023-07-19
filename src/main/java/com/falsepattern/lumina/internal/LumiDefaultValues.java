@@ -22,20 +22,19 @@
 package com.falsepattern.lumina.internal;
 
 import com.falsepattern.lumina.api.lighting.LumiLightingEngineRegistry;
-import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRegistry;
 import lombok.experimental.UtilityClass;
 
-import static com.falsepattern.lumina.internal.lighting.phosphor.Phosphor.createPhosphorProvider;
+import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorLightingEngineProvider.phosphorLightingEngineProvider;
+import static com.falsepattern.lumina.internal.world.DefaultWorldProvider.defaultWorldProvider;
 
 @UtilityClass
 public final class LumiDefaultValues {
-    @SuppressWarnings("CastToIncompatibleInterface")
     public static void registerDefaultWorldProvider(LumiWorldRegistry registry) {
-        registry.registerWorldProvider(world -> (LumiWorld) world);
+        registry.registerWorldProvider(defaultWorldProvider());
     }
 
     public static void registerDefaultLightingEngineProvider(LumiLightingEngineRegistry registry) {
-        registry.registerLightingEngineProvider(createPhosphorProvider(), false);
+        registry.registerLightingEngineProvider(phosphorLightingEngineProvider(), false);
     }
 }

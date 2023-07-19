@@ -101,11 +101,11 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
                 if (subChunk != null)
                     subChunk.lumi$writeToPacket(output);
             }
-            lightingEngine.lumi$writeChunkToPacket(chunk, output);
+            lightingEngine.writeChunkToPacket(chunk, output);
             for (var chunkPosY = 0; chunkPosY < 16; chunkPosY++) {
                 val subChunk = getSubChunk(chunk, subChunkMask, chunkPosY);
                 if (subChunk != null)
-                    lightingEngine.lumi$writeSubChunkToPacket(chunk, subChunk, output);
+                    lightingEngine.writeSubChunkToPacket(chunk, subChunk, output);
             }
         }
     }
@@ -123,11 +123,11 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
                 if (subChunk != null)
                     subChunk.lumi$readFromPacket(input);
             }
-            lightingEngine.lumi$readChunkFromPacket(chunk, input);
+            lightingEngine.readChunkFromPacket(chunk, input);
             for (var chunkPosY = 0; chunkPosY < 16; chunkPosY++) {
                 val subChunk = getSubChunk(chunk, subChunkMask, chunkPosY);
                 if (subChunk != null)
-                    lightingEngine.lumi$readSubChunkFromPacket(chunk, subChunk, input);
+                    lightingEngine.readSubChunkFromPacket(chunk, subChunk, input);
             }
         }
     }

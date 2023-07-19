@@ -23,6 +23,7 @@ package com.falsepattern.lumina.api.init;
 
 import com.falsepattern.lumina.Tags;
 
+@SuppressWarnings("unused")
 public interface LumiSubChunkBaseInit {
     String LUMI_SUB_CHUNK_BASE_INIT_MIXIN_VALUE = "Implemented by [" + Tags.MOD_NAME + "] with the interface " +
                                                   "[com.falsepattern.lumina.api.init.LumiSubChunkBaseInit]";

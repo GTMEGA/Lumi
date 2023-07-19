@@ -26,6 +26,8 @@ import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
 public interface LumiSubChunkRoot {
+    @NotNull String lumi$subChunkRootID();
+
     int lumi$posY();
 
     @NotNull Block lumi$getBlock(int subChunkPosX, int subChunkPosY, int subChunkPosZ);

@@ -23,6 +23,7 @@ package com.falsepattern.lumina.api.lighting;
 
 import org.jetbrains.annotations.NotNull;
 
+@SuppressWarnings("unused")
 public interface LumiLightingEngineRegistry {
     void registerLightingEngineProvider(@NotNull LumiLightingEngineProvider lightingEngineProvider, boolean displace);
 }

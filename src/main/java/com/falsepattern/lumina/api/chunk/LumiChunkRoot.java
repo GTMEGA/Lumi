@@ -29,6 +29,8 @@ public interface LumiChunkRoot {
     int BLOCK_LIGHT_ARRAY_SIZE = 16 * 16 * 16;
     int SKY_LIGHT_ARRAY_SIZE = 16 * 16 * 16;
 
+    @NotNull String lumi$chunkRootID();
+
     boolean lumi$isUpdating();
 
     void lumi$markDirty();

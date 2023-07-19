@@ -237,48 +237,48 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public void lumi$writeChunkToNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound output) {
+    public void writeChunkToNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound output) {
         PhosphorUtil.writeNeighborLightChecksToNBT(chunk, output);
     }
 
     @Override
-    public void lumi$readChunkFromNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound input) {
+    public void readChunkFromNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound input) {
         PhosphorUtil.readNeighborLightChecksFromNBT(chunk, input);
     }
 
     @Override
-    public void lumi$writeSubChunkToNBT(@NotNull LumiChunk chunk,
-                                        @NotNull LumiSubChunk subChunk,
-                                        @NotNull NBTTagCompound output) {
+    public void writeSubChunkToNBT(@NotNull LumiChunk chunk,
+                                   @NotNull LumiSubChunk subChunk,
+                                   @NotNull NBTTagCompound output) {
     }
 
     @Override
-    public void lumi$readSubChunkFromNBT(@NotNull LumiChunk chunk,
-                                         @NotNull LumiSubChunk subChunk,
-                                         @NotNull NBTTagCompound input) {
+    public void readSubChunkFromNBT(@NotNull LumiChunk chunk,
+                                    @NotNull LumiSubChunk subChunk,
+                                    @NotNull NBTTagCompound input) {
     }
 
     @Override
-    public void lumi$writeChunkToPacket(@NotNull LumiChunk chunk,
-                                        @NotNull ByteBuffer output) {
+    public void writeChunkToPacket(@NotNull LumiChunk chunk,
+                                   @NotNull ByteBuffer output) {
     }
 
     @Override
-    public void lumi$readChunkFromPacket(@NotNull LumiChunk chunk,
-                                         @NotNull ByteBuffer input) {
+    public void readChunkFromPacket(@NotNull LumiChunk chunk,
+                                    @NotNull ByteBuffer input) {
     }
 
     @Override
-    public void lumi$writeSubChunkToPacket(@NotNull LumiChunk chunk,
-                                           @NotNull LumiSubChunk subChunk,
-                                           @NotNull ByteBuffer input) {
+    public void writeSubChunkToPacket(@NotNull LumiChunk chunk,
+                                      @NotNull LumiSubChunk subChunk,
+                                      @NotNull ByteBuffer input) {
 
     }
 
     @Override
-    public void lumi$readSubChunkFromPacket(@NotNull LumiChunk chunk,
-                                            @NotNull LumiSubChunk subChunk,
-                                            @NotNull ByteBuffer output) {
+    public void readSubChunkFromPacket(@NotNull LumiChunk chunk,
+                                       @NotNull LumiSubChunk subChunk,
+                                       @NotNull ByteBuffer output) {
     }
 
     @Override

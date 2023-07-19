@@ -64,6 +64,11 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     public abstract boolean func_147451_t(int posX, int posY, int posZ);
 
     @Override
+    public @NotNull String lumi$worldRootID() {
+        return "lumi_world_root";
+    }
+
+    @Override
     public boolean lumi$isClientSide() {
         return isRemote;
     }

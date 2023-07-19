@@ -36,29 +36,29 @@ import static cpw.mods.fml.relauncher.Side.CLIENT;
 public interface LumiLightingEngine {
     @NotNull String lightingEngineID();
 
-    void lumi$writeChunkToNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound output);
+    void writeChunkToNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound output);
 
-    void lumi$readChunkFromNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound input);
+    void readChunkFromNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound input);
 
-    void lumi$writeSubChunkToNBT(@NotNull LumiChunk chunk,
-                                 @NotNull LumiSubChunk subChunk,
-                                 @NotNull NBTTagCompound output);
+    void writeSubChunkToNBT(@NotNull LumiChunk chunk,
+                            @NotNull LumiSubChunk subChunk,
+                            @NotNull NBTTagCompound output);
 
-    void lumi$readSubChunkFromNBT(@NotNull LumiChunk chunk,
-                                  @NotNull LumiSubChunk subChunk,
-                                  @NotNull NBTTagCompound input);
+    void readSubChunkFromNBT(@NotNull LumiChunk chunk,
+                             @NotNull LumiSubChunk subChunk,
+                             @NotNull NBTTagCompound input);
 
-    void lumi$writeChunkToPacket(@NotNull LumiChunk chunk, @NotNull ByteBuffer output);
+    void writeChunkToPacket(@NotNull LumiChunk chunk, @NotNull ByteBuffer output);
 
-    void lumi$readChunkFromPacket(@NotNull LumiChunk chunk, @NotNull ByteBuffer input);
+    void readChunkFromPacket(@NotNull LumiChunk chunk, @NotNull ByteBuffer input);
 
-    void lumi$writeSubChunkToPacket(@NotNull LumiChunk chunk,
-                                    @NotNull LumiSubChunk subChunk,
-                                    @NotNull ByteBuffer input);
+    void writeSubChunkToPacket(@NotNull LumiChunk chunk,
+                               @NotNull LumiSubChunk subChunk,
+                               @NotNull ByteBuffer input);
 
-    void lumi$readSubChunkFromPacket(@NotNull LumiChunk chunk,
-                                     @NotNull LumiSubChunk subChunk,
-                                     @NotNull ByteBuffer output);
+    void readSubChunkFromPacket(@NotNull LumiChunk chunk,
+                                @NotNull LumiSubChunk subChunk,
+                                @NotNull ByteBuffer output);
 
     int getCurrentLightValue(@NotNull LightType lightType, @NotNull BlockPos blockPos);
 
