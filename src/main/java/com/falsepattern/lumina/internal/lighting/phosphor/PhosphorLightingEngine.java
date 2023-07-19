@@ -293,16 +293,6 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public int getBrightnessAndLightValueMax(@NotNull LightType lightType, @NotNull BlockPos blockPos) {
-        return getBrightnessAndLightValueMax(lightType, blockPos.getX(), blockPos.getY(), blockPos.getZ());
-    }
-
-    @Override
-    public int getBrightnessAndLightValueMax(@NotNull LightType lightType, int posX, int posY, int posZ) {
-        return world.lumi$getBrightnessAndLightValueMax(lightType, posX, posY, posZ);
-    }
-
-    @Override
     public boolean isChunkFullyLit(@NotNull LumiChunk chunk) {
         return PhosphorUtil.isChunkFullyLit(world, chunk, profiler);
     }

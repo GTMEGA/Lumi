@@ -71,8 +71,7 @@ public final class LightingHooks {
 
         var maxLightValue = 0;
         for (val world : lumiWorldsFromBaseWorld(worldBase)) {
-            val lightingEngine = world.lumi$lightingEngine();
-            val lightValue = lightingEngine.getBrightnessAndLightValueMax(lightType, posX, posY, posZ);
+            val lightValue = world.lumi$getBrightness(lightType, posX, posY, posZ);
             maxLightValue = Math.max(maxLightValue, lightValue);
         }
         return maxLightValue;

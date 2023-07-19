@@ -47,11 +47,11 @@ public interface LumiWorld {
 
     @NotNull LumiLightingEngine lumi$lightingEngine();
 
-    int lumi$getBrightnessAndLightValueMax(@NotNull LightType lightType, int posX, int posY, int posZ);
+    int lumi$getBrightness(@NotNull LightType lightType, int posX, int posY, int posZ);
 
-    int lumi$getBrightnessAndBlockLightValueMax(int posX, int posY, int posZ);
+    int lumi$getBrightness(int posX, int posY, int posZ);
 
-    int lumi$getLightValueMax(int posX, int posY, int posZ);
+    int lumi$getLightValue(int posX, int posY, int posZ);
 
     void lumi$setLightValue(@NotNull LightType lightType, int posX, int posY, int posZ, int lightValue);
 
