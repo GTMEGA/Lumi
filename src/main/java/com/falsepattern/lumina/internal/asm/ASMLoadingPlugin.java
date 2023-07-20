@@ -21,15 +21,16 @@
 
 package com.falsepattern.lumina.internal.asm;
 
-import com.falsepattern.lumina.Tags;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 import lombok.NoArgsConstructor;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
+import static com.falsepattern.lumina.Tags.MOD_NAME;
 import static cpw.mods.fml.relauncher.IFMLLoadingPlugin.*;
 
-@Name(Tags.MOD_NAME + "|ASM Plugin")
+@Name(MOD_NAME + "|ASM Plugin")
 @MCVersion("1.7.10")
 @SortingIndex(Integer.MAX_VALUE)
 @TransformerExclusions("com.falsepattern.lumina.internal.asm")
@@ -41,12 +42,12 @@ public final class ASMLoadingPlugin implements IFMLLoadingPlugin {
     }
 
     @Override
-    public String getModContainerClass() {
+    public @Nullable String getModContainerClass() {
         return null;
     }
 
     @Override
-    public String getSetupClass() {
+    public @Nullable String getSetupClass() {
         return null;
     }
 
@@ -55,7 +56,7 @@ public final class ASMLoadingPlugin implements IFMLLoadingPlugin {
     }
 
     @Override
-    public String getAccessTransformerClass() {
+    public @Nullable String getAccessTransformerClass() {
         return null;
     }
 }

@@ -34,6 +34,6 @@ public final class LumiWorldRegistrationEvent extends Event {
     }
 
     public @NotNull LumiWorldRegistry registry() {
-        return this.registry;
+        return registry;
     }
 }

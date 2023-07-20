@@ -45,7 +45,7 @@ public final class DefaultWorldProvider implements LumiWorldProvider {
 
     @Override
     @SuppressWarnings("InstanceofIncompatibleInterface")
-    public @Nullable LumiWorld provideWorld(@NotNull World worldBase) {
+    public @Nullable LumiWorld provideWorld(@Nullable World worldBase) {
         if (worldBase instanceof LumiWorld)
             return (LumiWorld) worldBase;
         return null;

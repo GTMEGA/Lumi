@@ -46,21 +46,21 @@ public final class ChunkPacketSizeEvent extends Event {
     public void chunkMaxPacketSize(int chunkMaxPacketSize) {
         if (chunkMaxPacketSize <= 0)
             return;
-        ensureValidPacketSize(chunkMaxPacketSize, this.subChunkMaxPacketSize, this.lightingEngineMaxPacketSize);
+        ensureValidPacketSize(chunkMaxPacketSize, subChunkMaxPacketSize, lightingEngineMaxPacketSize);
         this.chunkMaxPacketSize = Math.max(this.chunkMaxPacketSize, chunkMaxPacketSize);
     }
 
     public void lightingEngineMaxPacketSize(int lightingEngineMaxPacketSize) {
         if (lightingEngineMaxPacketSize <= 0)
             return;
-        ensureValidPacketSize(this.chunkMaxPacketSize, this.chunkMaxPacketSize, lightingEngineMaxPacketSize);
+        ensureValidPacketSize(chunkMaxPacketSize, chunkMaxPacketSize, lightingEngineMaxPacketSize);
         this.lightingEngineMaxPacketSize = Math.max(this.subChunkMaxPacketSize, lightingEngineMaxPacketSize);
     }
 
     public void subChunkMaxPacketSize(int subChunkMaxPacketSize) {
         if (subChunkMaxPacketSize <= 0)
             return;
-        ensureValidPacketSize(this.chunkMaxPacketSize, subChunkMaxPacketSize, this.lightingEngineMaxPacketSize);
+        ensureValidPacketSize(chunkMaxPacketSize, subChunkMaxPacketSize, lightingEngineMaxPacketSize);
         this.subChunkMaxPacketSize = Math.max(this.subChunkMaxPacketSize, subChunkMaxPacketSize);
     }
 
@@ -68,7 +68,9 @@ public final class ChunkPacketSizeEvent extends Event {
         return chunkMaxPacketSize + (subChunkMaxPacketSize * SUB_CHUNK_ARRAY_SIZE) + lightingEngineMaxPacketSize;
     }
 
-    private static void ensureValidPacketSize(int chunkMaxPacketSize, int subChunkMaxPacketSize, int lightingEngineMaxPacketSize) {
+    private static void ensureValidPacketSize(int chunkMaxPacketSize,
+                                              int subChunkMaxPacketSize,
+                                              int lightingEngineMaxPacketSize) {
         if (chunkMaxPacketSize > PACKET_SIZE_BYTES_LIMIT)
             throw new IllegalArgumentException("Chunk packet max packet size cannot exceed 1 MiB");
         if (subChunkMaxPacketSize > PACKET_SIZE_BYTES_LIMIT)

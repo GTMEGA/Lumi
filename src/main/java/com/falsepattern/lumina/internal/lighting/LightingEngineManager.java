@@ -29,6 +29,7 @@ import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.internal.LumiDefaultValues;
 import com.falsepattern.lumina.internal.event.EventPoster;
 import lombok.NoArgsConstructor;
+import lombok.val;
 import net.minecraft.profiler.Profiler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,7 +39,7 @@ import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor(access = PRIVATE)
 public final class LightingEngineManager implements LumiLightingEngineRegistry, LumiLightingEngineProvider {
-    private static final Logger LOG = LogManager.getLogger(Tags.MOD_NAME + "|World Provider Manager");
+    private static final Logger LOG = LogManager.getLogger(Tags.MOD_NAME + "|Lighting Provider Manager");
 
     private static final LightingEngineManager INSTANCE = new LightingEngineManager();
 
@@ -59,7 +60,6 @@ public final class LightingEngineManager implements LumiLightingEngineRegistry, 
             LumiDefaultValues.registerDefaultLightingEngineProvider(this);
 
         isRegistered = true;
-        LOG.info("Registered lighting engine provider");
     }
 
     @Override
@@ -76,20 +76,36 @@ public final class LightingEngineManager implements LumiLightingEngineRegistry, 
             return;
         }
 
+        val lightingEngineProviderID = lightingEngineProvider.lightingEngineProviderID();
+        if (lightingEngineProviderID == null) {
+            LOG.error("Lighting engine provider id can't be null", new IllegalArgumentException());
+            return;
+        }
+
+        if (lightingEngineProviderID.isEmpty()) {
+            LOG.error("Lighting engine provider id can't be empty", new IllegalArgumentException());
+            return;
+        }
+
         if (delegate == null) {
             delegate = lightingEngineProvider;
+            LOG.info("Registered lighting engine provider: [{}]", lightingEngineProviderID);
             return;
         }
 
         if (displace) {
-            LOG.warn("Lighting engine has been displaced, this may indicate a mod conflict but is probably fine.");
+            val oldLightingEngineProviderID = delegate.lightingEngineProviderID();
+            LOG.warn("Lighting engine provider [{}] has been displaced with [{}], " +
+                     "this may indicate a mod conflict but is probably fine.",
+                     oldLightingEngineProviderID,
+                     lightingEngineProviderID);
             delegate = lightingEngineProvider;
         }
     }
 
     @Override
     public @NotNull String lightingEngineProviderID() {
-        return "lumi_lighting_engine_provider";
+        return delegate.lightingEngineProviderID();
     }
 
     @Override

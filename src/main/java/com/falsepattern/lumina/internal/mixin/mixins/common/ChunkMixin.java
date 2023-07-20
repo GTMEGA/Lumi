@@ -26,7 +26,6 @@ import lombok.val;
 import net.minecraft.block.Block;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.spongepowered.asm.mixin.Mixin;
@@ -41,8 +40,6 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(Chunk.class)
 public abstract class ChunkMixin {
-    @Shadow
-    public World worldObj;
     @Shadow
     public boolean isTerrainPopulated;
     @Shadow
@@ -172,7 +169,7 @@ public abstract class ChunkMixin {
                                                 int posY,
                                                 int subChunkPosZ,
                                                 Block block,
-                                                int p_150807_5_,
+                                                int posX,
                                                 CallbackInfoReturnable<Boolean> cir,
                                                 int i1,
                                                 int k,

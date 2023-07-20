@@ -24,17 +24,12 @@ package com.falsepattern.lumina.internal.mixin.mixins.client;
 import com.falsepattern.lumina.internal.mixin.hook.LightingHooks;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(Chunk.class)
 public abstract class ChunkMixin {
-    @Shadow
-    public World worldObj;
-
     /**
      * @author FalsePattern
      * @reason Fix
