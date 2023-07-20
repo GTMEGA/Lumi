@@ -39,7 +39,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.ByteBuffer;
 
-import static com.falsepattern.lumina.api.LumiAPI.lumiWorldsFromBaseWorld;
 import static com.falsepattern.lumina.internal.world.WorldManager.worldManager;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -53,7 +52,10 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
     private static final int BLOCKS_PER_SUB_CHUNK = 16 * 16 * 16;
     private static final int BITS_PER_BLOCK = 4 + 4;
     private static final int BYTES_PER_BLOCK = BITS_PER_BLOCK / 8;
-    private static final int MAX_PACKET_SIZE_PER_WORLD_PROVIDER = BLOCKS_PER_SUB_CHUNK * BYTES_PER_BLOCK;
+    private static final int MAX_PACKET_SIZE_BYTES_PER_WORLD_PROVIDER = BLOCKS_PER_SUB_CHUNK * BYTES_PER_BLOCK;
+    private static final int PROVIDER_ID_SIZE_BYTES = Integer.BYTES;
+    private static final int PROVIDER_WRITTEN_BYTES_SIZE_BYTES = Integer.BYTES;
+    private static final int HEADER_SIZE_BYTES = PROVIDER_ID_SIZE_BYTES + PROVIDER_WRITTEN_BYTES_SIZE_BYTES;
 
     @Getter
     private int maxPacketSize = 0;
@@ -68,10 +70,13 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
         if (isRegistered)
             return;
 
-        val subChunkMaxPacketSize = MAX_PACKET_SIZE_PER_WORLD_PROVIDER * worldManager().worldProviderCount();
+        val worldProviderCount = worldManager().worldProviderCount();
+        val subChunkMaxPacketSize = MAX_PACKET_SIZE_BYTES_PER_WORLD_PROVIDER * worldProviderCount;
         maxPacketSize = EventPoster.postChunkPacketSizeEvent(0,
                                                              subChunkMaxPacketSize,
                                                              0);
+        val maxHeaderSize = worldProviderCount * HEADER_SIZE_BYTES;
+        maxPacketSize += maxHeaderSize;
 
         ChunkDataRegistry.registerDataManager(this);
         isRegistered = true;
@@ -88,10 +93,25 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
         return "lumi_packet";
     }
 
+    // What provider is the world from? (Providers have IDs assigned to them on registration)
+    // What world has been provided?
+    // How much data has been written? (Counting the written data is trivial)
     @Override
     public void writeToBuffer(Chunk chunkBase, int subChunkMask, boolean forceUpdate, ByteBuffer output) {
         val worldBase = chunkBase.worldObj;
-        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+        val worldManager = worldManager();
+        val worldProviderCount = worldManager.worldProviderCount();
+        for (var providerInternalID = 0; providerInternalID < worldProviderCount; providerInternalID++) {
+            val worldProvider = worldManager.getWorldProviderByInternalID(providerInternalID);
+            if (worldProvider == null)
+                continue;
+            val world = worldProvider.provideWorld(worldBase);
+            if (world == null)
+                continue;
+            output.putInt(providerInternalID);
+            val lengthPosition = output.position();
+            output.position(lengthPosition + PROVIDER_WRITTEN_BYTES_SIZE_BYTES);
+
             val chunk = world.lumi$wrap(chunkBase);
             val lightingEngine = world.lumi$lightingEngine();
 
@@ -107,13 +127,34 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
                 if (subChunk != null)
                     lightingEngine.writeSubChunkToPacket(chunk, subChunk, output);
             }
+
+            val length = output.position() - PROVIDER_WRITTEN_BYTES_SIZE_BYTES - lengthPosition;
+            output.putInt(lengthPosition, length);
         }
     }
 
     @Override
     public void readFromBuffer(Chunk chunkBase, int subChunkMask, boolean forceUpdate, ByteBuffer input) {
         val worldBase = chunkBase.worldObj;
-        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+        val worldManager = worldManager();
+        while (input.remaining() > 0) {
+            val providerInternalID = input.getInt();
+            val length = input.getInt();
+            if (length == 0)
+                continue;
+            val startPosition = input.position();
+
+            val worldProvider = worldManager.getWorldProviderByInternalID(providerInternalID);
+            if (worldProvider == null) {
+                input.position(startPosition + length);
+                continue;
+            }
+            val world = worldProvider.provideWorld(worldBase);
+            if (world == null) {
+                input.position(startPosition + length);
+                continue;
+            }
+
             val chunk = world.lumi$wrap(chunkBase);
             val lightingEngine = world.lumi$lightingEngine();
 
@@ -129,6 +170,8 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
                 if (subChunk != null)
                     lightingEngine.readSubChunkFromPacket(chunk, subChunk, input);
             }
+
+            input.position(startPosition + length);
         }
     }
 
