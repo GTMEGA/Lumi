@@ -23,9 +23,9 @@ package com.falsepattern.lumina.internal.event;
 
 import com.falsepattern.lumina.api.event.ChunkPacketSizeEvent;
 import com.falsepattern.lumina.api.event.LumiLightingEngineRegistrationEvent;
-import com.falsepattern.lumina.api.event.LumiWorldRegistrationEvent;
+import com.falsepattern.lumina.api.event.LumiWorldProviderRegistrationEvent;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngineRegistry;
-import com.falsepattern.lumina.api.world.LumiWorldRegistry;
+import com.falsepattern.lumina.api.world.LumiWorldProviderRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.EventBus;
 import lombok.experimental.UtilityClass;
@@ -35,8 +35,8 @@ import lombok.val;
 public final class EventPoster {
     private static final EventBus EVENT_BUS = FMLCommonHandler.instance().bus();
 
-    public static void postLumiWorldRegistrationEvent(LumiWorldRegistry registry) {
-        EVENT_BUS.post(new LumiWorldRegistrationEvent(registry));
+    public static void postLumiWorldProviderRegistrationEvent(LumiWorldProviderRegistry registry) {
+        EVENT_BUS.post(new LumiWorldProviderRegistrationEvent(registry));
     }
 
     public static void postLumiLightingEngineRegistrationEvent(LumiLightingEngineRegistry registry) {

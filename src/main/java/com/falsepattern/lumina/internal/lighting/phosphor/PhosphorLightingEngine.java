@@ -29,7 +29,6 @@ import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
-import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import lombok.NoArgsConstructor;
 import lombok.val;
@@ -726,7 +725,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         queue.add(posLong);
     }
 
-    @SideOnly(Side.CLIENT)
+    @SideOnly(CLIENT)
     private boolean isCallingFromClientThread() {
         return Minecraft.getMinecraft().func_152345_ab();
     }

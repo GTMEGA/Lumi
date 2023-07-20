@@ -39,7 +39,7 @@ import java.nio.ByteBuffer;
 
 import static com.falsepattern.lumina.internal.LUMINA.createLogger;
 import static com.falsepattern.lumina.internal.Tags.MOD_ID;
-import static com.falsepattern.lumina.internal.world.WorldManager.worldManager;
+import static com.falsepattern.lumina.internal.world.WorldProviderManager.worldManager;
 import static lombok.AccessLevel.PRIVATE;
 
 @Accessors(fluent = true, chain = false)

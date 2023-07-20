@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.falsepattern.lumina.internal.Tags.*;
 import static com.falsepattern.lumina.internal.lighting.LightingEngineManager.lightingEngineManager;
-import static com.falsepattern.lumina.internal.world.WorldManager.worldManager;
+import static com.falsepattern.lumina.internal.world.WorldProviderManager.worldManager;
 
 @SuppressWarnings("unused")
 public final class LumiAPI {

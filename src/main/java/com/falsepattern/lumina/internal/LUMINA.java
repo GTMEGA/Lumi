@@ -35,7 +35,7 @@ import static com.falsepattern.lumina.internal.data.ChunkNBTManager.chunkNBTMana
 import static com.falsepattern.lumina.internal.data.ChunkPacketManager.chunkPacketManager;
 import static com.falsepattern.lumina.internal.data.SubChunkNBTManager.subChunkNBTManager;
 import static com.falsepattern.lumina.internal.lighting.LightingEngineManager.lightingEngineManager;
-import static com.falsepattern.lumina.internal.world.WorldManager.worldManager;
+import static com.falsepattern.lumina.internal.world.WorldProviderManager.worldManager;
 
 @Mod(modid = MOD_ID,
      version = VERSION,

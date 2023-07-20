@@ -22,7 +22,7 @@
 package com.falsepattern.lumina.internal;
 
 import com.falsepattern.lumina.api.lighting.LumiLightingEngineRegistry;
-import com.falsepattern.lumina.api.world.LumiWorldRegistry;
+import com.falsepattern.lumina.api.world.LumiWorldProviderRegistry;
 import lombok.experimental.UtilityClass;
 
 import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorLightingEngineProvider.phosphorLightingEngineProvider;
@@ -30,7 +30,7 @@ import static com.falsepattern.lumina.internal.world.DefaultWorldProvider.defaul
 
 @UtilityClass
 public final class LumiDefaultValues {
-    public static void registerDefaultWorldProvider(LumiWorldRegistry registry) {
+    public static void registerDefaultWorldProvider(LumiWorldProviderRegistry registry) {
         registry.registerWorldProvider(defaultWorldProvider());
     }
 

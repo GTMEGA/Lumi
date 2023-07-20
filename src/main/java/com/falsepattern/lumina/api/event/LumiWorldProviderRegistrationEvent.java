@@ -19,13 +19,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api.world;
+package com.falsepattern.lumina.api.event;
 
+import com.falsepattern.lumina.api.world.LumiWorldProviderRegistry;
+import cpw.mods.fml.common.eventhandler.Event;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
-public interface LumiWorldRegistry {
-    void hijackDefaultWorldProviders(@NotNull String modName);
+public final class LumiWorldProviderRegistrationEvent extends Event {
+    private final @NotNull LumiWorldProviderRegistry registry;
 
-    void registerWorldProvider(@NotNull LumiWorldProvider worldProvider);
+    public LumiWorldProviderRegistrationEvent(@NotNull LumiWorldProviderRegistry registry) {
+        this.registry = registry;
+    }
+
+    public @NotNull LumiWorldProviderRegistry registry() {
+        return registry;
+    }
 }

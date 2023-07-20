@@ -23,7 +23,7 @@ package com.falsepattern.lumina.internal.world;
 
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldProvider;
-import com.falsepattern.lumina.api.world.LumiWorldRegistry;
+import com.falsepattern.lumina.api.world.LumiWorldProviderRegistry;
 import com.falsepattern.lumina.api.world.LumiWorldWrapper;
 import com.falsepattern.lumina.internal.LumiDefaultValues;
 import com.falsepattern.lumina.internal.collection.WeakIdentityHashMap;
@@ -43,10 +43,10 @@ import static com.falsepattern.lumina.internal.LUMINA.createLogger;
 import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor(access = PRIVATE)
-public final class WorldManager implements LumiWorldRegistry, LumiWorldWrapper {
+public final class WorldProviderManager implements LumiWorldProviderRegistry, LumiWorldWrapper {
     private static final Logger LOG = createLogger("World Provider Manager");
 
-    private static final WorldManager INSTANCE = new WorldManager();
+    private static final WorldProviderManager INSTANCE = new WorldProviderManager();
 
     private final List<LumiWorldProvider> worldProviders = new ArrayList<>();
     private final Map<World, Iterable<LumiWorld>> providedWorlds = new WeakIdentityHashMap<>();
@@ -54,7 +54,7 @@ public final class WorldManager implements LumiWorldRegistry, LumiWorldWrapper {
     private boolean isHijacked = false;
     private @Nullable String hijackingMod = null;
 
-    public static WorldManager worldManager() {
+    public static WorldProviderManager worldManager() {
         return INSTANCE;
     }
 
@@ -62,7 +62,7 @@ public final class WorldManager implements LumiWorldRegistry, LumiWorldWrapper {
         if (isRegistered)
             return;
 
-        EventPoster.postLumiWorldRegistrationEvent(this);
+        EventPoster.postLumiWorldProviderRegistrationEvent(this);
         if (isHijacked && worldProviders.isEmpty()) {
             LOG.error("Default world providers have been hijacked by [{}], " +
                       "but it did not provide it's own replacements. " +
@@ -109,30 +109,29 @@ public final class WorldManager implements LumiWorldRegistry, LumiWorldWrapper {
     @SuppressWarnings("ConstantValue")
     public void registerWorldProvider(@NotNull LumiWorldProvider worldProvider) {
         if (isRegistered) {
-            val e = new IllegalStateException();
-            LOG.error("Cannot registration world providers post registration", e);
+            LOG.error(new IllegalStateException("Cannot registration world providers post registration"));
             return;
         }
 
         if (worldProvider == null) {
-            LOG.error("World provider can't be null", new IllegalArgumentException());
+            LOG.error(new IllegalArgumentException("World provider can't be null"));
             return;
         }
 
         val worldProviderID = worldProvider.worldProviderID();
         if (worldProviderID == null) {
-            LOG.error("World provider id can't be null", new IllegalArgumentException());
+            LOG.error(new IllegalArgumentException("World provider id can't be null"));
             return;
         }
 
         if (worldProviderID.isEmpty()) {
-            LOG.error("World provider id can't be empty", new IllegalArgumentException());
+            LOG.error(new IllegalArgumentException("World provider id can't be empty"));
             return;
         }
 
         if (worldProviders.contains(worldProvider)) {
-            LOG.error(String.format("World provider [%s] already registered", worldProviderID),
-                      new IllegalArgumentException());
+            LOG.error(new IllegalArgumentException(
+                    String.format("World provider [%s] already registered", worldProviderID)));
             return;
         }
 
@@ -143,9 +142,8 @@ public final class WorldManager implements LumiWorldRegistry, LumiWorldWrapper {
     @Override
     public @NotNull @Unmodifiable Iterable<LumiWorld> lumiWorldsFromBaseWorld(@Nullable World worldBase) {
         if (!isRegistered) {
-            LOG.error("No world providers exist during registration, " +
-                      "an empty iterable will be returned. Report this stacktrace:",
-                      new IllegalStateException());
+            LOG.error(new IllegalStateException("No world providers exist during registration, " +
+                                                "an empty iterable will be returned."));
             return Collections.emptyList();
         }
         if (worldBase == null)
