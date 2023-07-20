@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina;
+package com.falsepattern.lumina.internal;
 
 import com.falsepattern.chunk.api.ChunkDataRegistry;
 import cpw.mods.fml.common.Mod;
@@ -30,7 +30,7 @@ import lombok.NoArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import static com.falsepattern.lumina.Tags.*;
+import static com.falsepattern.lumina.internal.Tags.*;
 import static com.falsepattern.lumina.internal.data.ChunkNBTManager.chunkNBTManager;
 import static com.falsepattern.lumina.internal.data.ChunkPacketManager.chunkPacketManager;
 import static com.falsepattern.lumina.internal.data.SubChunkNBTManager.subChunkNBTManager;
@@ -40,11 +40,15 @@ import static com.falsepattern.lumina.internal.world.WorldManager.worldManager;
 @Mod(modid = MOD_ID,
      version = VERSION,
      name = MOD_NAME,
-     acceptedMinecraftVersions = "[1.7.10]",
-     dependencies = "required-after:falsepatternlib@[0.11,);required-after:chunkapi@[0.3,)")
+     acceptedMinecraftVersions = MINECRAFT_VERSION,
+     dependencies = DEPENDENCIES)
 @NoArgsConstructor
 public final class LUMINA {
-    private static final Logger LOG = LogManager.getLogger(MOD_ID);
+    private static final Logger LOG = LogManager.getLogger(MOD_NAME);
+
+    public static Logger createLogger(String name) {
+        return LogManager.getLogger(MOD_NAME + "|" + name);
+    }
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent evt) {

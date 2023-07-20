@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-import static com.falsepattern.lumina.Tags.MOD_NAME;
+import static com.falsepattern.lumina.internal.Tags.MOD_NAME;
 import static cpw.mods.fml.relauncher.IFMLLoadingPlugin.*;
 
 @Name(MOD_NAME + "|ASM Plugin")

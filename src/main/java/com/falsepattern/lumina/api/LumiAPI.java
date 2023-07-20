@@ -29,11 +29,16 @@ import net.minecraft.profiler.Profiler;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
+import static com.falsepattern.lumina.internal.Tags.*;
 import static com.falsepattern.lumina.internal.lighting.LightingEngineManager.lightingEngineManager;
 import static com.falsepattern.lumina.internal.world.WorldManager.worldManager;
 
 @SuppressWarnings("unused")
 public final class LumiAPI {
+    public static final String LUMI_MOD_ID = MOD_ID;
+    public static final String LUMI_MOD_NAME = MOD_NAME;
+    public static final String LUMI_VERSION = VERSION;
+
     private static final LumiWorldWrapper WORLD_WRAPPER = worldManager();
     private static final LumiLightingEngineProvider LIGHTING_ENGINE_PROVIDER = lightingEngineManager();
 

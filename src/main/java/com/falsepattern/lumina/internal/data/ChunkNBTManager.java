@@ -23,28 +23,28 @@ package com.falsepattern.lumina.internal.data;
 
 import com.falsepattern.chunk.api.ChunkDataManager;
 import com.falsepattern.chunk.api.ChunkDataRegistry;
-import com.falsepattern.lumina.Tags;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.Chunk;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import static com.falsepattern.lumina.api.LumiAPI.lumiWorldsFromBaseWorld;
+import static com.falsepattern.lumina.internal.LUMINA.createLogger;
+import static com.falsepattern.lumina.internal.Tags.MOD_ID;
+import static com.falsepattern.lumina.internal.Tags.VERSION;
 import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor(access = PRIVATE)
 public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManager {
-    private static final Logger LOG = LogManager.getLogger(Tags.MOD_NAME + "|Chunk NBT Manager");
+    private static final Logger LOG = createLogger("Chunk NBT Manager");
 
     private static final ChunkNBTManager INSTANCE = new ChunkNBTManager();
 
-    private static final String VERSION_NBT_TAG_NAME = Tags.MOD_ID + "_version";
-
-    private static final String VERSION_NBT_TAG_VALUE = Tags.VERSION;
+    private static final String VERSION_NBT_TAG_NAME = MOD_ID + "_version";
+    private static final String VERSION_NBT_TAG_VALUE = VERSION;
 
     private boolean isRegistered = false;
 
@@ -63,7 +63,7 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
 
     @Override
     public String domain() {
-        return Tags.MOD_ID;
+        return MOD_ID;
     }
 
     @Override

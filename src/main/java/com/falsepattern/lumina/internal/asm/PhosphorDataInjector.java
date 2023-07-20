@@ -21,14 +21,12 @@
 
 package com.falsepattern.lumina.internal.asm;
 
-import com.falsepattern.lumina.Tags;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import lombok.var;
 import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.Launch;
 import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.*;
@@ -38,12 +36,13 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 
+import static com.falsepattern.lumina.internal.LUMINA.createLogger;
 import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorChunk.LIGHT_CHECK_FLAGS_LENGTH;
 import static org.objectweb.asm.Type.*;
 
 @NoArgsConstructor
 public final class PhosphorDataInjector implements IClassTransformer {
-    private static final Logger LOG = LogManager.getLogger(Tags.MOD_NAME + "|Phosphor Data Injector");
+    private static final Logger LOG = createLogger("Phosphor Data Injector");
 
     @Override
     public byte @Nullable [] transform(String name, String transformedName, byte @Nullable [] classBytes) {

@@ -23,7 +23,6 @@ package com.falsepattern.lumina.internal.data;
 
 import com.falsepattern.chunk.api.ChunkDataManager;
 import com.falsepattern.chunk.api.ChunkDataRegistry;
-import com.falsepattern.lumina.Tags;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.internal.event.EventPoster;
@@ -33,19 +32,20 @@ import lombok.experimental.Accessors;
 import lombok.val;
 import lombok.var;
 import net.minecraft.world.chunk.Chunk;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.ByteBuffer;
 
+import static com.falsepattern.lumina.internal.LUMINA.createLogger;
+import static com.falsepattern.lumina.internal.Tags.MOD_ID;
 import static com.falsepattern.lumina.internal.world.WorldManager.worldManager;
 import static lombok.AccessLevel.PRIVATE;
 
 @Accessors(fluent = true, chain = false)
 @NoArgsConstructor(access = PRIVATE)
 public final class ChunkPacketManager implements ChunkDataManager.PacketDataManager {
-    private static final Logger LOG = LogManager.getLogger(Tags.MOD_NAME + "|Chunk Packet Manager");
+    private static final Logger LOG = createLogger("Chunk Packet Manager");
 
     private static final ChunkPacketManager INSTANCE = new ChunkPacketManager();
 
@@ -85,7 +85,7 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
 
     @Override
     public String domain() {
-        return Tags.MOD_ID;
+        return MOD_ID;
     }
 
     @Override

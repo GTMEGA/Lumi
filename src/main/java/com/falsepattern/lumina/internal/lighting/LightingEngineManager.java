@@ -21,7 +21,6 @@
 
 package com.falsepattern.lumina.internal.lighting;
 
-import com.falsepattern.lumina.Tags;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngineProvider;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngineRegistry;
@@ -31,15 +30,15 @@ import com.falsepattern.lumina.internal.event.EventPoster;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import net.minecraft.profiler.Profiler;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import static com.falsepattern.lumina.internal.LUMINA.createLogger;
 import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor(access = PRIVATE)
 public final class LightingEngineManager implements LumiLightingEngineRegistry, LumiLightingEngineProvider {
-    private static final Logger LOG = LogManager.getLogger(Tags.MOD_NAME + "|Lighting Provider Manager");
+    private static final Logger LOG = createLogger("Lighting Provider Manager");
 
     private static final LightingEngineManager INSTANCE = new LightingEngineManager();
 

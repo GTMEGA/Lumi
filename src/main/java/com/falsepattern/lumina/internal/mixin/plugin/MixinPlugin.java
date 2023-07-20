@@ -24,7 +24,7 @@ package com.falsepattern.lumina.internal.mixin.plugin;
 import com.falsepattern.lib.mixin.IMixin;
 import com.falsepattern.lib.mixin.IMixinPlugin;
 import com.falsepattern.lib.mixin.ITargetedMod;
-import com.falsepattern.lumina.Tags;
+import com.falsepattern.lumina.internal.Tags;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apache.logging.log4j.Logger;

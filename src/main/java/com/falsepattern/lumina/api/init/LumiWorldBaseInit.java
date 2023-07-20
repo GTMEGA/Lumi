@@ -21,11 +21,11 @@
 
 package com.falsepattern.lumina.api.init;
 
-import com.falsepattern.lumina.Tags;
+import static com.falsepattern.lumina.api.LumiAPI.LUMI_MOD_NAME;
 
 @SuppressWarnings("unused")
 public interface LumiWorldBaseInit {
-    String LUMI_WORLD_BASE_INIT_MIXIN_VALUE = "Implemented by [" + Tags.MOD_NAME + "] with the interface " +
+    String LUMI_WORLD_BASE_INIT_MIXIN_VALUE = "Implemented by [" + LUMI_MOD_NAME + "] with the interface " +
                                               "[com.falsepattern.lumina.api.init.LumiWorldBaseInit]";
     String LUMI_WORLD_BASE_INIT_METHOD_REFERENCE = "lumi$worldBaseInit()V";
 

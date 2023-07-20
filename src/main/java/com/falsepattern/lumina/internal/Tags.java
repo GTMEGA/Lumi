@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina;
+package com.falsepattern.lumina.internal;
 
 import lombok.experimental.UtilityClass;
 
@@ -28,4 +28,8 @@ public final class Tags {
     public static final String MOD_ID = "GRADLETOKEN_MODID";
     public static final String MOD_NAME = "GRADLETOKEN_MODNAME";
     public static final String VERSION = "GRADLETOKEN_VERSION";
+
+    public static final String MINECRAFT_VERSION = "[1.7.10]";
+    public static final String DEPENDENCIES = "required-after:falsepatternlib@[0.11,);" +
+                                              "required-after:chunkapi@[0.3,)";
 }

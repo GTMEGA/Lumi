@@ -23,7 +23,6 @@ package com.falsepattern.lumina.internal.lighting.phosphor;
 
 import com.falsepattern.lib.compat.BlockPos;
 import com.falsepattern.lib.util.MathUtil;
-import com.falsepattern.lumina.Tags;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
@@ -40,7 +39,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.profiler.Profiler;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,12 +50,13 @@ import java.util.concurrent.locks.ReentrantLock;
 import static com.falsepattern.lumina.api.chunk.LumiChunk.MAX_QUEUED_RANDOM_LIGHT_UPDATES;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.values;
+import static com.falsepattern.lumina.internal.LUMINA.createLogger;
 import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorUtil.getLoadedChunk;
 import static cpw.mods.fml.relauncher.Side.CLIENT;
 
 
 public final class PhosphorLightingEngine implements LumiLightingEngine {
-    private static final Logger LOG = LogManager.getLogger(Tags.MOD_NAME + "|Phosphor");
+    private static final Logger LOG = createLogger("Phosphor");
 
     private static final boolean ENABLE_ILLEGAL_THREAD_ACCESS_WARNINGS = true;
 
