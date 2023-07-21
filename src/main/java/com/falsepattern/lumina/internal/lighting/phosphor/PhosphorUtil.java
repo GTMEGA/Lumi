@@ -22,6 +22,7 @@
 package com.falsepattern.lumina.internal.lighting.phosphor;
 
 import com.falsepattern.lib.internal.Share;
+import com.falsepattern.lib.util.MathUtil;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
@@ -41,7 +42,30 @@ import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorChunk.L
 
 @UtilityClass
 final class PhosphorUtil {
+    static final int MIN_LIGHT_VALUE = 0;
+    static final int MAX_LIGHT_VALUE = 15;
+
+    static final int MIN_BLOCK_LIGHT_OPACITY = 1;
+    static final int MAX_BLOCK_LIGHT_OPACITY = 15;
+
+    static final int MIN_SKY_LIGHT_OPACITY = 0;
+    static final int MAX_SKY_LIGHT_OPACITY = 15;
+
+    static final int LIGHT_VALUE_RANGE = (MAX_LIGHT_VALUE - MIN_LIGHT_VALUE) + 1;
+
     private static final String NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME = "neighbor_light_checks";
+
+    static int clampLightValue(int lightValue) {
+        return MathUtil.clamp(lightValue, MIN_LIGHT_VALUE, MAX_LIGHT_VALUE);
+    }
+
+    static int clampBlockLightOpacity(int opacityValue) {
+        return MathUtil.clamp(opacityValue, MIN_BLOCK_LIGHT_OPACITY, MAX_BLOCK_LIGHT_OPACITY);
+    }
+
+    static int clampSkyLightOpacity(int opacityValue) {
+        return MathUtil.clamp(opacityValue, MIN_SKY_LIGHT_OPACITY, MAX_SKY_LIGHT_OPACITY);
+    }
 
     static void scheduleRelightChecksForChunkBoundaries(LumiWorld world, LumiChunk chunk) {
         val chunkBasePosX = chunk.lumi$chunkPosX();

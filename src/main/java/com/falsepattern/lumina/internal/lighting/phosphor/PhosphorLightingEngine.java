@@ -22,7 +22,6 @@
 package com.falsepattern.lumina.internal.lighting.phosphor;
 
 import com.falsepattern.lib.compat.BlockPos;
-import com.falsepattern.lib.util.MathUtil;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
@@ -50,7 +49,7 @@ import static com.falsepattern.lumina.api.chunk.LumiChunk.MAX_QUEUED_RANDOM_LIGH
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.values;
 import static com.falsepattern.lumina.internal.LUMINA.createLogger;
-import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorUtil.getLoadedChunk;
+import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorUtil.*;
 import static cpw.mods.fml.relauncher.Side.CLIENT;
 
 
@@ -59,14 +58,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     private static final boolean ENABLE_ILLEGAL_THREAD_ACCESS_WARNINGS = true;
 
-    private static final int MIN_LIGHT_VALUE = 0;
-    private static final int MAX_LIGHT_VALUE = 15;
-    private static final int LIGHT_VALUE_RANGE = (MAX_LIGHT_VALUE - MIN_LIGHT_VALUE) + 1;
-
     private static final int LIGHT_VALUE_TYPES_COUNT = values().length;
-
-    private static final int MIN_BLOCK_OPACITY = 1;
-    private static final int MAX_BLOCK_OPACITY = 15;
 
     /**
      * Maximum scheduled lighting updates before processing the updates is forced.
@@ -287,7 +279,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     @Override
     public int getCurrentLightValue(@NotNull LightType lightType, int posX, int posY, int posZ) {
         processLightingUpdatesForType(lightType);
-        return world.lumi$getLightValue(lightType, posX, posY, posZ);
+        return clampLightValue(world.lumi$getLightValue(lightType, posX, posY, posZ));
     }
 
     @Override
@@ -318,8 +310,9 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                 while (true) {
                     if (skyLightHeight > 0) {
                         val posY = skyLightHeight - 1;
-                        val blockOpacity = chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ);
-                        if (blockOpacity == 0) {
+                        val blockOpacity = clampSkyLightOpacity(
+                                chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ));
+                        if (blockOpacity == MIN_SKY_LIGHT_OPACITY) {
                             skyLightHeight--;
                             continue;
                         }
@@ -329,12 +322,12 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                     }
 
                     if (hasSky) {
-                        var lightLevel = 15;
+                        var lightLevel = MAX_LIGHT_VALUE;
                         skyLightHeight = (basePosY + 16) - 1;
 
                         do {
-                            var blockOpacity = chunk.lumi$getBlockOpacity(subChunkPosX, skyLightHeight, subChunkPosZ);
-                            if (blockOpacity == 0 && lightLevel != 15)
+                            var blockOpacity = clampSkyLightOpacity(chunk.lumi$getBlockOpacity(subChunkPosX, skyLightHeight, subChunkPosZ));
+                            if (blockOpacity == MIN_SKY_LIGHT_OPACITY && lightLevel != MAX_LIGHT_VALUE)
                                 blockOpacity = 1;
 
                             lightLevel -= blockOpacity;
@@ -387,8 +380,9 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                 while (true) {
                     if (skyLightHeight > 0) {
                         val posY = skyLightHeight - 1;
-                        val blockOpacity = chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ);
-                        if (blockOpacity == 0) {
+                        val blockOpacity = clampSkyLightOpacity(
+                                chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ));
+                        if (blockOpacity == MIN_SKY_LIGHT_OPACITY) {
                             skyLightHeight--;
                             continue;
                         }
@@ -494,16 +488,17 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
                 renderUpdateCheck:
                 {
-                    val blockOpacity = chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ);
-                    if (blockOpacity < 15)
+                    val blockOpacity = clampBlockLightOpacity(
+                            chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ));
+                    if (blockOpacity < MAX_BLOCK_LIGHT_OPACITY)
                         break renderUpdateCheck;
 
                     val blockBrightness = chunk.lumi$getBlockBrightness(subChunkPosX, posY, subChunkPosZ);
-                    if (blockBrightness > 0)
+                    if (blockBrightness > MIN_LIGHT_VALUE)
                         break renderUpdateCheck;
 
                     val lightValue = chunk.lumi$getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
-                    if (lightValue == 0)
+                    if (lightValue == MIN_LIGHT_VALUE)
                         continue;
 
                     chunk.lumi$setBlockLightValue(subChunkPosX, posY, subChunkPosZ, 0);
@@ -538,8 +533,12 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         if (!chunk.lumi$canBlockSeeSky(subChunkPosX, minPosY, subChunkPosZ))
             return;
 
-        while (minPosY > 0 && chunk.lumi$getBlockOpacity(subChunkPosX, minPosY - 1, subChunkPosZ) == 0)
+        while (minPosY > 0 && clampSkyLightOpacity(chunk.lumi$getBlockOpacity(subChunkPosX,
+                                                                              minPosY - 1,
+                                                                              subChunkPosZ)) == MIN_SKY_LIGHT_OPACITY) {
+
             --minPosY;
+        }
         if (minPosY == maxPosY)
             return;
 
@@ -836,7 +835,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                 if (cursorBlockLightValue >= MAX_LIGHT_VALUE - 1) {
                     cursorBlockOpacity = 1;
                 } else {
-                    cursorBlockOpacity = getBlockOpacity(cursorBlockPos, cursorBlock, cursorBlockMeta);
+                    cursorBlockOpacity = getBlockLightOpacity(cursorBlockPos, cursorBlock, cursorBlockMeta);
                 }
 
                 // Only darken neighbors if we indeed became darker
@@ -858,7 +857,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
                     val neighborBlock = getBlockFromSubChunk(neighbor.subChunk, neighbor.blockPos);
                     val neighborBlockMeta = getBlockMetaFromSubChunk(neighbor.subChunk, neighbor.blockPos);
-                    val neighborBlockOpacity = getBlockOpacity(neighbor.blockPos, neighborBlock, neighborBlockMeta);
+                    val neighborBlockOpacity = getBlockLightOpacity(neighbor.blockPos, neighborBlock, neighborBlockMeta);
 
                     // If we can't darken the neighbor, no one else can (because of processing order) -> safe to let us be illuminated by it
                     if (queueIndex - neighborBlockOpacity >= neighbor.lightValue) {
@@ -935,9 +934,9 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
         if (subChunk != null) {
             val subChunkPosY = posY & 15;
-            return subChunk.lumi$getLightValue(lightType, subChunkPosX, subChunkPosY, subChunkPosZ);
+            return clampLightValue(subChunk.lumi$getLightValue(lightType, subChunkPosX, subChunkPosY, subChunkPosZ));
         }
-        return chunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);
+        return clampLightValue(chunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ));
     }
 
     private int getCursorUpdatedLightValue(LightType lightType) {
@@ -952,7 +951,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         if (cursorBlockLightValue >= MAX_LIGHT_VALUE - 1) {
             cursorBlockOpacity = 1;
         } else {
-            cursorBlockOpacity = getBlockOpacity(cursorBlockPos, block, blockMeta);
+            cursorBlockOpacity = getBlockLightOpacity(cursorBlockPos, block, blockMeta);
         }
 
         return getCursorUpdatedLightValue(cursorBlockLightValue, cursorBlockOpacity, lightType);
@@ -982,7 +981,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
             val block = getBlockFromSubChunk(neighbor.subChunk, neighbor.blockPos);
             val blockMeta = getBlockMetaFromSubChunk(neighbor.subChunk, neighbor.blockPos);
-            val blockOpacity = getBlockOpacity(neighbor.blockPos, block, blockMeta);
+            val blockOpacity = getBlockLightOpacity(neighbor.blockPos, block, blockMeta);
 
             val newLightValue = cursorLightValue - blockOpacity;
             if (newLightValue > neighbor.lightValue)
@@ -1076,7 +1075,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         val posY = cursorBlockPos.getY();
         val subChunkPosX = cursorBlockPos.getX() & 15;
         val subChunkPosZ = cursorBlockPos.getZ() & 15;
-        return cursorChunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);
+        return clampLightValue(cursorChunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ));
     }
 
     private int getCursorBlockLightValue(Block cursorBlock, int cursorBlockMeta, LightType lightType) {
@@ -1095,15 +1094,15 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         }
 
         val cursorBlockLightValueVal = world.lumi$getBlockBrightness(cursorBlock, cursorBlockMeta, posX, posY, posZ);
-        return MathUtil.clamp(cursorBlockLightValueVal, MIN_LIGHT_VALUE, MAX_LIGHT_VALUE);
+        return clampLightValue(cursorBlockLightValueVal);
     }
 
-    private int getBlockOpacity(BlockPos blockPos, Block block, int blockMeta) {
+    private int getBlockLightOpacity(BlockPos blockPos, Block block, int blockMeta) {
         val posX = blockPos.getX();
         val posY = blockPos.getY();
         val posZ = blockPos.getZ();
         val blockOpacity = world.lumi$getBlockOpacity(block, blockMeta, posX, posY, posZ);
-        return MathUtil.clamp(blockOpacity, MIN_BLOCK_OPACITY, MAX_BLOCK_OPACITY);
+        return clampBlockLightOpacity(blockOpacity);
     }
 
     private @Nullable LumiChunk getChunk(BlockPos blockPos) {
