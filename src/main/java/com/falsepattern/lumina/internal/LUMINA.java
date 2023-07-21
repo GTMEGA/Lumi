@@ -35,7 +35,7 @@ import static com.falsepattern.lumina.internal.data.ChunkNBTManager.chunkNBTMana
 import static com.falsepattern.lumina.internal.data.ChunkPacketManager.chunkPacketManager;
 import static com.falsepattern.lumina.internal.data.SubChunkNBTManager.subChunkNBTManager;
 import static com.falsepattern.lumina.internal.lighting.LightingEngineManager.lightingEngineManager;
-import static com.falsepattern.lumina.internal.world.WorldProviderManager.worldManager;
+import static com.falsepattern.lumina.internal.world.WorldProviderManager.worldProviderManager;
 
 @Mod(modid = MOD_ID,
      version = VERSION,
@@ -56,7 +56,7 @@ public final class LUMINA {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent evt) {
-        worldManager().registerWorldProviders();
+        worldProviderManager().registerWorldProviders();
         lightingEngineManager().registerLightingEngineProvider();
 
         chunkNBTManager().registerDataManager();

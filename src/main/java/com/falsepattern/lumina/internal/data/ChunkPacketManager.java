@@ -39,7 +39,7 @@ import java.nio.ByteBuffer;
 
 import static com.falsepattern.lumina.internal.LUMINA.createLogger;
 import static com.falsepattern.lumina.internal.Tags.MOD_ID;
-import static com.falsepattern.lumina.internal.world.WorldProviderManager.worldManager;
+import static com.falsepattern.lumina.internal.world.WorldProviderManager.worldProviderManager;
 import static lombok.AccessLevel.PRIVATE;
 
 @Accessors(fluent = true, chain = false)
@@ -70,7 +70,7 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
         if (isRegistered)
             return;
 
-        val worldProviderCount = worldManager().worldProviderCount();
+        val worldProviderCount = worldProviderManager().worldProviderCount();
         val subChunkMaxPacketSize = MAX_PACKET_SIZE_BYTES_PER_WORLD_PROVIDER * worldProviderCount;
         maxPacketSize = EventPoster.postChunkPacketSizeEvent(0,
                                                              subChunkMaxPacketSize,
@@ -99,10 +99,10 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
     @Override
     public void writeToBuffer(Chunk chunkBase, int subChunkMask, boolean forceUpdate, ByteBuffer output) {
         val worldBase = chunkBase.worldObj;
-        val worldManager = worldManager();
-        val worldProviderCount = worldManager.worldProviderCount();
+        val worldProviderManager = worldProviderManager();
+        val worldProviderCount = worldProviderManager.worldProviderCount();
         for (var providerInternalID = 0; providerInternalID < worldProviderCount; providerInternalID++) {
-            val worldProvider = worldManager.getWorldProviderByInternalID(providerInternalID);
+            val worldProvider = worldProviderManager.getWorldProviderByInternalID(providerInternalID);
             if (worldProvider == null)
                 continue;
             val world = worldProvider.provideWorld(worldBase);
@@ -136,7 +136,7 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
     @Override
     public void readFromBuffer(Chunk chunkBase, int subChunkMask, boolean forceUpdate, ByteBuffer input) {
         val worldBase = chunkBase.worldObj;
-        val worldManager = worldManager();
+        val worldProviderManager = worldProviderManager();
         while (input.remaining() > 0) {
             val providerInternalID = input.getInt();
             val length = input.getInt();
@@ -144,7 +144,7 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
                 continue;
             val startPosition = input.position();
 
-            val worldProvider = worldManager.getWorldProviderByInternalID(providerInternalID);
+            val worldProvider = worldProviderManager.getWorldProviderByInternalID(providerInternalID);
             if (worldProvider == null) {
                 input.position(startPosition + length);
                 continue;

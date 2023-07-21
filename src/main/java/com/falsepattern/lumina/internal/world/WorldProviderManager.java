@@ -54,7 +54,7 @@ public final class WorldProviderManager implements LumiWorldProviderRegistry, Lu
     private boolean isHijacked = false;
     private @Nullable String hijackingMod = null;
 
-    public static WorldProviderManager worldManager() {
+    public static WorldProviderManager worldProviderManager() {
         return INSTANCE;
     }
 
