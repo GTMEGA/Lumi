@@ -58,17 +58,20 @@ public enum Mixin implements IMixin {
 
     // region LUMINA Initialization
     common_init_LumiChunkBaseInitImplMixin(COMMON, always(), "init.LumiChunkBaseInitImplMixin"),
-    common_init_LumiSubChunkBaseInitImplMixin(COMMON, always(), "init.LumiSubChunkBaseInitImplMixin"),
-    common_init_LumiWorldBaseInitImplMixin(COMMON, always(), "init.LumiWorldBaseInitImplMixin"),
 
+    common_init_LumiSubChunkBaseInitImplMixin(COMMON, always(), "init.LumiSubChunkBaseInitImplMixin"),
+
+    common_init_LumiWorldBaseInitImplMixin(COMMON, always(), "init.LumiWorldBaseInitImplMixin"),
     client_init_LumiWorldBaseInitImplMixin(CLIENT, always(), "init.LumiWorldBaseInitImplMixin"),
     // endregion
 
     // region LUMINA Implementation
     common_lumi_LumiWorldImplMixin(COMMON, always(), "lumi.LumiWorldImplMixin"),
     common_lumi_LumiWorldRootImplMixin(COMMON, always(), "lumi.LumiWorldRootImplMixin"),
+
     common_lumi_LumiChunkImplMixin(COMMON, always(), "lumi.LumiChunkImplMixin"),
     common_lumi_LumiChunkRootImplMixin(COMMON, always(), "lumi.LumiChunkRootImplMixin"),
+
     common_lumi_LumiSubChunkImplMixin(COMMON, always(), "lumi.LumiSubChunkImplMixin"),
     common_lumi_LumiSubChunkRootImplMixin(COMMON, always(), "lumi.LumiSubChunkRootImplMixin"),
     // endregion
