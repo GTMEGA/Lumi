@@ -45,16 +45,6 @@ public abstract class ChunkMixin {
     @Shadow
     public boolean isLightPopulated;
 
-    @Inject(method = "getBlockLightValue",
-            at = @At("HEAD"),
-            require = 1)
-    private void processLightUpdatesOnSubtract(int subChunkPosX,
-                                               int posY,
-                                               int subChunkPosZ,
-                                               int subtract,
-                                               CallbackInfoReturnable<Integer> cir) {
-        LightingHooks.processLightUpdates(thiz());
-    }
 
     @Inject(method = "onChunkLoad",
             at = @At("RETURN"),
