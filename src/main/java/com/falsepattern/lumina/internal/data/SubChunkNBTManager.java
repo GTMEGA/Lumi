@@ -29,12 +29,13 @@ import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.internal.Tags;
 import lombok.NoArgsConstructor;
 import lombok.val;
+import lombok.var;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.apache.logging.log4j.Logger;
 
-import static com.falsepattern.lumina.api.LumiAPI.lumiWorldsFromBaseWorld;
+import static com.falsepattern.lumina.api.world.LumiWorldProvider.WORLD_PROVIDER_VERSION_NBT_TAG_NAME;
 import static com.falsepattern.lumina.internal.LUMINA.createLogger;
 import static com.falsepattern.lumina.internal.world.WorldProviderManager.worldProviderManager;
 import static lombok.AccessLevel.PRIVATE;
@@ -42,8 +43,6 @@ import static lombok.AccessLevel.PRIVATE;
 @NoArgsConstructor(access = PRIVATE)
 public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTDataManager {
     private static final Logger LOG = createLogger("Sub Chunk NBT Manager");
-
-    private static final String VERSION_NBT_TAG_NAME = Tags.MOD_ID + "_version";
 
     private static final SubChunkNBTManager INSTANCE = new SubChunkNBTManager();
 
@@ -75,10 +74,15 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
     @Override
     public void writeSectionToNBT(Chunk chunkBase, ExtendedBlockStorage subChunkBase, NBTTagCompound output) {
         val worldBase = chunkBase.worldObj;
-
-        val versionHashCode = worldProviderManager().versionHashCode();
-        output.setInteger(VERSION_NBT_TAG_NAME, versionHashCode);
-        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+        val worldProviderManager = worldProviderManager();
+        val worldProviderCount = worldProviderManager.worldProviderCount();
+        for (var providerInternalID = 0; providerInternalID < worldProviderCount; providerInternalID++) {
+            val worldProvider = worldProviderManager.getWorldProviderByInternalID(providerInternalID);
+            if (worldProvider == null)
+                continue;
+            val world = worldProvider.provideWorld(worldBase);
+            if (world == null)
+                continue;
             val subChunk = world.lumi$wrap(subChunkBase);
             val chunk = world.lumi$wrap(chunkBase);
             val lightingEngine = world.lumi$lightingEngine();
@@ -87,29 +91,40 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
             val worldTag = new NBTTagCompound();
             saveSubChunkData(subChunk, worldTag);
             saveLightingEngineData(chunk, subChunk, lightingEngine, worldTag);
+
+            val worldProviderVersion = worldProvider.worldProviderVersion();
+            worldTag.setString(WORLD_PROVIDER_VERSION_NBT_TAG_NAME, worldProviderVersion);
             output.setTag(worldTagName, worldTag);
         }
     }
 
     @Override
     public void readSectionFromNBT(Chunk chunkBase, ExtendedBlockStorage subChunkBase, NBTTagCompound input) {
-        val expectedVersionHashCode = worldProviderManager().versionHashCode();
-        val inputVersionHashCode = input.getInteger(VERSION_NBT_TAG_NAME);
-        if (inputVersionHashCode != expectedVersionHashCode)
-            return;
-
         val worldBase = chunkBase.worldObj;
-        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
-            val chunk = world.lumi$wrap(chunkBase);
-            val subChunk = world.lumi$wrap(subChunkBase);
-            val lightingEngine = world.lumi$lightingEngine();
+        val worldProviderManager = worldProviderManager();
+        val worldProviderCount = worldProviderManager.worldProviderCount();
+        for (var providerInternalID = 0; providerInternalID < worldProviderCount; providerInternalID++) {
+            val worldProvider = worldProviderManager.getWorldProviderByInternalID(providerInternalID);
+            if (worldProvider == null)
+                continue;
+            val world = worldProvider.provideWorld(worldBase);
+            if (world == null)
+                continue;
 
             val worldTagName = world.lumi$worldID();
             if (!input.hasKey(worldTagName, 10))
                 continue;
             val worldTag = input.getCompoundTag(worldTagName);
-            readSubChunkData(subChunk, worldTag);
-            readLightingEngineData(chunk, subChunk, lightingEngine, worldTag);
+
+            val worldProviderVersion = worldProvider.worldProviderVersion();
+            if (worldProviderVersion.equals(worldTag.getString(WORLD_PROVIDER_VERSION_NBT_TAG_NAME))) {
+                val chunk = world.lumi$wrap(chunkBase);
+                val subChunk = world.lumi$wrap(subChunkBase);
+                val lightingEngine = world.lumi$lightingEngine();
+
+                readSubChunkData(subChunk, worldTag);
+                readLightingEngineData(chunk, subChunk, lightingEngine, worldTag);
+            }
         }
     }
 

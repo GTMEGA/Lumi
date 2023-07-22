@@ -28,7 +28,6 @@ import com.falsepattern.lumina.api.world.LumiWorldWrapper;
 import com.falsepattern.lumina.internal.LumiDefaultValues;
 import com.falsepattern.lumina.internal.collection.WeakIdentityHashMap;
 import com.falsepattern.lumina.internal.event.EventPoster;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.val;
@@ -53,8 +52,6 @@ public final class WorldProviderManager implements LumiWorldProviderRegistry, Lu
 
     private final List<LumiWorldProvider> worldProviders = new ArrayList<>();
     private final Map<World, Iterable<LumiWorld>> providedWorlds = new WeakIdentityHashMap<>();
-    @Getter
-    private int versionHashCode = 1;
 
     private boolean isRegistered = false;
     private boolean isHijacked = false;
@@ -79,9 +76,6 @@ public final class WorldProviderManager implements LumiWorldProviderRegistry, Lu
 
         if (!isHijacked)
             LumiDefaultValues.registerDefaultWorldProvider(this);
-
-        for (val worldProvider : worldProviders)
-            versionHashCode = 31 * (versionHashCode + worldProvider.hashCode());
 
         isRegistered = true;
     }

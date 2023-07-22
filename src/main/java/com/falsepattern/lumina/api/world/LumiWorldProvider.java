@@ -27,6 +27,8 @@ import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public interface LumiWorldProvider {
+    static final String WORLD_PROVIDER_VERSION_NBT_TAG_NAME = "lumi_world_provider_version";
+
     @NotNull String worldProviderID();
 
     @NotNull String worldProviderVersion();
