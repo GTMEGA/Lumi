@@ -36,6 +36,7 @@ import org.apache.logging.log4j.Logger;
 
 import static com.falsepattern.lumina.api.LumiAPI.lumiWorldsFromBaseWorld;
 import static com.falsepattern.lumina.internal.LUMINA.createLogger;
+import static com.falsepattern.lumina.internal.world.WorldProviderManager.worldProviderManager;
 import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor(access = PRIVATE)
@@ -43,8 +44,6 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
     private static final Logger LOG = createLogger("Sub Chunk NBT Manager");
 
     private static final String VERSION_NBT_TAG_NAME = Tags.MOD_ID + "_version";
-
-    private static final String VERSION_NBT_TAG_VALUE = Tags.VERSION;
 
     private static final SubChunkNBTManager INSTANCE = new SubChunkNBTManager();
 
@@ -75,8 +74,10 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
 
     @Override
     public void writeSectionToNBT(Chunk chunkBase, ExtendedBlockStorage subChunkBase, NBTTagCompound output) {
-        output.setString(VERSION_NBT_TAG_NAME, VERSION_NBT_TAG_VALUE);
         val worldBase = chunkBase.worldObj;
+
+        val versionHashCode = worldProviderManager().versionHashCode();
+        output.setInteger(VERSION_NBT_TAG_NAME, versionHashCode);
         for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val subChunk = world.lumi$wrap(subChunkBase);
             val chunk = world.lumi$wrap(chunkBase);
@@ -92,8 +93,9 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
 
     @Override
     public void readSectionFromNBT(Chunk chunkBase, ExtendedBlockStorage subChunkBase, NBTTagCompound input) {
-        val version = input.getString(VERSION_NBT_TAG_NAME);
-        if (!VERSION_NBT_TAG_VALUE.equals(version))
+        val expectedVersionHashCode = worldProviderManager().versionHashCode();
+        val inputVersionHashCode = input.getInteger(VERSION_NBT_TAG_NAME);
+        if (inputVersionHashCode != expectedVersionHashCode)
             return;
 
         val worldBase = chunkBase.worldObj;

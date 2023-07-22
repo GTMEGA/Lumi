@@ -23,6 +23,7 @@ package com.falsepattern.lumina.internal.world;
 
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldProvider;
+import com.falsepattern.lumina.internal.Tags;
 import lombok.NoArgsConstructor;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
@@ -41,6 +42,11 @@ public final class DefaultWorldProvider implements LumiWorldProvider {
     @Override
     public @NotNull String worldProviderID() {
         return "lumi_world_provider";
+    }
+
+    @Override
+    public @NotNull String worldProviderVersion() {
+        return Tags.VERSION;
     }
 
     @Override

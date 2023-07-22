@@ -34,7 +34,7 @@ import org.apache.logging.log4j.Logger;
 import static com.falsepattern.lumina.api.LumiAPI.lumiWorldsFromBaseWorld;
 import static com.falsepattern.lumina.internal.LUMINA.createLogger;
 import static com.falsepattern.lumina.internal.Tags.MOD_ID;
-import static com.falsepattern.lumina.internal.Tags.VERSION;
+import static com.falsepattern.lumina.internal.world.WorldProviderManager.worldProviderManager;
 import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor(access = PRIVATE)
@@ -44,7 +44,6 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
     private static final ChunkNBTManager INSTANCE = new ChunkNBTManager();
 
     private static final String VERSION_NBT_TAG_NAME = MOD_ID + "_version";
-    private static final String VERSION_NBT_TAG_VALUE = VERSION;
 
     private boolean isRegistered = false;
 
@@ -73,7 +72,9 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
 
     @Override
     public void writeChunkToNBT(Chunk chunkBase, NBTTagCompound output) {
-        output.setString(VERSION_NBT_TAG_NAME, VERSION_NBT_TAG_VALUE);
+        val versionHashCode = worldProviderManager().versionHashCode();
+        output.setInteger(VERSION_NBT_TAG_NAME, versionHashCode);
+
         val worldBase = chunkBase.worldObj;
         for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val chunk = world.lumi$wrap(chunkBase);
@@ -89,8 +90,9 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
 
     @Override
     public void readChunkFromNBT(Chunk chunkBase, NBTTagCompound input) {
-        val version = input.getString(VERSION_NBT_TAG_NAME);
-        if (!VERSION_NBT_TAG_VALUE.equals(version)) {
+        val expectedVersionHashCode = worldProviderManager().versionHashCode();
+        val inputVersionHashCode = input.getInteger(VERSION_NBT_TAG_NAME);
+        if (inputVersionHashCode != expectedVersionHashCode) {
             forceUpdateChunkLighting(chunkBase);
             return;
         }

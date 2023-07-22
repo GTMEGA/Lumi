@@ -28,7 +28,9 @@ import com.falsepattern.lumina.api.world.LumiWorldWrapper;
 import com.falsepattern.lumina.internal.LumiDefaultValues;
 import com.falsepattern.lumina.internal.collection.WeakIdentityHashMap;
 import com.falsepattern.lumina.internal.event.EventPoster;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 import lombok.val;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.Logger;
@@ -42,6 +44,7 @@ import java.util.stream.Collectors;
 import static com.falsepattern.lumina.internal.LUMINA.createLogger;
 import static lombok.AccessLevel.PRIVATE;
 
+@Accessors(fluent = true, chain = false)
 @NoArgsConstructor(access = PRIVATE)
 public final class WorldProviderManager implements LumiWorldProviderRegistry, LumiWorldWrapper {
     private static final Logger LOG = createLogger("World Provider Manager");
@@ -50,6 +53,9 @@ public final class WorldProviderManager implements LumiWorldProviderRegistry, Lu
 
     private final List<LumiWorldProvider> worldProviders = new ArrayList<>();
     private final Map<World, Iterable<LumiWorld>> providedWorlds = new WeakIdentityHashMap<>();
+    @Getter
+    private int versionHashCode = 1;
+
     private boolean isRegistered = false;
     private boolean isHijacked = false;
     private @Nullable String hijackingMod = null;
@@ -73,6 +79,9 @@ public final class WorldProviderManager implements LumiWorldProviderRegistry, Lu
 
         if (!isHijacked)
             LumiDefaultValues.registerDefaultWorldProvider(this);
+
+        for (val worldProvider : worldProviders)
+            versionHashCode = 31 * (versionHashCode + worldProvider.hashCode());
 
         isRegistered = true;
     }
