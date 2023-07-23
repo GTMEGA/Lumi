@@ -50,8 +50,10 @@ public abstract class LumiWorldBaseInitImplMixin implements LumiWorldBaseInit {
                                 "theProfiler:Lnet/minecraft/profiler/Profiler;"),
               require = 1)
     private void lumiWorldBaseInit(World thiz, Profiler profiler) {
-        this.theProfiler = profiler;
-        lumi$worldBaseInit();
+        if (profiler != null) {
+            this.theProfiler = profiler;
+            lumi$worldBaseInit();
+        }
     }
 
     @Override
