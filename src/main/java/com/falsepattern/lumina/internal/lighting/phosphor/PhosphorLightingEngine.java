@@ -422,7 +422,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     @Override
     public void handleChunkLoad(@NotNull LumiChunk chunk) {
-        PhosphorUtil.scheduleRelightChecksForChunkBoundaries(world, chunk);
+        scheduleRelightChecksForChunkBoundaries(world, chunk);
     }
 
     @Override
@@ -509,7 +509,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                 worldRoot.lumi$scheduleLightingUpdate(posX, posY, posZ);
                 break;
             }
-
+            chunk.lumi$queuedRandomLightUpdates(queuedRandomLightUpdates);
         }
     }
 
