@@ -509,8 +509,8 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                 worldRoot.lumi$scheduleLightingUpdate(posX, posY, posZ);
                 break;
             }
-            chunk.lumi$queuedRandomLightUpdates(queuedRandomLightUpdates);
         }
+        chunk.lumi$queuedRandomLightUpdates(queuedRandomLightUpdates);
     }
 
     @Override
