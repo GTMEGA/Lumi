@@ -32,8 +32,10 @@ import lombok.val;
 import net.minecraft.profiler.Profiler;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.falsepattern.lumina.internal.LUMINA.createLogger;
+import static com.falsepattern.lumina.internal.lighting.NullLightingEngine.nullLightingEngine;
 import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor(access = PRIVATE)
@@ -42,7 +44,7 @@ public final class LightingEngineManager implements LumiLightingEngineRegistry, 
 
     private static final LightingEngineManager INSTANCE = new LightingEngineManager();
 
-    private LumiLightingEngineProvider delegate;
+    private @Nullable LumiLightingEngineProvider delegate;
 
     private boolean isRegistered = false;
 
@@ -104,11 +106,15 @@ public final class LightingEngineManager implements LumiLightingEngineRegistry, 
 
     @Override
     public @NotNull String lightingEngineProviderID() {
-        return delegate.lightingEngineProviderID();
+        if (delegate != null)
+            return delegate.lightingEngineProviderID();
+        return nullLightingEngine().lightingEngineID();
     }
 
     @Override
     public @NotNull LumiLightingEngine provideLightingEngine(@NotNull LumiWorld world, @NotNull Profiler profiler) {
-        return delegate.provideLightingEngine(world, profiler);
+        if (delegate != null)
+            return delegate.provideLightingEngine(world, profiler);
+        return nullLightingEngine();
     }
 }
