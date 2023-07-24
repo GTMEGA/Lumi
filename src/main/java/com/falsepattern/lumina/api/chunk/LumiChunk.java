@@ -103,7 +103,9 @@ public interface LumiChunk {
 
     int lumi$minSkyLightHeight();
 
-    void lumi$resetSkyLightHeightMap();
+    void lumi$isSkyLightHeightMapValid(boolean isSkyLightHeightMapValid);
+
+    boolean lumi$isSkyLightHeightMapValid();
 
     void lumi$isHeightOutdated(int subChunkPosX, int subChunkPosZ, boolean isHeightOutdated);
 
@@ -111,9 +113,7 @@ public interface LumiChunk {
 
     void lumi$resetOutdatedHeightFlags();
 
-    void lumi$isLightingInitialized(boolean isLightingInitialized);
+    void lumi$isFullyLit(boolean isFullyLit);
 
-    boolean lumi$isLightingInitialized();
-
-    void lumi$resetLighting();
+    boolean lumi$isFullyLit();
 }

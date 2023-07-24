@@ -72,7 +72,8 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
 
     private LumiChunkRoot lumi$root;
     private LumiWorld lumi$world;
-    private boolean lumi$isLightingInitialized;
+    private boolean lumi$isSkyLightHeightMapValid;
+    private boolean lumi$isFullyLit;
 
     @Inject(method = LUMI_CHUNK_BASE_INIT_METHOD_REFERENCE,
             at = @At("RETURN"),
@@ -83,7 +84,8 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     private void lumiChunkInit(CallbackInfo ci) {
         this.lumi$root = (LumiChunkRoot) this;
         this.lumi$world = (LumiWorld) worldObj;
-        this.lumi$isLightingInitialized = false;
+        this.lumi$isSkyLightHeightMapValid = false;
+        this.lumi$isFullyLit = false;
     }
 
     @Override
@@ -104,12 +106,12 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     @Override
     public void lumi$writeToNBT(@NotNull NBTTagCompound output) {
         output.setIntArray(SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME, heightMap);
-        output.setBoolean(IS_LIGHT_INITIALIZED_NBT_TAG_NAME, lumi$isLightingInitialized);
+        output.setBoolean(IS_LIGHT_INITIALIZED_NBT_TAG_NAME, lumi$isFullyLit);
     }
 
     @Override
     public void lumi$readFromNBT(@NotNull NBTTagCompound input) {
-        lumi$isLightingInitialized = false;
+        lumi$isFullyLit = false;
         skyLightHeightMapValidCheck:
         {
             if (!input.hasKey(IS_LIGHT_INITIALIZED_NBT_TAG_NAME, 1))
@@ -125,9 +127,9 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
                 break skyLightHeightMapValidCheck;
 
             System.arraycopy(skyLightHeightMapInput, 0, heightMap, 0, HEIGHT_MAP_ARRAY_SIZE);
-            lumi$isLightingInitialized = true;
+            lumi$isFullyLit = true;
         }
-        if (!lumi$isLightingInitialized)
+        if (!lumi$isFullyLit)
             lumi$world.lumi$lightingEngine().handleChunkInit(this);
     }
 
@@ -137,7 +139,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
 
     @Override
     public void lumi$readFromPacket(@NotNull ByteBuffer input) {
-        lumi$isLightingInitialized = true;
+        lumi$isFullyLit = true;
     }
 
     @Override
@@ -380,9 +382,13 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public void lumi$resetSkyLightHeightMap() {
-        Arrays.fill(heightMap, Integer.MAX_VALUE);
-        heightMapMinimum = Integer.MAX_VALUE;
+    public void lumi$isSkyLightHeightMapValid(boolean isSkyLightHeightMapValid) {
+        lumi$isSkyLightHeightMapValid = isSkyLightHeightMapValid;
+    }
+
+    @Override
+    public boolean lumi$isSkyLightHeightMapValid() {
+        return lumi$isSkyLightHeightMapValid;
     }
 
     @Override
@@ -407,18 +413,12 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public void lumi$isLightingInitialized(boolean isLightingInitialized) {
-        this.lumi$isLightingInitialized = isLightingInitialized;
+    public void lumi$isFullyLit(boolean isFullyLit) {
+        lumi$isFullyLit = isFullyLit;
     }
 
     @Override
-    public boolean lumi$isLightingInitialized() {
-        return lumi$isLightingInitialized;
-    }
-
-    @Override
-    public void lumi$resetLighting() {
-        lumi$isLightingInitialized = false;
-        lumi$world.lumi$lightingEngine().handleChunkInit(this);
+    public boolean lumi$isFullyLit() {
+        return lumi$isFullyLit;
     }
 }

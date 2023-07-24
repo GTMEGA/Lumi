@@ -108,7 +108,9 @@ final class PhosphorUtil {
     }
 
     static boolean isChunkFullyLit(LumiWorld world, LumiChunk chunk, Profiler profiler) {
-        if (!chunk.lumi$isLightingInitialized())
+        if (!chunk.lumi$isSkyLightHeightMapValid())
+            generateChunkSkyLightMap(world, chunk, profiler);
+        if (!chunk.lumi$isFullyLit())
             initChunkLighting(world, chunk, profiler);
 
         for (int zOffset = -1; zOffset <= 1; ++zOffset) {
@@ -120,7 +122,7 @@ final class PhosphorUtil {
                 val chunkPosZ = chunk.lumi$chunkPosZ() + zOffset;
                 val chunkNeighbour = getLoadedChunk(world, chunkPosX, chunkPosZ);
 
-                if (chunkNeighbour == null || !chunkNeighbour.lumi$isLightingInitialized())
+                if (chunkNeighbour == null || !chunkNeighbour.lumi$isFullyLit())
                     return false;
             }
         }
@@ -520,6 +522,83 @@ final class PhosphorUtil {
                boundaryFacingBits;
     }
 
+    private static void generateChunkSkyLightMap(LumiWorld world, LumiChunk chunk, Profiler profiler) {
+        profiler.startSection("generateSkyLightMap");
+
+        val worldRoot = world.lumi$root();
+        val chunkRoot = chunk.lumi$root();
+
+        val hasSky = worldRoot.lumi$hasSky();
+
+        val basePosX = chunk.lumi$chunkPosX() << 4;
+        val basePosY = chunkRoot.lumi$topPreparedSubChunkBasePosY();
+        val basePosZ = chunk.lumi$chunkPosZ() << 4;
+
+        val maxPosY = basePosY + 15;
+
+        var minSkyLightHeight = Integer.MAX_VALUE;
+        for (int subChunkPosX = 0; subChunkPosX < 16; ++subChunkPosX) {
+            int subChunkPosZ = 0;
+            while (subChunkPosZ < 16) {
+                var skyLightHeight = maxPosY;
+
+                while (true) {
+                    if (skyLightHeight > 0) {
+                        val posY = skyLightHeight - 1;
+                        val blockOpacity = clampSkyLightOpacity(
+                                chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ));
+                        if (blockOpacity == MIN_SKY_LIGHT_OPACITY) {
+                            skyLightHeight--;
+                            continue;
+                        }
+
+                        chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ, skyLightHeight);
+                        minSkyLightHeight = Math.min(minSkyLightHeight, skyLightHeight);
+                    }
+
+                    if (hasSky) {
+                        var lightLevel = MAX_LIGHT_VALUE;
+                        skyLightHeight = (basePosY + 16) - 1;
+
+                        do {
+                            var blockOpacity = clampSkyLightOpacity(chunk.lumi$getBlockOpacity(subChunkPosX, skyLightHeight, subChunkPosZ));
+                            if (blockOpacity == MIN_SKY_LIGHT_OPACITY && lightLevel != MAX_LIGHT_VALUE)
+                                blockOpacity = 1;
+
+                            lightLevel -= blockOpacity;
+                            if (lightLevel > 0) {
+                                val chunkPosY = skyLightHeight / 16;
+                                val subChunkPosY = skyLightHeight & 15;
+
+                                val subChunk = chunk.lumi$getSubChunkIfPrepared(chunkPosY);
+                                if (subChunk != null) {
+                                    val posX = basePosX + subChunkPosX;
+                                    val posZ = basePosZ + subChunkPosZ;
+
+                                    subChunk.lumi$setSkyLightValue(subChunkPosX,
+                                                                   subChunkPosY,
+                                                                   subChunkPosZ,
+                                                                   lightLevel);
+                                    worldRoot.lumi$markBlockForRenderUpdate(posX, skyLightHeight, posZ);
+                                }
+                            }
+
+                            skyLightHeight--;
+                        }
+                        while (skyLightHeight > 0 && lightLevel > 0);
+                    }
+
+                    subChunkPosZ++;
+                    break;
+                }
+            }
+        }
+
+        chunk.lumi$minSkyLightHeight(minSkyLightHeight);
+        chunkRoot.lumi$markDirty();
+        profiler.endSection();
+    }
+
     private static void initChunkLighting(LumiWorld world, LumiChunk chunk, Profiler profiler) {
         val basePosX = chunk.lumi$chunkPosX() << 4;
         val basePosZ = chunk.lumi$chunkPosZ() << 4;
@@ -561,6 +640,6 @@ final class PhosphorUtil {
             doRecheckGaps(chunk, profiler);
         }
 
-        chunk.lumi$isLightingInitialized(true);
+        chunk.lumi$isFullyLit(true);
     }
 }
