@@ -523,8 +523,6 @@ final class PhosphorUtil {
     }
 
     private static void generateChunkSkyLightMap(LumiWorld world, LumiChunk chunk, Profiler profiler) {
-        profiler.startSection("generateSkyLightMap");
-
         val worldRoot = world.lumi$root();
         val chunkRoot = chunk.lumi$root();
 
@@ -537,6 +535,8 @@ final class PhosphorUtil {
         val maxPosY = basePosY + 15;
 
         var minSkyLightHeight = Integer.MAX_VALUE;
+
+        profiler.startSection("generateSkyLightMap");
         for (int subChunkPosX = 0; subChunkPosX < 16; ++subChunkPosX) {
             int subChunkPosZ = 0;
             while (subChunkPosZ < 16) {
@@ -593,10 +593,12 @@ final class PhosphorUtil {
                 }
             }
         }
+        profiler.endSection();
 
         chunk.lumi$minSkyLightHeight(minSkyLightHeight);
+        chunk.lumi$isSkyLightHeightMapValid(true);
+
         chunkRoot.lumi$markDirty();
-        profiler.endSection();
     }
 
     private static void initChunkLighting(LumiWorld world, LumiChunk chunk, Profiler profiler) {
