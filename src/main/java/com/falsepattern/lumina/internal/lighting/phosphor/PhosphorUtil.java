@@ -523,6 +523,7 @@ final class PhosphorUtil {
     }
 
     private static void generateChunkSkyLightMap(LumiWorld world, LumiChunk chunk, Profiler profiler) {
+        val lightingEngine = world.lumi$lightingEngine();
         val worldRoot = world.lumi$root();
         val chunkRoot = chunk.lumi$root();
 
@@ -599,6 +600,7 @@ final class PhosphorUtil {
         chunk.lumi$isSkyLightHeightMapValid(true);
 
         chunkRoot.lumi$markDirty();
+        lightingEngine.processLightingUpdatesForType(SKY_LIGHT_TYPE);
     }
 
     private static void initChunkLighting(LumiWorld world, LumiChunk chunk, Profiler profiler) {
