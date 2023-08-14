@@ -30,6 +30,7 @@ public final class Tags {
     public static final String VERSION = "GRADLETOKEN_VERSION";
 
     public static final String MINECRAFT_VERSION = "[1.7.10]";
-    public static final String DEPENDENCIES = "required-after:falsepatternlib@[0.11,);" +
-                                              "required-after:chunkapi@[0.3,)";
+    public static final String DEPENDENCIES = "required-after:chunkapi@[0.3.2,);" +
+                                              "required-after:falsepatternlib@[0.12.1,);" +
+                                              "required-after:gasstation";
 }

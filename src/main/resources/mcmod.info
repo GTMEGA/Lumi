@@ -2,10 +2,10 @@
   {
     "modid": "${modId}",
     "name": "${modName}",
-    "description": "The power of a thousand suns!",
+    "description": "Illuminate your world",
     "version": "${modVersion}",
     "mcversion": "${minecraftVersion}",
-    "url": "https://github.com/FalsePattern/LUMINA",
+    "url": "https://github.com/GTMEGA/LUMINA",
     "updateUrl": "",
     "authorList": [
       "FalsePattern",
@@ -14,6 +14,10 @@
     "credits": "Special thanks to: CaffeineMC for Phosphor, embeddedt for the backport inside ArchaicFix.",
     "logoFile": "",
     "screenshots": [],
-    "dependencies": []
+    "requiredMods": [
+      "chunkapi@[0.3.2,)",
+      "falsepatternlib@[0.12.1,)",
+      "gasstation"
+    ]
   }
 ]

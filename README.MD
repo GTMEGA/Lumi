@@ -1,22 +1,40 @@
 # LUMINA
-## Illuminate your world.
 
-![LGPLv3](https://www.gnu.org/graphics/lgplv3-with-text-154x68.png)
+<a rel="forthebadge" href="https://forthebadge.com"><img alt="YOU DIDN'T | ASK FOR THIS" style="height:40px" src="https://cdn.discordapp.com/attachments/648723216747069441/1140469225190854737/you-didnt-ask-for-this.svg" /></a>
+<a rel="forthebadge" href="https://forthebadge.com"><img alt="POWERED BY | BLACK MAGIC" style="height:40px" src="https://cdn.discordapp.com/attachments/648723216747069441/1140469225497055232/powered-by-black-magic.svg" /></a>
+<a rel="license" href="https://www.gnu.org/licenses/lgpl-3.0.en.html#license-text"><img alt="LGPLv3" style="height:40px" src="https://cdn.discordapp.com/attachments/648723216747069441/1140482016438141028/LGPLv3_Logo.svg" /></a>
 
-[![forthebadge](https://forthebadge.com/images/badges/ctrl-c-ctrl-v.svg)](https://forthebadge.com)
+A full replacement of the Minecraft lighting engine with an extendable API, shipping
+with [Phosphor](src/main/java/com/falsepattern/lumina/internal/lighting/phosphor/PhosphorLightingEngine.java) as a
+reference implementation.
 
-[![forthebadge](https://forthebadge.com/images/badges/you-didnt-ask-for-this.svg)](https://forthebadge.com)
+## Dependencies
 
-[![forthebadge](https://forthebadge.com/images/badges/powered-by-black-magic.svg)](https://forthebadge.com)
-
-
-A backport of the Phosphor lighting engine, extracted from ArchaicFix, and repurposed into an API/library for use in 
-other projects.
-
-Special thanks to @embeddedt for creating the original backport of Phosphor, this project is an attempt on turning said
-backport from an optimization into a fully-fledged library capable of standing on its own.
+- [ChunkAPI 0.3.2+](https://github.com/FalsePattern/ChunkAPI)
+- [FalsePatternLib 0.12.1+](https://github.com/FalsePattern/FalsePatternLib)
+- [GasStation 0.5.1+](https://github.com/FalsePattern/GasStation)
+  or [UniMixins 0.1.11+](https://github.com/LegacyModdingMC/UniMixins)
 
 ## Incompatibilities
-- ArchaicFix (fixable in config): Naturally, you will need to set `enablePhosphor` to `false` in the ArchaicFix config.
-- FastCraft (wontfix): That mod is highly obfuscated and at this point, obsolete, just use a combination of the open
-source 1.7.10 optimization mods.
+
+- [ArchaicFix](https://github.com/embeddedt/ArchaicFix): Config Change Needed
+  - As both mods replace the same parts of code, naturally you will need to set `enablePhosphor` to `false` in the
+    ArchaicFix config.
+
+- [FastCraft](https://www.curseforge.com/minecraft/mc-mods/fastcraft): Wont Fix
+  - FastCraft is highly obfuscated and at this point, obsolete.
+  - Just use
+    a [combination of the open source 1.7.10 optimization mods](https://gist.github.com/makamys/7cb74cd71d93a4332d2891db2624e17c#optimizationfix-mods).
+
+## Authors
+
+- [FalsePattern](https://github.com/FalsePattern)
+- [Ven](https://github.com/basdxz)
+
+## Credits
+
+- [embeddedt](https://github.com/embeddedt)
+  - The initial port
+    of [Phosphor into 1.7.10](https://github.com/embeddedt/ArchaicFix/blob/main/src/main/java/org/embeddedt/archaicfix/lighting/world/lighting/LightingEngine.java)
+- [CaffeineMC](https://github.com/CaffeineMC)
+  - Creating the original [Phosphor](https://github.com/CaffeineMC/phosphor-fabric)
