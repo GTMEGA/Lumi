@@ -8,6 +8,8 @@ A full replacement of the Minecraft lighting engine with an extendable API, ship
 with [Phosphor](src/main/java/com/falsepattern/lumina/internal/lighting/phosphor/PhosphorLightingEngine.java) as a
 reference implementation.
 
+[Join us on Discord](https://discord.gg/h7XAeCSfbT)
+
 ## Dependencies
 
 - [ChunkAPI 0.3.2+](https://github.com/FalsePattern/ChunkAPI)
