@@ -111,13 +111,6 @@ public abstract class ChunkMixin {
     private void recheckGaps(boolean onlyOne) {
     }
 
-    @Redirect(method = "func_150807_a(IIILnet/minecraft/block/Block;I)Z",
-              at = @At(value = "INVOKE",
-                       target = "Lnet/minecraft/world/chunk/Chunk;relightBlock(III)V"),
-              require = 2)
-    private void skipBlockRelight(Chunk thiz, int posX, int posY, int posZ) {
-    }
-
     @Redirect(method = "func_150807_a",
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;generateSkylightMap()V"),
