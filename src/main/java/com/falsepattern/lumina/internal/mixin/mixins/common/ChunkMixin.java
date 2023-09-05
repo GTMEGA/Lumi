@@ -72,7 +72,7 @@ public abstract class ChunkMixin {
      * @reason Blanking, this is not called anymore
      */
     @Overwrite
-    private void relightBlock(int subChunkPosX, int posY, int subChunkPosZ) {
+    public void relightBlock(int subChunkPosX, int posY, int subChunkPosZ) {
     }
 
     /**
