@@ -21,6 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.fastcraft;
 
+import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -28,7 +29,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.ChunkProviderServer;
 
-@SuppressWarnings({"MixinAnnotationTarget", "UnresolvedMixinReference", "InvalidInjectorMethodSignature"})
 @Mixin(ChunkProviderServer.class)
 public abstract class ChunkProviderServerMixin {
     @Redirect(method = "populate",
@@ -37,6 +37,7 @@ public abstract class ChunkProviderServerMixin {
                        remap = false),
               require = 0,
               expect = 0)
+    @Dynamic
     private void undoFastCraftHooks1(Chunk chunk) {
         chunk.func_150809_p();
     }

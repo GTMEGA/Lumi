@@ -21,6 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.fastcraft;
 
+import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -28,7 +29,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 import net.minecraft.world.World;
 
-@SuppressWarnings({"MixinAnnotationTarget", "UnresolvedMixinReference", "InvalidInjectorMethodSignature"})
 @Mixin(World.class)
 public abstract class WorldMixin {
     @Shadow public abstract boolean func_147451_t(int p_147451_1_, int p_147451_2_, int p_147451_3_);
@@ -39,12 +39,10 @@ public abstract class WorldMixin {
                        remap = false),
               require = 0,
               expect = 0)
+    @Dynamic
     private boolean undoFastCraftHooks1(World world, int x, int y, int z) {
         return this.func_147451_t(x, y, z);
     }
-
-    //setActivePlayerChunksAndCheckLight
-
 
     @Redirect(method = "setActivePlayerChunksAndCheckLight",
               at = @At(value = "INVOKE",
@@ -52,6 +50,7 @@ public abstract class WorldMixin {
                        remap = false),
               require = 0,
               expect = 0)
+    @Dynamic
     private boolean undoFastCraftHooks2(World world, int x, int y, int z) {
         return this.func_147451_t(x, y, z);
     }

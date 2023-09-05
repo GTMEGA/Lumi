@@ -21,13 +21,13 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.fastcraft;
 
+import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 import net.minecraft.world.chunk.Chunk;
 
-@SuppressWarnings({"MixinAnnotationTarget", "UnresolvedMixinReference", "InvalidInjectorMethodSignature"})
 @Mixin(targets = "net.minecraft.server.management.PlayerManager$PlayerInstance")
 public abstract class PlayerManagerMixin {
     @Redirect(method = "removePlayer",
@@ -36,6 +36,7 @@ public abstract class PlayerManagerMixin {
                        remap = false),
               require = 0,
               expect = 0)
+    @Dynamic
     private boolean undoFastCraftHooks1(Chunk chunk) {
         return chunk.func_150802_k();
     }

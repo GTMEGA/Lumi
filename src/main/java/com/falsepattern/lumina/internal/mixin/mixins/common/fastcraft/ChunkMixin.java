@@ -21,6 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.fastcraft;
 
+import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -28,7 +29,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 import net.minecraft.world.chunk.Chunk;
 
-@SuppressWarnings({"MixinAnnotationTarget", "UnresolvedMixinReference", "InvalidInjectorMethodSignature"})
 @Mixin(Chunk.class)
 public abstract class ChunkMixin {
     @Shadow protected abstract void recheckGaps(boolean p_150803_1_);
@@ -41,6 +41,7 @@ public abstract class ChunkMixin {
                        remap = false),
               require = 0,
               expect = 0)
+    @Dynamic
     private void undoFastCraftHooks1(Chunk chunk, int x, int y, int z) {
 
     }
@@ -51,6 +52,7 @@ public abstract class ChunkMixin {
                        remap = false),
               require = 0,
               expect = 0)
+    @Dynamic
     private void undoFastCraftHooks2(Chunk chunk) {
         this.func_150809_p();
     }
@@ -61,6 +63,7 @@ public abstract class ChunkMixin {
                        remap = false),
               require = 0,
               expect = 0)
+    @Dynamic
     private void undoFastCraftHooks3(Chunk chunk, boolean isRemote) {
         this.recheckGaps(isRemote);
     }
@@ -72,6 +75,7 @@ public abstract class ChunkMixin {
                        remap = false),
               require = 0,
               expect = 0)
+    @Dynamic
     private void undoFastCraftHooks4(Chunk chunk, boolean isRemote) {
 
     }

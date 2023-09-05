@@ -21,6 +21,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.fastcraft;
 
+import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -28,7 +29,6 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.chunk.Chunk;
 
-@SuppressWarnings({"MixinAnnotationTarget", "UnresolvedMixinReference", "InvalidInjectorMethodSignature"})
 @Mixin(EntityPlayerMP.class)
 public abstract class EntityPlayerMPMixin {
     @Redirect(method = "onUpdate",
@@ -37,6 +37,7 @@ public abstract class EntityPlayerMPMixin {
                        remap = false),
               require = 0,
               expect = 0)
+    @Dynamic
     private boolean undoFastCraftHooks1(Chunk chunk) {
         return chunk.func_150802_k();
     }
