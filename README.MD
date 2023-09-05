@@ -23,11 +23,6 @@ reference implementation.
   - As both mods replace the same parts of code, naturally you will need to set `enablePhosphor` to `false` in the
     ArchaicFix config.
 
-- [FastCraft](https://www.curseforge.com/minecraft/mc-mods/fastcraft): Wont Fix
-  - FastCraft is highly obfuscated and at this point, obsolete.
-  - Just use
-    a [combination of the open source 1.7.10 optimization mods](https://gist.github.com/makamys/7cb74cd71d93a4332d2891db2624e17c#optimizationfix-mods).
-
 ## Authors
 
 - [FalsePattern](https://github.com/FalsePattern)

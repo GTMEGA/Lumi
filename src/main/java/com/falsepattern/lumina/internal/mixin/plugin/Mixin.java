@@ -31,9 +31,11 @@ import java.util.function.Predicate;
 
 import static com.falsepattern.lib.mixin.IMixin.PredicateHelpers.always;
 import static com.falsepattern.lib.mixin.IMixin.PredicateHelpers.avoid;
+import static com.falsepattern.lib.mixin.IMixin.PredicateHelpers.require;
 import static com.falsepattern.lib.mixin.IMixin.Side.CLIENT;
 import static com.falsepattern.lib.mixin.IMixin.Side.COMMON;
 import static com.falsepattern.lumina.internal.mixin.plugin.TargetedMod.ARCHAIC_FIX;
+import static com.falsepattern.lumina.internal.mixin.plugin.TargetedMod.FASTCRAFT;
 
 @RequiredArgsConstructor
 public enum Mixin implements IMixin {
@@ -79,6 +81,15 @@ public enum Mixin implements IMixin {
     // region Phosphor Implementation
     client_phosphor_PhosphorChunkImplMixin(COMMON, always(), "phosphor.PhosphorChunkImplMixin"),
     // endregion
+
+    //region FastCraft Compat
+    common_fastcraft_ChunkMixin(COMMON, require(FASTCRAFT), "ChunkMixin"),
+    common_fastcraft_ChunkProviderServerMixin(COMMON, require(FASTCRAFT), "ChunkProviderServerMixin"),
+    common_fastcraft_EntityPlayerMPMixin(COMMON, require(FASTCRAFT), "EntityPlayerMPMixin"),
+    common_fastcraft_PlayerManagerMixin(COMMON, require(FASTCRAFT), "PlayerManagerMixin"),
+    common_fastcraft_WorldMixin(COMMON, require(FASTCRAFT), "WorldMixin"),
+    //endregion FastCraft Compat
+
     ;
 
     @Getter

@@ -32,6 +32,7 @@ import static com.falsepattern.lib.mixin.ITargetedMod.PredicateHelpers.startsWit
 @RequiredArgsConstructor
 public enum TargetedMod implements ITargetedMod {
     ARCHAIC_FIX("ArchaicFix", false, startsWith("archaicfix-")),
+    FASTCRAFT("FastCraft", false, startsWith("fastcraft")),
     ;
 
     @Getter
