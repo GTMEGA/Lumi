@@ -34,14 +34,11 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import java.util.Arrays;
 
 import static com.falsepattern.lumina.api.LumiAPI.lumiWorldsFromBaseWorld;
-import static com.falsepattern.lumina.internal.world.WorldProviderManager.worldProviderManager;
 import static cpw.mods.fml.relauncher.Side.CLIENT;
 
 @UtilityClass
 public final class LightingHooks {
     private static final int DEFAULT_PRECIPITATION_HEIGHT = -999;
-
-    private static int NEXT_RANDOM_CHUNK_UPDATE_WORLD_PROVIDER = 0;
 
     public static int getCurrentLightValue(Chunk chunkBase,
                                            EnumSkyBlock baseLightType,
@@ -150,28 +147,10 @@ public final class LightingHooks {
     public static void doRandomChunkLightingUpdates(Chunk chunkBase) {
         val worldBase = chunkBase.worldObj;
 
-        val worldProviderManager = worldProviderManager();
-        val internalWorldProviderID = NEXT_RANDOM_CHUNK_UPDATE_WORLD_PROVIDER;
-
-        worldProviderCheck:
-        {
-            val worldProvider = worldProviderManager.getWorldProviderByInternalID(internalWorldProviderID);
-            if (worldProvider == null)
-                break worldProviderCheck;
-            val world = worldProvider.provideWorld(worldBase);
-            if (world == null)
-                break worldProviderCheck;
-
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
             val chunk = world.lumi$wrap(chunkBase);
             val lightingEngine = world.lumi$lightingEngine();
             lightingEngine.doRandomChunkLightingUpdates(chunk);
-        }
-
-        val worldProviderCount = worldProviderManager.worldProviderCount();
-        if (NEXT_RANDOM_CHUNK_UPDATE_WORLD_PROVIDER + 1 < worldProviderCount) {
-            NEXT_RANDOM_CHUNK_UPDATE_WORLD_PROVIDER++;
-        } else {
-            NEXT_RANDOM_CHUNK_UPDATE_WORLD_PROVIDER = 0;
         }
     }
 
