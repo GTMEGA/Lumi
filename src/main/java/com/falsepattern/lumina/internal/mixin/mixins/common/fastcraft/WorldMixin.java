@@ -28,6 +28,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 
 @Mixin(World.class)
 public abstract class WorldMixin {
@@ -41,7 +42,7 @@ public abstract class WorldMixin {
               expect = 0)
     @Dynamic
     private boolean undoFastCraftHooks1(World world, int x, int y, int z) {
-        return this.func_147451_t(x, y, z);
+        return world.func_147451_t(x, y, z);
     }
 
     @Redirect(method = "setActivePlayerChunksAndCheckLight",
@@ -52,6 +53,29 @@ public abstract class WorldMixin {
               expect = 0)
     @Dynamic
     private boolean undoFastCraftHooks2(World world, int x, int y, int z) {
-        return this.func_147451_t(x, y, z);
+        return world.func_147451_t(x, y, z);
+    }
+
+    @Redirect(method = "markAndNotifyBlock",
+              at = @At(value = "INVOKE",
+                       target = "Lfastcraft/H;w(Lnet/minecraft/world/chunk/Chunk;)Z",
+                       remap = false),
+              remap = false,
+              require = 0,
+              expect = 0)
+    @Dynamic
+    private boolean undoFastCraftHooks3(Chunk chunk) {
+        return chunk.func_150802_k();
+    }
+
+    @Redirect(method = "setBlockMetadataWithNotify",
+              at = @At(value = "INVOKE",
+                       target = "Lfastcraft/H;w(Lnet/minecraft/world/chunk/Chunk;)Z",
+                       remap = false),
+              require = 0,
+              expect = 0)
+    @Dynamic
+    private boolean undoFastCraftHooks4(Chunk chunk) {
+        return chunk.func_150802_k();
     }
 }

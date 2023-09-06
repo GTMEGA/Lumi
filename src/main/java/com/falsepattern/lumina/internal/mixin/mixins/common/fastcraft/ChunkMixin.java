@@ -27,6 +27,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 
 @Mixin(Chunk.class)
@@ -78,5 +79,16 @@ public abstract class ChunkMixin {
     @Dynamic
     private void undoFastCraftHooks4(Chunk chunk, boolean isRemote) {
 
+    }
+
+    @Redirect(method = "func_150811_f",
+              at = @At(value = "INVOKE",
+                       target = "Lfastcraft/H;d(Lnet/minecraft/world/World;III)Z",
+                       remap = false),
+              require = 0,
+              expect = 0)
+    @Dynamic
+    private boolean undoFastCraftHooks5(World world, int x, int y, int z) {
+        return world.func_147451_t(x, y, z);
     }
 }
