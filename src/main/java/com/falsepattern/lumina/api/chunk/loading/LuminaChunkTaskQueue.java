@@ -19,8 +19,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.internal.mixin.interfaces;
+package com.falsepattern.lumina.api.chunk.loading;
 
+import net.minecraft.world.chunk.Chunk;
+
+/**
+ * DO NOT IMPLEMENT.
+ * <p>
+ * This is implemented on {@link Chunk} with a mixin.
+ * You can cast any chunk instance to this interface.
+ * Also see {@link LumiChunkHelper}.
+ */
 public interface LuminaChunkTaskQueue {
     void lumina$addTask(Runnable task);
 

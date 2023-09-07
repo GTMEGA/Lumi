@@ -22,7 +22,7 @@
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
 import com.falsepattern.lumina.internal.mixin.hook.LightingHooks;
-import com.falsepattern.lumina.internal.mixin.interfaces.LuminaChunkTaskQueue;
+import com.falsepattern.lumina.api.chunk.loading.LuminaChunkTaskQueue;
 import lombok.val;
 import net.minecraft.block.Block;
 import net.minecraft.world.EnumSkyBlock;
