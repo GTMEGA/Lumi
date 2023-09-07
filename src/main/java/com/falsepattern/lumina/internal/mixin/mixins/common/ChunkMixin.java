@@ -22,6 +22,7 @@
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
 import com.falsepattern.lumina.internal.mixin.hook.LightingHooks;
+import com.falsepattern.lumina.internal.mixin.interfaces.LuminaChunkTaskQueue;
 import lombok.val;
 import net.minecraft.block.Block;
 import net.minecraft.world.EnumSkyBlock;
@@ -31,6 +32,7 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
@@ -38,8 +40,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Mixin(Chunk.class)
-public abstract class ChunkMixin {
+public abstract class ChunkMixin implements LuminaChunkTaskQueue {
     @Shadow
     public boolean isTerrainPopulated;
     @Shadow
@@ -194,5 +199,36 @@ public abstract class ChunkMixin {
 
     private Chunk thiz() {
         return (Chunk) (Object) this;
+    }
+
+    @Unique
+    private List<Runnable> lumina$taskQueue;
+
+    @Override
+    public void lumina$addTask(Runnable task) {
+        if (lumina$taskQueue == null) {
+            lumina$taskQueue = new ArrayList<>();
+        }
+        lumina$taskQueue.add(task);
+    }
+
+    @Override
+    public void lumina$executeTasks() {
+        if (lumina$taskQueue == null)
+            return;
+
+        for (val task: lumina$taskQueue) {
+            task.run();
+        }
+        lumina$taskQueue.clear();
+    }
+
+    @Inject(method = "onChunkLoad",
+            at = @At(value = "INVOKE",
+                     target = "Lcpw/mods/fml/common/eventhandler/EventBus;post(Lcpw/mods/fml/common/eventhandler/Event;)Z",
+                     remap = false),
+            require = 1)
+    private void onLoad(CallbackInfo ci) {
+        this.lumina$executeTasks();
     }
 }

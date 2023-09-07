@@ -25,6 +25,7 @@ import com.falsepattern.chunk.api.ChunkDataManager;
 import com.falsepattern.chunk.api.ChunkDataRegistry;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
+import com.falsepattern.lumina.internal.mixin.interfaces.LuminaChunkTaskQueue;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import lombok.var;
@@ -116,13 +117,28 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
             val worldTag = input.getCompoundTag(worldTagName);
             val worldProviderVersion = worldProvider.worldProviderVersion();
             if (!worldProviderVersion.equals(worldTag.getString(WORLD_PROVIDER_VERSION_NBT_TAG_NAME))) {
-                lightingEngine.handleChunkInit(chunk);
+                deferredInit(chunkBase, providerInternalID);
                 continue;
             }
 
             readChunkData(chunk, worldTag);
             readLightingEngineData(chunk, lightingEngine, worldTag);
         }
+    }
+
+    private static void deferredInit(Chunk chunkBase, int providerInternalID) {
+        ((LuminaChunkTaskQueue)chunkBase).lumina$addTask(() -> {
+            val worldProviderManager = worldProviderManager();
+            val worldProvider = worldProviderManager.getWorldProviderByInternalID(providerInternalID);
+            if (worldProvider == null)
+                return;
+            val world = worldProvider.provideWorld(chunkBase.worldObj);
+            if (world == null)
+                return;
+            val lightingEngine = world.lumi$lightingEngine();
+            val chunk = world.lumi$wrap(chunkBase);
+            lightingEngine.handleChunkInit(chunk);
+        });
     }
 
     private static void writeLightingEngineData(LumiChunk chunk,
