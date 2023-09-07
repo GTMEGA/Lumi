@@ -21,10 +21,10 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
+import com.falsepattern.lumina.api.LumiChunkAPI;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
-import com.falsepattern.lumina.api.chunk.loading.LumiChunkHelper;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import lombok.val;
@@ -129,7 +129,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
             lumi$isLightingInitialized = true;
         }
         if (!lumi$isLightingInitialized)
-            LumiChunkHelper.scheduleLightingEngineReinitialization(this, lumi$world.lumi$lightingEngine());
+            LumiChunkAPI.scheduleChunkLightingEngineInit(this);
     }
 
     @Override

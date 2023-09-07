@@ -19,19 +19,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api.chunk.loading;
+package com.falsepattern.lumina.api;
 
-import net.minecraft.world.chunk.Chunk;
+import com.falsepattern.lumina.api.chunk.LumiChunk;
+import com.falsepattern.lumina.api.init.LumiChunkInitTaskQueue;
+import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
+import lombok.val;
 
-/**
- * DO NOT IMPLEMENT.
- * <p>
- * This is implemented on {@link Chunk} with a mixin.
- * You can cast any chunk instance to this interface.
- * Also see {@link LumiChunkHelper}.
- */
-public interface LuminaChunkTaskQueue {
-    void lumina$addTask(Runnable task);
+public final class LumiChunkAPI {
+    /**
+     * Use this in places where you would need to call {@link LumiLightingEngine#handleChunkInit} otherwise.
+     * NOTE: <b>ONLY USE WHEN LOADING CHUNK FROM NBT!</b>
+     */
+    public static void scheduleChunkLightingEngineInit(LumiChunk chunk) {
+        scheduleChunkInitTask(chunk, () -> chunk.lumi$world().lumi$lightingEngine().handleChunkInit(chunk));
+    }
 
-    void lumina$executeTasks();
+    public static void scheduleChunkInitTask(LumiChunk chunk, Runnable task) {
+        val chunkInitTaskQueue = (LumiChunkInitTaskQueue) chunk.lumi$root();
+        chunkInitTaskQueue.lumi$addInitTask(task);
+    }
 }
