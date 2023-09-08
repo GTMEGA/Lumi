@@ -41,4 +41,16 @@ public abstract class EntityPlayerMPMixin {
     private boolean undoFastCraftHooks1(Chunk chunk) {
         return chunk.func_150802_k();
     }
+
+    @Redirect(method = "localOnUpdate",
+              at = @At(value = "INVOKE",
+                       target = "Lfastcraft/H;w(Lnet/minecraft/world/chunk/Chunk;)Z",
+                       remap = false),
+              remap = false,
+              require = 0,
+              expect = 0)
+    @Dynamic
+    private boolean undoFastCraftHooks2(Chunk chunk) {
+        return chunk.func_150802_k();
+    }
 }
