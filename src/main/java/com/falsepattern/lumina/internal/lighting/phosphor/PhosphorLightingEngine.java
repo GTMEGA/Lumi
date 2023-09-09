@@ -29,6 +29,8 @@ import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import cpw.mods.fml.relauncher.SideOnly;
+import gnu.trove.set.TLongSet;
+import gnu.trove.set.hash.TLongHashSet;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import lombok.var;
@@ -57,7 +59,8 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     private static final boolean ENABLE_ILLEGAL_THREAD_ACCESS_WARNINGS = true;
 
-    private static final int LIGHT_VALUE_TYPES_COUNT = values().length;
+    @SuppressWarnings("UnnecessarilyQualifiedStaticallyImportedElement")
+    private static final int LIGHT_VALUE_TYPES_COUNT = LightType.values().length;
 
     /**
      * Maximum scheduled lighting updates before processing the updates is forced.
@@ -178,6 +181,8 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     private @Nullable PooledLongQueue.LongQueueIterator queueIterator;
 
+    private final TLongSet[] scheduledPositionSets;
+
     private final BlockPos.MutableBlockPos cursorBlockPos;
     private @Nullable LumiChunk cursorChunk;
     private long cursorChunkPosLong;
@@ -197,15 +202,20 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         this.updateQueues = new PooledLongQueue[LIGHT_VALUE_TYPES_COUNT];
         for (var i = 0; i < LIGHT_VALUE_TYPES_COUNT; i++)
             this.updateQueues[i] = queuePool.createQueue();
-        this.darkeningQueues = new PooledLongQueue[LIGHT_VALUE_RANGE];
         this.brighteningQueues = new PooledLongQueue[LIGHT_VALUE_RANGE];
         for (var i = 0; i < LIGHT_VALUE_RANGE; i++)
             this.brighteningQueues[i] = queuePool.createQueue();
+        this.darkeningQueues = new PooledLongQueue[LIGHT_VALUE_RANGE];
         for (var i = 0; i < LIGHT_VALUE_RANGE; i++)
             this.darkeningQueues[i] = queuePool.createQueue();
         this.initialBrighteningQueue = queuePool.createQueue();
         this.initialDarkeningQueue = queuePool.createQueue();
+
         this.queueIterator = null;
+
+        this.scheduledPositionSets = new TLongSet[LIGHT_VALUE_TYPES_COUNT];
+        for (var i = 0; i < LIGHT_VALUE_TYPES_COUNT; i++)
+            this.scheduledPositionSets[i] = new TLongHashSet();
 
         this.neighborBlocks = new NeighborBlock[NEIGHBOUR_COUNT];
         for (var i = 0; i < NEIGHBOUR_COUNT; i++)
@@ -227,12 +237,12 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     @Override
     public void writeChunkToNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound output) {
-        PhosphorUtil.writeNeighborLightChecksToNBT(chunk, output);
+        writeNeighborLightChecksToNBT(chunk, output);
     }
 
     @Override
     public void readChunkFromNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound input) {
-        PhosphorUtil.readNeighborLightChecksFromNBT(chunk, input);
+        readNeighborLightChecksFromNBT(chunk, input);
     }
 
     @Override
@@ -548,13 +558,13 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ, minPosY);
 
         if (worldRoot.lumi$hasSky())
-            PhosphorUtil.relightSkyLightColumn(this,
-                                               world,
-                                               chunk,
-                                               subChunkPosX,
-                                               subChunkPosZ,
-                                               maxPosY,
-                                               minPosY);
+            relightSkyLightColumn(this,
+                                  world,
+                                  chunk,
+                                  subChunkPosX,
+                                  subChunkPosZ,
+                                  maxPosY,
+                                  minPosY);
 
         maxPosY = chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ);
         if (maxPosY < chunk.lumi$minSkyLightHeight())
@@ -681,6 +691,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         acquireLock();
         try {
             processLightUpdateQueue(lightType, queue);
+            scheduledPositionSets[lightType.ordinal()].clear();
         } finally {
             releaseLock();
         }
@@ -720,9 +731,14 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     private void scheduleLightingUpdate(LightType lightType, long posLong) {
+        val scheduledPositions = scheduledPositionSets[lightType.ordinal()];
+        if (scheduledPositions.contains(posLong))
+            return;
+        scheduledPositions.add(posLong);
+
         val queue = updateQueues[lightType.ordinal()];
         if (queue.size() >= MAX_SCHEDULED_UPDATES)
-            processLightingUpdatesForType(lightType);//TODO: World gen can cause this buffer to fill?
+            processLightingUpdatesForType(lightType);
 
         queue.add(posLong);
     }
