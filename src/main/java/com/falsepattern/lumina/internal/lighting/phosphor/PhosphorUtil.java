@@ -34,6 +34,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagShort;
 import net.minecraft.profiler.Profiler;
+import net.minecraft.world.chunk.EmptyChunk;
+
 import org.jetbrains.annotations.Nullable;
 
 import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
@@ -178,6 +180,9 @@ final class PhosphorUtil {
             return null;
 
         val chunkBase = provider.provideChunk(chunkPosX, chunkPosZ);
+        if (chunkBase instanceof EmptyChunk && world.lumi$root().lumi$isClientSide()) {
+            return null;
+        }
         return world.lumi$wrap(chunkBase);
     }
 
