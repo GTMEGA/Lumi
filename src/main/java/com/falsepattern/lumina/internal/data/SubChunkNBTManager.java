@@ -89,8 +89,8 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
 
             val worldTagName = world.lumi$worldID();
             val worldTag = new NBTTagCompound();
-            saveSubChunkData(subChunk, worldTag);
-            saveLightingEngineData(chunk, subChunk, lightingEngine, worldTag);
+            writeSubChunkData(subChunk, worldTag);
+            writeLightingEngineData(chunk, subChunk, lightingEngine, worldTag);
 
             val worldProviderVersion = worldProvider.worldProviderVersion();
             worldTag.setString(WORLD_PROVIDER_VERSION_NBT_TAG_NAME, worldProviderVersion);
@@ -110,35 +110,54 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
             val world = worldProvider.provideWorld(worldBase);
             if (world == null)
                 continue;
+            val chunk = world.lumi$wrap(chunkBase);
+            val subChunk = world.lumi$wrap(subChunkBase);
+            val lightingEngine = world.lumi$lightingEngine();
 
-            val worldTagName = world.lumi$worldID();
-            if (!input.hasKey(worldTagName, 10))
-                continue;
-            val worldTag = input.getCompoundTag(worldTagName);
+            tagCheck:
+            {
+                val worldTagName = world.lumi$worldID();
+                if (!input.hasKey(worldTagName, 10))
+                    break tagCheck;
+                val worldTag = input.getCompoundTag(worldTagName);
 
-            val worldProviderVersion = worldProvider.worldProviderVersion();
-            if (worldProviderVersion.equals(worldTag.getString(WORLD_PROVIDER_VERSION_NBT_TAG_NAME))) {
-                val chunk = world.lumi$wrap(chunkBase);
-                val subChunk = world.lumi$wrap(subChunkBase);
-                val lightingEngine = world.lumi$lightingEngine();
+                val worldProviderVersion = worldProvider.worldProviderVersion();
+                if (!worldProviderVersion.equals(worldTag.getString(WORLD_PROVIDER_VERSION_NBT_TAG_NAME)))
+                    break tagCheck;
 
                 readSubChunkData(subChunk, worldTag);
                 readLightingEngineData(chunk, subChunk, lightingEngine, worldTag);
+                continue;
             }
+
+            initSubChunkData(subChunk);
+            initLightingEngineData(chunk, subChunk, lightingEngine);
         }
     }
 
-    private static void saveSubChunkData(LumiSubChunk subChunk, NBTTagCompound output) {
+    private static void initSubChunkData(LumiSubChunk subChunk) {
+        val emptyTag = new NBTTagCompound();
+        subChunk.lumi$readFromNBT(emptyTag);
+    }
+
+    private static void initLightingEngineData(LumiChunk chunk,
+                                               LumiSubChunk subChunk,
+                                               LumiLightingEngine lightingEngine) {
+        val emptyTag = new NBTTagCompound();
+        lightingEngine.readSubChunkFromNBT(chunk, subChunk, emptyTag);
+    }
+
+    private static void writeSubChunkData(LumiSubChunk subChunk, NBTTagCompound output) {
         val subChunkTagName = subChunk.lumi$subChunkID();
         val subChunkTag = new NBTTagCompound();
         subChunk.lumi$writeToNBT(subChunkTag);
         output.setTag(subChunkTagName, subChunkTag);
     }
 
-    private static void saveLightingEngineData(LumiChunk chunk,
-                                               LumiSubChunk subChunk,
-                                               LumiLightingEngine lightingEngine,
-                                               NBTTagCompound worldTag) {
+    private static void writeLightingEngineData(LumiChunk chunk,
+                                                LumiSubChunk subChunk,
+                                                LumiLightingEngine lightingEngine,
+                                                NBTTagCompound worldTag) {
         val lightingEngineTagName = lightingEngine.lightingEngineID();
         val lightingEngineTag = new NBTTagCompound();
         lightingEngine.writeSubChunkToNBT(chunk, subChunk, lightingEngineTag);

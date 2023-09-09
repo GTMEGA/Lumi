@@ -23,7 +23,6 @@ package com.falsepattern.lumina.internal.data;
 
 import com.falsepattern.chunk.api.ChunkDataManager;
 import com.falsepattern.chunk.api.ChunkDataRegistry;
-import com.falsepattern.lumina.api.LumiChunkAPI;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import lombok.NoArgsConstructor;
@@ -108,22 +107,45 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
             val world = worldProvider.provideWorld(worldBase);
             if (world == null)
                 continue;
-            val worldTagName = world.lumi$worldID();
-            if (!input.hasKey(worldTagName, 10))
-                continue;
             val chunk = world.lumi$wrap(chunkBase);
             val lightingEngine = world.lumi$lightingEngine();
 
-            val worldTag = input.getCompoundTag(worldTagName);
-            val worldProviderVersion = worldProvider.worldProviderVersion();
-            if (!worldProviderVersion.equals(worldTag.getString(WORLD_PROVIDER_VERSION_NBT_TAG_NAME))) {
-                LumiChunkAPI.scheduleChunkLightingEngineInit(chunk);
+            tagCheck:
+            {
+                val worldTagName = world.lumi$worldID();
+                if (!input.hasKey(worldTagName, 10))
+                    break tagCheck;
+                val worldTag = input.getCompoundTag(worldTagName);
+
+                val worldProviderVersion = worldProvider.worldProviderVersion();
+                if (!worldProviderVersion.equals(worldTag.getString(WORLD_PROVIDER_VERSION_NBT_TAG_NAME)))
+                    break tagCheck;
+
+                readChunkData(chunk, worldTag);
+                readLightingEngineData(chunk, lightingEngine, worldTag);
                 continue;
             }
 
-            readChunkData(chunk, worldTag);
-            readLightingEngineData(chunk, lightingEngine, worldTag);
+            initChunkData(chunk);
+            initLightingEngineData(chunk, lightingEngine);
         }
+    }
+
+    private static void initChunkData(LumiChunk chunk) {
+        val emptyTag = new NBTTagCompound();
+        chunk.lumi$readFromNBT(emptyTag);
+    }
+
+    private static void initLightingEngineData(LumiChunk chunk, LumiLightingEngine lightingEngine) {
+        val emptyTag = new NBTTagCompound();
+        lightingEngine.readChunkFromNBT(chunk, emptyTag);
+    }
+
+    private static void writeChunkData(LumiChunk chunk, NBTTagCompound output) {
+        val chunkTagName = chunk.lumi$chunkID();
+        val chunkTag = new NBTTagCompound();
+        chunk.lumi$writeToNBT(chunkTag);
+        output.setTag(chunkTagName, chunkTag);
     }
 
     private static void writeLightingEngineData(LumiChunk chunk,
@@ -135,11 +157,12 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
         output.setTag(lightingEngineTagName, lightingEngineTag);
     }
 
-    private static void writeChunkData(LumiChunk chunk, NBTTagCompound output) {
+    private static void readChunkData(LumiChunk chunk, NBTTagCompound input) {
         val chunkTagName = chunk.lumi$chunkID();
-        val chunkTag = new NBTTagCompound();
-        chunk.lumi$writeToNBT(chunkTag);
-        output.setTag(chunkTagName, chunkTag);
+        if (input.hasKey(chunkTagName, 10)) {
+            val chunkTag = input.getCompoundTag(chunkTagName);
+            chunk.lumi$readFromNBT(chunkTag);
+        }
     }
 
     private static void readLightingEngineData(LumiChunk chunk,
@@ -149,14 +172,6 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
         if (input.hasKey(lightingEngineTagName, 10)) {
             val lightingEngineTag = input.getCompoundTag(lightingEngineTagName);
             lightingEngine.readChunkFromNBT(chunk, lightingEngineTag);
-        }
-    }
-
-    private static void readChunkData(LumiChunk chunk, NBTTagCompound input) {
-        val chunkTagName = chunk.lumi$chunkID();
-        if (input.hasKey(chunkTagName, 10)) {
-            val chunkTag = input.getCompoundTag(chunkTagName);
-            chunk.lumi$readFromNBT(chunkTag);
         }
     }
 }
