@@ -35,7 +35,6 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagShort;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.world.chunk.EmptyChunk;
-
 import org.jetbrains.annotations.Nullable;
 
 import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
@@ -200,8 +199,8 @@ final class PhosphorUtil {
             endPosY = maxPosY;
         }
 
-        val basePosX = (chunk.lumi$chunkPosX() * 16) + subChunkPosX;
-        val basePosZ = (chunk.lumi$chunkPosZ() * 16) + subChunkPosZ;
+        val basePosX = (chunk.lumi$chunkPosX() << 4) + subChunkPosX;
+        val basePosZ = (chunk.lumi$chunkPosZ() << 4) + subChunkPosZ;
 
         val minChunkPosY = startPosY / 16;
         val maxChunkPosY = endPosY / 16;
