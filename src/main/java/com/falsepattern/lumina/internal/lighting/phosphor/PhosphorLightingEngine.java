@@ -46,8 +46,7 @@ import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static com.falsepattern.lumina.api.chunk.LumiChunk.MAX_QUEUED_RANDOM_LIGHT_UPDATES;
-import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
-import static com.falsepattern.lumina.api.lighting.LightType.values;
+import static com.falsepattern.lumina.api.lighting.LightType.*;
 import static com.falsepattern.lumina.internal.LUMINA.createLogger;
 import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorUtil.*;
 import static cpw.mods.fml.relauncher.Side.CLIENT;
@@ -482,7 +481,9 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                     if (subChunkPosZ != 0 && subChunkPosZ != 15)
                         break notCornerCheck;
 
-                    worldRoot.lumi$scheduleLightingUpdate(posX, posY, posZ);
+                    scheduleLightingUpdate(BLOCK_LIGHT_TYPE, posX, posY, posZ);
+                    if (worldRoot.lumi$hasSky())
+                        scheduleLightingUpdate(SKY_LIGHT_TYPE, posX, posY, posZ);
                     continue;
                 }
 
@@ -506,7 +507,9 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                     break;
                 }
 
-                worldRoot.lumi$scheduleLightingUpdate(posX, posY, posZ);
+                scheduleLightingUpdate(BLOCK_LIGHT_TYPE, posX, posY, posZ);
+                if (worldRoot.lumi$hasSky())
+                    scheduleLightingUpdate(SKY_LIGHT_TYPE, posX, posY, posZ);
                 break;
             }
         }
@@ -719,7 +722,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     private void scheduleLightingUpdate(LightType lightType, long posLong) {
         val queue = updateQueues[lightType.ordinal()];
         if (queue.size() >= MAX_SCHEDULED_UPDATES)
-            processLightingUpdatesForType(lightType);
+            processLightingUpdatesForType(lightType);//TODO: World gen can cause this buffer to fill?
 
         queue.add(posLong);
     }
