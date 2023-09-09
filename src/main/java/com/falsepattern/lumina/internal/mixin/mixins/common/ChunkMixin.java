@@ -36,7 +36,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(Chunk.class)
 public abstract class ChunkMixin {
@@ -145,23 +144,13 @@ public abstract class ChunkMixin {
                      target = "Lnet/minecraft/world/chunk/storage/ExtendedBlockStorage;setExtBlockMetadata(IIII)V",
                      ordinal = 1,
                      shift = At.Shift.AFTER),
-            locals = LocalCapture.CAPTURE_FAILHARD,
             require = 1)
-    private void relightBlocksOnBlockMetaChange(int subChunkPosX,
-                                                int posY,
-                                                int subChunkPosZ,
-                                                Block block,
-                                                int posX,
-                                                CallbackInfoReturnable<Boolean> cir,
-                                                int i1,
-                                                int k,
-                                                Block block1,
-                                                int k1,
-                                                ExtendedBlockStorage extendedblockstorage,
-                                                boolean flag,
-                                                int l1,
-                                                int i2,
-                                                int k2) {
+    private void updateLightOnBlockUpdate(int subChunkPosX,
+                                          int posY,
+                                          int subChunkPosZ,
+                                          Block block,
+                                          int posX,
+                                          CallbackInfoReturnable<Boolean> cir) {
         LightingHooks.updateLightingForBlock(thiz(), subChunkPosX, posY, subChunkPosZ);
     }
 
