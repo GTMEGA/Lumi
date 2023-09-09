@@ -1,22 +1,8 @@
 /*
  * Copyright (c) 2023 FalsePattern, Ven
- * All Rights Reserved
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+ * To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+ * or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
  */
 
 package com.falsepattern.lumina.internal.mixin.mixins.common;
@@ -36,7 +22,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(Chunk.class)
 public abstract class ChunkMixin {
@@ -44,7 +29,6 @@ public abstract class ChunkMixin {
     public boolean isTerrainPopulated;
     @Shadow
     public boolean isLightPopulated;
-
 
     @Inject(method = "onChunkLoad",
             at = @At("RETURN"),
@@ -72,7 +56,7 @@ public abstract class ChunkMixin {
      * @reason Blanking, this is not called anymore
      */
     @Overwrite
-    private void relightBlock(int subChunkPosX, int posY, int subChunkPosZ) {
+    public void relightBlock(int subChunkPosX, int posY, int subChunkPosZ) {
     }
 
     /**
@@ -111,13 +95,6 @@ public abstract class ChunkMixin {
     private void recheckGaps(boolean onlyOne) {
     }
 
-    @Redirect(method = "func_150807_a(IIILnet/minecraft/block/Block;I)Z",
-              at = @At(value = "INVOKE",
-                       target = "Lnet/minecraft/world/chunk/Chunk;relightBlock(III)V"),
-              require = 2)
-    private void skipBlockRelight(Chunk thiz, int posX, int posY, int posZ) {
-    }
-
     @Redirect(method = "func_150807_a",
               at = @At(value = "INVOKE",
                        target = "Lnet/minecraft/world/chunk/Chunk;generateSkylightMap()V"),
@@ -153,23 +130,13 @@ public abstract class ChunkMixin {
                      target = "Lnet/minecraft/world/chunk/storage/ExtendedBlockStorage;setExtBlockMetadata(IIII)V",
                      ordinal = 1,
                      shift = At.Shift.AFTER),
-            locals = LocalCapture.CAPTURE_FAILHARD,
             require = 1)
-    private void relightBlocksOnBlockMetaChange(int subChunkPosX,
-                                                int posY,
-                                                int subChunkPosZ,
-                                                Block block,
-                                                int posX,
-                                                CallbackInfoReturnable<Boolean> cir,
-                                                int i1,
-                                                int k,
-                                                Block block1,
-                                                int k1,
-                                                ExtendedBlockStorage extendedblockstorage,
-                                                boolean flag,
-                                                int l1,
-                                                int i2,
-                                                int k2) {
+    private void updateLightOnBlockUpdate(int subChunkPosX,
+                                          int posY,
+                                          int subChunkPosZ,
+                                          Block block,
+                                          int posX,
+                                          CallbackInfoReturnable<Boolean> cir) {
         LightingHooks.updateLightingForBlock(thiz(), subChunkPosX, posY, subChunkPosZ);
     }
 

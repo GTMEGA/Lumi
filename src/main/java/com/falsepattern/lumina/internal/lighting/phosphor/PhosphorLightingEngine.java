@@ -1,22 +1,8 @@
 /*
  * Copyright (c) 2023 FalsePattern, Ven
- * All Rights Reserved
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * This work is licensed under the Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License.
+ * To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-nd/4.0/
+ * or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
  */
 
 package com.falsepattern.lumina.internal.lighting.phosphor;
@@ -28,7 +14,10 @@ import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
+import com.falsepattern.lumina.internal.collection.PosHashSet;
 import cpw.mods.fml.relauncher.SideOnly;
+import gnu.trove.iterator.TLongIterator;
+import gnu.trove.set.TLongSet;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import lombok.var;
@@ -46,8 +35,7 @@ import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static com.falsepattern.lumina.api.chunk.LumiChunk.MAX_QUEUED_RANDOM_LIGHT_UPDATES;
-import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
-import static com.falsepattern.lumina.api.lighting.LightType.values;
+import static com.falsepattern.lumina.api.lighting.LightType.*;
 import static com.falsepattern.lumina.internal.LUMINA.createLogger;
 import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorUtil.*;
 import static cpw.mods.fml.relauncher.Side.CLIENT;
@@ -58,12 +46,13 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     private static final boolean ENABLE_ILLEGAL_THREAD_ACCESS_WARNINGS = true;
 
-    private static final int LIGHT_VALUE_TYPES_COUNT = values().length;
+    @SuppressWarnings("UnnecessarilyQualifiedStaticallyImportedElement")
+    private static final int LIGHT_VALUE_TYPES_COUNT = LightType.values().length;
 
     /**
      * Maximum scheduled lighting updates before processing the updates is forced.
      */
-    private static final int MAX_SCHEDULED_UPDATES = 1024 * 4096;
+    private static final int MAX_SCHEDULED_UPDATES = 1 << 22;
 
     /**
      * Bit length of the Z coordinate in a pos long.
@@ -159,25 +148,26 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     /**
      * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
      */
-    private final PooledLongQueue[] updateQueues;
+    private final TLongSet[] updateQueues;
     /**
      * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
      */
-    private final PooledLongQueue[] brighteningQueues;
+    private final TLongSet[] brighteningQueues;
     /**
      * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
      */
-    private final PooledLongQueue[] darkeningQueues;
+    private final TLongSet[] darkeningQueues;
     /**
      * Layout of longs: [newLight(4)] [y(8)] [x(26)] [z(26)]
      */
-    private final PooledLongQueue initialBrighteningQueue;
+    private final TLongSet initialBrighteningQueue;
     /**
      * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
      */
-    private final PooledLongQueue initialDarkeningQueue;
+    private final TLongSet initialDarkeningQueue;
 
-    private @Nullable PooledLongQueue.LongQueueIterator queueIterator;
+    private @Nullable TLongSet currentQueue;
+    private @Nullable TLongIterator queueIterator;
 
     private final BlockPos.MutableBlockPos cursorBlockPos;
     private @Nullable LumiChunk cursorChunk;
@@ -195,18 +185,17 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         this.profiler = profiler;
 
         val queuePool = PooledLongQueue.createPool();
-        this.updateQueues = new PooledLongQueue[LIGHT_VALUE_TYPES_COUNT];
+        this.updateQueues = new TLongSet[LIGHT_VALUE_TYPES_COUNT];
         for (var i = 0; i < LIGHT_VALUE_TYPES_COUNT; i++)
-            this.updateQueues[i] = queuePool.createQueue();
-        this.darkeningQueues = new PooledLongQueue[LIGHT_VALUE_RANGE];
-        this.brighteningQueues = new PooledLongQueue[LIGHT_VALUE_RANGE];
+            this.updateQueues[i] = new PosHashSet();
+        this.brighteningQueues = new TLongSet[LIGHT_VALUE_RANGE];
         for (var i = 0; i < LIGHT_VALUE_RANGE; i++)
-            this.brighteningQueues[i] = queuePool.createQueue();
+            this.brighteningQueues[i] = new PosHashSet();
+        this.darkeningQueues = new TLongSet[LIGHT_VALUE_RANGE];
         for (var i = 0; i < LIGHT_VALUE_RANGE; i++)
-            this.darkeningQueues[i] = queuePool.createQueue();
-        this.initialBrighteningQueue = queuePool.createQueue();
-        this.initialDarkeningQueue = queuePool.createQueue();
-        this.queueIterator = null;
+            this.darkeningQueues[i] = new PosHashSet();
+        this.initialBrighteningQueue = new PosHashSet();
+        this.initialDarkeningQueue = new PosHashSet();
 
         this.neighborBlocks = new NeighborBlock[NEIGHBOUR_COUNT];
         for (var i = 0; i < NEIGHBOUR_COUNT; i++)
@@ -228,12 +217,12 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     @Override
     public void writeChunkToNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound output) {
-        PhosphorUtil.writeNeighborLightChecksToNBT(chunk, output);
+        writeNeighborLightChecksToNBT(chunk, output);
     }
 
     @Override
     public void readChunkFromNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound input) {
-        PhosphorUtil.readNeighborLightChecksFromNBT(chunk, input);
+        readNeighborLightChecksFromNBT(chunk, input);
     }
 
     @Override
@@ -289,8 +278,78 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     @Override
     public void handleChunkInit(@NotNull LumiChunk chunk) {
-        chunk.lumi$isSkyLightHeightMapValid(false);
-        chunk.lumi$isFullyLit(false);
+        chunk.lumi$isLightingInitialized(false);
+
+        val hasSky = worldRoot.lumi$hasSky();
+
+        val chunkRoot = chunk.lumi$root();
+
+        val basePosX = chunk.lumi$chunkPosX() << 4;
+        val basePosY = chunkRoot.lumi$topPreparedSubChunkBasePosY();
+        val basePosZ = chunk.lumi$chunkPosZ() << 4;
+
+        val maxPosY = basePosY + 15;
+
+        var minSkyLightHeight = Integer.MAX_VALUE;
+        for (int subChunkPosX = 0; subChunkPosX < 16; ++subChunkPosX) {
+            int subChunkPosZ = 0;
+            while (subChunkPosZ < 16) {
+                var skyLightHeight = maxPosY;
+
+                while (true) {
+                    if (skyLightHeight > 0) {
+                        val posY = skyLightHeight - 1;
+                        val blockOpacity = clampSkyLightOpacity(
+                                chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ));
+                        if (blockOpacity == MIN_SKY_LIGHT_OPACITY) {
+                            skyLightHeight--;
+                            continue;
+                        }
+
+                        chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ, skyLightHeight);
+                        minSkyLightHeight = Math.min(minSkyLightHeight, skyLightHeight);
+                    }
+
+                    if (hasSky) {
+                        var lightLevel = MAX_LIGHT_VALUE;
+                        skyLightHeight = (basePosY + 16) - 1;
+
+                        do {
+                            var blockOpacity = clampSkyLightOpacity(chunk.lumi$getBlockOpacity(subChunkPosX, skyLightHeight, subChunkPosZ));
+                            if (blockOpacity == MIN_SKY_LIGHT_OPACITY && lightLevel != MAX_LIGHT_VALUE)
+                                blockOpacity = 1;
+
+                            lightLevel -= blockOpacity;
+                            if (lightLevel > 0) {
+                                val chunkPosY = skyLightHeight / 16;
+                                val subChunkPosY = skyLightHeight & 15;
+
+                                val subChunk = chunk.lumi$getSubChunkIfPrepared(chunkPosY);
+                                if (subChunk != null) {
+                                    val posX = basePosX + subChunkPosX;
+                                    val posZ = basePosZ + subChunkPosZ;
+
+                                    subChunk.lumi$setSkyLightValue(subChunkPosX,
+                                                                   subChunkPosY,
+                                                                   subChunkPosZ,
+                                                                   lightLevel);
+                                    worldRoot.lumi$markBlockForRenderUpdate(posX, skyLightHeight, posZ);
+                                }
+                            }
+
+                            skyLightHeight--;
+                        }
+                        while (skyLightHeight > 0 && lightLevel > 0);
+                    }
+
+                    subChunkPosZ++;
+                    break;
+                }
+            }
+        }
+
+        chunk.lumi$minSkyLightHeight(minSkyLightHeight);
+        chunkRoot.lumi$markDirty();
     }
 
     @Override
@@ -328,7 +387,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         }
 
         chunk.lumi$minSkyLightHeight(minSkyLightHeight);
-        chunk.lumi$isFullyLit(true);
+        chunk.lumi$isLightingInitialized(true);
     }
 
     @Override
@@ -412,7 +471,9 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                     if (subChunkPosZ != 0 && subChunkPosZ != 15)
                         break notCornerCheck;
 
-                    worldRoot.lumi$scheduleLightingUpdate(posX, posY, posZ);
+                    scheduleLightingUpdate(BLOCK_LIGHT_TYPE, posX, posY, posZ);
+                    if (worldRoot.lumi$hasSky())
+                        scheduleLightingUpdate(SKY_LIGHT_TYPE, posX, posY, posZ);
                     continue;
                 }
 
@@ -436,7 +497,9 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                     break;
                 }
 
-                worldRoot.lumi$scheduleLightingUpdate(posX, posY, posZ);
+                scheduleLightingUpdate(BLOCK_LIGHT_TYPE, posX, posY, posZ);
+                if (worldRoot.lumi$hasSky())
+                    scheduleLightingUpdate(SKY_LIGHT_TYPE, posX, posY, posZ);
                 break;
             }
         }
@@ -475,13 +538,13 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ, minPosY);
 
         if (worldRoot.lumi$hasSky())
-            PhosphorUtil.relightSkyLightColumn(this,
-                                               world,
-                                               chunk,
-                                               subChunkPosX,
-                                               subChunkPosZ,
-                                               maxPosY,
-                                               minPosY);
+            relightSkyLightColumn(this,
+                                  world,
+                                  chunk,
+                                  subChunkPosX,
+                                  subChunkPosZ,
+                                  maxPosY,
+                                  minPosY);
 
         maxPosY = chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ);
         if (maxPosY < chunk.lumi$minSkyLightHeight())
@@ -648,13 +711,10 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     private void scheduleLightingUpdate(LightType lightType, long posLong) {
         val queue = updateQueues[lightType.ordinal()];
-        flushQueueIfFull(lightType, queue);
-        queue.add(posLong);
-    }
-
-    private void flushQueueIfFull(LightType lightType, PooledLongQueue queue) {
-        if (queue.size() >= MAX_SCHEDULED_UPDATES)
+        if (queue.size() >= 100_000)
             processLightingUpdatesForType(lightType);
+
+        queue.add(posLong);
     }
 
     @SideOnly(CLIENT)
@@ -700,7 +760,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         lock.unlock();
     }
 
-    private void processLightUpdateQueue(LightType lightType, PooledLongQueue queue) {
+    private void processLightUpdateQueue(LightType lightType, TLongSet queue) {
         if (isUpdating)
             return;
         isUpdating = true;
@@ -712,7 +772,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         profiler.startSection("checking");
 
         // Process the queued updates and enqueue them for further processing
-        queueIterator = queue.iterator();
+        setQueue(queue);
         while (nextItem()) {
             if (cursorChunk == null)
                 continue;
@@ -729,7 +789,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             }
         }
 
-        queueIterator = initialBrighteningQueue.iterator();
+        setQueue(initialBrighteningQueue);
         while (nextItem()) {
             // Sets the light to newLight to only schedule once. Clear leading bits of curData for later
             val cursorDataLightValue = (int) (cursorData >> LIGHT_VALUE_BIT_SHIFT & LIGHT_VALUE_BIT_MASK);
@@ -739,7 +799,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             }
         }
 
-        queueIterator = initialDarkeningQueue.iterator();
+        setQueue(initialDarkeningQueue);
         while (nextItem()) {
             // Sets the light to 0 to only schedule once
             val cursorCurrentLightValue = getCursorCurrentLightValue(lightType);
@@ -753,7 +813,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         for (var queueIndex = MAX_LIGHT_VALUE; queueIndex >= 0; queueIndex--) {
             profiler.startSection("darkening");
 
-            queueIterator = darkeningQueues[queueIndex].iterator();
+            setQueue(darkeningQueues[queueIndex]);
             while (nextItem()) {
                 // Don't darken if we got brighter due to some other change
                 if (getCursorCurrentLightValue(lightType) >= queueIndex)
@@ -807,7 +867,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             }
 
             profiler.endStartSection("brightening");
-            queueIterator = brighteningQueues[queueIndex].iterator();
+            setQueue(brighteningQueues[queueIndex]);
             while (nextItem()) {
                 // Only process this if nothing else has happened at this position since scheduling
                 if (getCursorCurrentLightValue(lightType) == queueIndex) {
@@ -978,12 +1038,25 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         blockPos.setPos(posX, posY, posZ);
     }
 
+    private void setQueue(@Nullable TLongSet queue) {
+        if (currentQueue != null)
+            currentQueue.clear();
+
+        if (queue != null) {
+            currentQueue = queue;
+            queueIterator = queue.iterator();
+        } else {
+            currentQueue = null;
+            queueIterator = null;
+        }
+    }
+
     private boolean nextItem() {
         if (queueIterator == null)
             return false;
 
         if (!queueIterator.hasNext()) {
-            queueIterator = null;
+            setQueue(null);
             return false;
         }
 
