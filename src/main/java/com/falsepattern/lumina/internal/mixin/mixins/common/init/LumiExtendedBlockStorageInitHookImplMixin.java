@@ -21,11 +21,10 @@ public abstract class LumiExtendedBlockStorageInitHookImplMixin implements LumiE
     @Inject(method = "<init>*",
             at = @At("RETURN"),
             require = 1)
-    private void lumiChunkBaseInit(CallbackInfo ci) {
+    private void lumiExtendedBlockStorageHook(CallbackInfo ci) {
         lumi$onExtendedBlockStorageInit();
     }
 
     @Override
-    public void lumi$onExtendedBlockStorageInit() {
-    }
+    public void lumi$onExtendedBlockStorageInit() {}
 }

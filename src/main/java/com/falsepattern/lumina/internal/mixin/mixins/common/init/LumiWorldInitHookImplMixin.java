@@ -35,12 +35,11 @@ public abstract class LumiWorldInitHookImplMixin implements LumiWorldInitHook {
                        target = "Lnet/minecraft/world/World;" +
                                 "theProfiler:Lnet/minecraft/profiler/Profiler;"),
               require = 1)
-    private void lumiWorldBaseInit(World thiz, Profiler profiler) {
+    private void lumiWorldInitHook(World thiz, Profiler profiler) {
         this.theProfiler = profiler;
         lumi$onWorldInit();
     }
 
     @Override
-    public void lumi$onWorldInit() {
-    }
+    public void lumi$onWorldInit() {}
 }

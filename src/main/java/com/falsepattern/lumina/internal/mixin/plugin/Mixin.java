@@ -47,6 +47,7 @@ public enum Mixin implements IMixin {
     common_init_LumiChunkInitTaskQueueImplMixin(COMMON, always(), "init.LumiChunkInitTaskQueueImplMixin"),
     common_init_LumiExtendedBlockStorageInitHookImplMixin(COMMON, always(), "init.LumiExtendedBlockStorageInitHookImplMixin"),
     common_init_LumiWorldInitHookImplMixin(COMMON, always(), "init.LumiWorldInitHookImplMixin"),
+    common_init_LumiChunkCacheHookImplMixin(COMMON, always(), "init.LumiChunkCacheHookImplMixin"),
 
     client_init_LumiWorldInitHookImplMixinMixin(CLIENT, always(), "init.LumiWorldInitHookImplMixin"),
     // endregion
