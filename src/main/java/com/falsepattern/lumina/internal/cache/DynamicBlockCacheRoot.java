@@ -6,10 +6,17 @@ import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import lombok.val;
 import lombok.var;
 import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.ChunkCache;
+import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.BitSet;
 
 
@@ -17,33 +24,52 @@ import java.util.BitSet;
  * TODO: Stores Blocks/Block Meta/Tile Entities/Air Checks
  */
 public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
+    static final int CHUNK_XZ_SIZE = 16;
+    static final int CHUNK_XZ_BITMASK = 15;
+    static final int CHUNK_Y_SIZE = 256;
+    static final int CHUNK_Y_BITMASK = 255;
+    static final int CACHE_CHUNK_XZ_SIZE = 3;
+    static final int TOTAL_CACHED_CHUNK_COUNT = CACHE_CHUNK_XZ_SIZE * CACHE_CHUNK_XZ_SIZE;
+    static final int ELEMENT_COUNT_PER_CHUNK = CHUNK_XZ_SIZE * CHUNK_XZ_SIZE * CHUNK_Y_SIZE;
+    static final int ELEMENT_COUNT_PER_CACHED_THING = TOTAL_CACHED_CHUNK_COUNT * ELEMENT_COUNT_PER_CHUNK;
+
+    static final int BITSIZE_CHUNK_XZ = 4;
+    static final int BITSIZE_CHUNK_Y = 8;
+    static final int BITSHIFT_CHUNK_Z = BITSIZE_CHUNK_XZ + BITSIZE_CHUNK_Y;
+    static final int BITSHIFT_CHUNK_X = BITSIZE_CHUNK_Y;
+    static final int BITSHIFT_CHUNK = BITSIZE_CHUNK_XZ + BITSIZE_CHUNK_XZ + BITSIZE_CHUNK_Y;
+
     /**
      * TODO: Center of the current focus, we work on a 3x3 set of chunks
      */
     int centerChunkPosX;
-    int centerChunkPosY;
+    int centerChunkPosZ;
+    int minChunkPosX;
+    int minChunkPosZ;
 
     /**
      * TODO: On construction, this is set to false, as the center pos is not defined
      */
     boolean isReady;
 
-    LumiWorldRoot worldRoot;
+    final LumiWorldRoot worldRoot;
 
     // Z/X 3/3
-    LumiChunkRoot[] rootChunks = new LumiChunkRoot[9];
+    LumiChunkRoot[] rootChunks = new LumiChunkRoot[TOTAL_CACHED_CHUNK_COUNT];
+    // Used for populating
+    private final ChunkCacheCompact helperCache = new ChunkCacheCompact();
 
-    // Z/X/Y 48/48/256
-    Block[] blocks;
-    // Z/X/Y 48/48/256
-    int[] blockMetas;
-    // Z/X/Y 48/48/256
-    TileEntity[] tileEntities; //TODO: Check if a block -has- one before hand
-    // Z/X/Y 48/48/256
-    BitSet airChecks = new BitSet(48 * 48 * 256);
+    // CZ/CX/Z/X/Y 3/3/16/16/256
+    Block[] blocks = new Block[ELEMENT_COUNT_PER_CACHED_THING];
+    // CZ/CX/Z/X/Y 3/3/16/16/256
+    int[] blockMetas = new int[ELEMENT_COUNT_PER_CACHED_THING];
+    // CZ/CX/Z/X/Y 3/3/16/16/256
+    TileEntity[] tileEntities = new TileEntity[ELEMENT_COUNT_PER_CACHED_THING];
+    // CZ/CX/Z/X/Y 3/3/16/16/256
+    BitSet airChecks = new BitSet(ELEMENT_COUNT_PER_CACHED_THING);
 
-    // Z/X/Y 48/48/256
-    BitSet checkedBlocks = new BitSet(48 * 48 * 256);
+    // CZ/CX/Z/X/Y 3/3/16/16/256
+    BitSet checkedBlocks = new BitSet(ELEMENT_COUNT_PER_CACHED_THING);
 
     boolean lumi$hasSky;
 
@@ -53,6 +79,11 @@ public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
      * TODO: Unsure about the binding relationship atm, should be decided based on implementation
      */
     DynamicBlockCache cache;
+
+    public DynamicBlockCacheRoot(LumiWorldRoot worldRoot) {
+        this.worldRoot = worldRoot;
+        cache = new DynamicBlockCache(this);
+    }
 
     @Override
     public @NotNull String lumi$blockCacheRootID() {
@@ -76,31 +107,53 @@ public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
 
     @Override
     public @NotNull Block lumi$getBlock(int posX, int posY, int posZ) {
-        return null;
+        val index = cacheIndexFromBlockPos(posX, posY, posZ);
+        prepareBlock(index, posX, posY, posZ);
+        return blocks[index];
     }
 
     @Override
     public int lumi$getBlockMeta(int posX, int posY, int posZ) {
-        return 0;
+        val index = cacheIndexFromBlockPos(posX, posY, posZ);
+        prepareBlock(index, posX, posY, posZ);
+        return blockMetas[index];
     }
 
     @Override
     public boolean lumi$isAirBlock(int posX, int posY, int posZ) {
-        return false;
+        val index = cacheIndexFromBlockPos(posX, posY, posZ);
+        prepareBlock(index, posX, posY, posZ);
+        return airChecks.get(index);
     }
 
     @Override
     public @Nullable TileEntity lumi$getTileEntity(int posX, int posY, int posZ) {
-        return null;
+        val index = cacheIndexFromBlockPos(posX, posY, posZ);
+        prepareBlock(index, posX, posY, posZ);
+        return tileEntities[index];
     }
 
     /**
      * TODO: Ensures the selected block is ready to be read
      * TODO: could also be merged with a 'get index' method, to automatically reset & shift the focus
      */
-    private void prepareBlock(int posX, int posY, int posZ) {
-        if (checkedBlocks.get(0))
+    private void prepareBlock(int cacheIndex, int posX, int posY, int posZ) {
+        if (checkedBlocks.get(cacheIndex))
             return;
+
+        val theChunk = chunkFromBlockPos(posX, posZ);
+
+        val subChunkX = posX & CHUNK_XZ_BITMASK;
+        val subChunkZ = posZ & CHUNK_XZ_BITMASK;
+
+        val block = blocks[cacheIndex] = theChunk.lumi$getBlock(subChunkX, posY, subChunkZ);
+        val meta = blockMetas[cacheIndex] = theChunk.lumi$getBlockMeta(subChunkX, posY, subChunkZ);
+
+        tileEntities[cacheIndex] = ((Chunk)theChunk).getTileEntityUnsafe(subChunkX, posY, subChunkZ);
+
+        airChecks.set(cacheIndex, block.isAir(helperCache, posX, posY, posZ));
+
+        checkedBlocks.set(cacheIndex);
     }
 
     /**
@@ -115,7 +168,7 @@ public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
 
         for (var chunkPosZ = minChunkPosZ; chunkPosZ < maxChunkPosZ; chunkPosZ++) {
             for (var chunkPosX = minChunkPosX; chunkPosX < maxChunkPosX; chunkPosX++) {
-                val rootChunkIndex = chunkPosX + (chunkPosZ * 3);
+                val rootChunkIndex = (chunkPosZ * CACHE_CHUNK_XZ_SIZE) + chunkPosX;
 
                 val chunkProvider = worldRoot.lumi$chunkProvider();
                 chunkExistsCheck:
@@ -131,26 +184,57 @@ public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
                 rootChunks[rootChunkIndex] = null;
             }
         }
+        helperCache.init(worldRoot, rootChunks, CACHE_CHUNK_XZ_SIZE, minChunkPosX, minChunkPosZ);
+        this.centerChunkPosX = centerChunkPosX;
+        this.centerChunkPosZ = centerChunkPosZ;
+        this.minChunkPosX = minChunkPosX;
+        this.minChunkPosZ = minChunkPosZ;
+        checkedBlocks.clear();
+        cache.resetCache();
+        Arrays.fill(tileEntities, null);
+        isReady = true;
     }
 
-    /**
-     * This is probably broken af
-     */
     int cacheIndexFromBlockPos(int posX, int posY, int posZ) {
-        val chunkPosX = (posX >> 4) - centerChunkPosX;
-        val chunkPosZ = (posZ >> 4) - centerChunkPosY;
+        val chunkPosZ = (posZ >> BITSIZE_CHUNK_XZ) - minChunkPosZ;
+        val chunkPosX = (posX >> BITSIZE_CHUNK_XZ) - minChunkPosX;
 
-        val subChunkPosX = (chunkPosX * 3) + (posX & 15);
-        val subChunkPosY = posY & 255;
-        val subChunkPosZ = (chunkPosZ * 3) + (posZ & 15);
+        // val chunkBase = (chunkPosZ * CACHE_CHUNK_XZ_SIZE + chunkPosX) * ELEMENT_COUNT_PER_CHUNK;
+        // chunk element count is always 16*16*256, so we optimize away the multiply
+        val chunkBase = (chunkPosZ * CACHE_CHUNK_XZ_SIZE + chunkPosX) << BITSHIFT_CHUNK;
 
-        return (subChunkPosZ * 16 * 16) + (subChunkPosX * 16) + subChunkPosY;
+        val subChunkZ = posZ & CHUNK_XZ_BITMASK;
+        val subChunkX = posX & CHUNK_XZ_BITMASK;
+        val subChunkY = posY & CHUNK_Y_BITMASK;
+
+        //val subChunkOffset = (subChunkZ * CHUNK_XZ_SIZE + subChunkX) * CHUNK_Y_SIZE + subChunkY;
+        //All these are constants so we can reduce it to bit shuffling
+        val subChunkOffset = (subChunkZ << BITSHIFT_CHUNK_Z) | (subChunkX << BITSHIFT_CHUNK_X) | subChunkY;
+        return chunkBase | subChunkOffset;
+    }
+
+    LumiChunkRoot chunkFromBlockPos(int posX, int posZ) {
+        val chunkPosX = (posX >> BITSIZE_CHUNK_XZ) - minChunkPosX;
+        val chunkPosZ = (posZ >> BITSIZE_CHUNK_XZ) - minChunkPosZ;
+
+        if (chunkPosX < 0 || chunkPosX >= CACHE_CHUNK_XZ_SIZE || chunkPosZ < 0 || chunkPosZ >= CACHE_CHUNK_XZ_SIZE) {
+            //TODO smarter shifting logic here
+            resetCache(chunkPosX + minChunkPosZ, chunkPosZ + minChunkPosZ);
+        }
+
+        return rootChunks[chunkPosZ * CACHE_CHUNK_XZ_SIZE + chunkPosX];
     }
 
 
     /**
      * TODO: Zero's out the bitset of the valid blocks, to be called once at the start or end of server tick
      */
-    void resetCache() {
+    public void resetCache() {
+        isReady = false;
+        checkedBlocks.clear();
+        Arrays.fill(tileEntities, null);
+        Arrays.fill(rootChunks, null);
+        cache.resetCache();
+        // We don't need to clear the "blocks" array because blocks are singletons
     }
 }
