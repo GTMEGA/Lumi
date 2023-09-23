@@ -75,12 +75,16 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
 
     @Override
     public void lumi$clearCache() {
-        isReady = false;
-        checkedBlocks.clear();
-        Arrays.fill(tileEntities, null);
-        Arrays.fill(rootChunks, null);
+        if (!isReady)
+            return;
+
         worldCache.lumi$clearCache();
         // We don't need to clear the "blocks" array because blocks are singletons
+        Arrays.fill(tileEntities, null);
+        Arrays.fill(rootChunks, null);
+        checkedBlocks.clear();
+
+        isReady = false;
     }
 
     @Override

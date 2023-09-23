@@ -8,6 +8,7 @@
 package com.falsepattern.lumina.internal.mixin.hook;
 
 import com.falsepattern.lumina.api.lighting.LightType;
+import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import cpw.mods.fml.relauncher.SideOnly;
 import lombok.experimental.UtilityClass;
 import lombok.val;
@@ -25,6 +26,13 @@ import static cpw.mods.fml.relauncher.Side.CLIENT;
 @UtilityClass
 public final class LightingHooks {
     private static final int DEFAULT_PRECIPITATION_HEIGHT = -999;
+
+    public static void clearWorldBlockCacheRoot(World worldBase) {
+        if (worldBase instanceof LumiWorldRoot) {
+            val worldRoot = (LumiWorldRoot) worldBase;
+            worldRoot.lumi$blockCacheRoot().lumi$clearCache();
+        }
+    }
 
     public static int getCurrentLightValue(Chunk chunkBase,
                                            EnumSkyBlock baseLightType,

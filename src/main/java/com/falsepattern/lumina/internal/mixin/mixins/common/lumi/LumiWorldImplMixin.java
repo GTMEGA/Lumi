@@ -69,7 +69,9 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
         val blockCacheRoot = lumi$root.lumi$blockCacheRoot();
         if (blockCacheRoot instanceof DynamicBlockCacheRoot) {
             val dynBlockCacheRoot = (DynamicBlockCacheRoot) blockCacheRoot;
-            lumi$blockCache = new DynamicBlockCache(dynBlockCacheRoot, this);
+            val dynamicBlockCache = new DynamicBlockCache(dynBlockCacheRoot, this);
+            dynBlockCacheRoot.setWorldCache(dynamicBlockCache);
+            lumi$blockCache = dynamicBlockCache;
         }
     }
 
