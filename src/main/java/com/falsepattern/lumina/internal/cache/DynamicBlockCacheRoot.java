@@ -55,6 +55,8 @@ public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
 
     private int minChunkPosX;
     private int minChunkPosZ;
+    private int maxChunkPosX;
+    private int maxChunkPosZ;
 
     private boolean isReady;
 
@@ -168,6 +170,8 @@ public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
         helperCache.init(worldRoot, rootChunks, CACHE_CHUNK_XZ_SIZE, minChunkPosX, minChunkPosZ);
         this.minChunkPosX = minChunkPosX;
         this.minChunkPosZ = minChunkPosZ;
+        this.maxChunkPosX = maxChunkPosX;
+        this.maxChunkPosZ = maxChunkPosZ;
         checkedBlocks.clear();
         cache.resetCache();
         Arrays.fill(tileEntities, null);
@@ -193,13 +197,19 @@ public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
     }
 
     private LumiChunkRoot chunkFromBlockPos(int posX, int posZ) {
-        val chunkPosX = (posX >> BITSIZE_CHUNK_XZ) - minChunkPosX;
-        val chunkPosZ = (posZ >> BITSIZE_CHUNK_XZ) - minChunkPosZ;
-
-        if (chunkPosX < 0 || chunkPosX >= CACHE_CHUNK_XZ_SIZE || chunkPosZ < 0 || chunkPosZ >= CACHE_CHUNK_XZ_SIZE) {
-            // TODO smarter shifting logic here
-            setupCache(chunkPosX + minChunkPosZ, chunkPosZ + minChunkPosZ);
+        val baseChunkPosX = posX >> BITSIZE_CHUNK_XZ;
+        val baseChunkPosZ = posZ >> BITSIZE_CHUNK_XZ;
+        if (!isReady) {
+            setupCache(baseChunkPosX, baseChunkPosZ);
         }
+
+        if (baseChunkPosX < minChunkPosX || baseChunkPosX >= maxChunkPosX ||
+            baseChunkPosZ < minChunkPosZ || baseChunkPosZ >= maxChunkPosZ) {
+            // TODO smarter shifting logic here
+            setupCache(baseChunkPosX, baseChunkPosZ);
+        }
+        val chunkPosX = baseChunkPosX - minChunkPosX;
+        val chunkPosZ = baseChunkPosZ - minChunkPosZ;
 
         return rootChunks[chunkPosZ * CACHE_CHUNK_XZ_SIZE + chunkPosX];
     }
