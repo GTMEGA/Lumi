@@ -7,25 +7,16 @@
 
 package com.falsepattern.lumina.api.world;
 
-import net.minecraft.block.Block;
 import net.minecraft.world.chunk.IChunkProvider;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("unused")
-public interface LumiWorldRoot {
+public interface LumiWorldRoot extends LumiBlockStorageRoot {
     @NotNull String lumi$worldRootID();
-
-    boolean lumi$isClientSide();
-
-    boolean lumi$hasSky();
 
     void lumi$markBlockForRenderUpdate(int posX, int posY, int posZ);
 
     void lumi$scheduleLightingUpdate(int posX, int posY, int posZ);
-
-    @NotNull Block lumi$getBlock(int posX, int posY, int posZ);
-
-    int lumi$getBlockMeta(int posX, int posY, int posZ);
 
     @NotNull IChunkProvider lumi$chunkProvider();
 

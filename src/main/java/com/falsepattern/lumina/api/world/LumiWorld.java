@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
-public interface LumiWorld {
+public interface LumiWorld extends LumiBlockStorage {
     @NotNull LumiWorldRoot lumi$root();
 
     @NotNull String lumi$worldID();
@@ -33,29 +33,9 @@ public interface LumiWorld {
 
     @NotNull LumiLightingEngine lumi$lightingEngine();
 
-    int lumi$getBrightness(@NotNull LightType lightType, int posX, int posY, int posZ);
-
-    int lumi$getBrightness(int posX, int posY, int posZ);
-
-    int lumi$getLightValue(int posX, int posY, int posZ);
-
     void lumi$setLightValue(@NotNull LightType lightType, int posX, int posY, int posZ, int lightValue);
-
-    int lumi$getLightValue(@NotNull LightType lightType, int posX, int posY, int posZ);
 
     void lumi$setBlockLightValue(int posX, int posY, int posZ, int lightValue);
 
-    int lumi$getBlockLightValue(int posX, int posY, int posZ);
-
     void lumi$setSkyLightValue(int posX, int posY, int posZ, int lightValue);
-
-    int lumi$getSkyLightValue(int posX, int posY, int posZ);
-
-    int lumi$getBlockBrightness(int posX, int posY, int posZ);
-
-    int lumi$getBlockOpacity(int posX, int posY, int posZ);
-
-    int lumi$getBlockBrightness(@NotNull Block block, int blockMeta, int posX, int posY, int posZ);
-
-    int lumi$getBlockOpacity(@NotNull Block block, int blockMeta, int posX, int posY, int posZ);
 }

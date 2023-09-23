@@ -29,14 +29,15 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static com.falsepattern.lumina.api.init.LumiWorldBaseInit.LUMI_WORLD_BASE_INIT_METHOD_REFERENCE;
-import static com.falsepattern.lumina.api.init.LumiWorldBaseInit.LUMI_WORLD_BASE_INIT_MIXIN_VALUE;
+import static com.falsepattern.lumina.api.init.LumiWorldInitHook.LUMI_WORLD_INIT_HOOK_METHOD;
+import static com.falsepattern.lumina.api.init.LumiWorldInitHook.LUMI_WORLD_INIT_HOOK_INFO;
 import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 
 @Unique
 @Mixin(World.class)
 public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
+    // region Shadow
     @Mutable
     @Final
     @Shadow
@@ -47,21 +48,23 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
 
     @Shadow
     public abstract Chunk getChunkFromChunkCoords(int chunkPosX, int chunkPosZ);
+    // endregion
 
     private LumiWorldRoot lumi$root = null;
     private LumiLightingEngine lumi$lightingEngine = null;
 
-    @Inject(method = LUMI_WORLD_BASE_INIT_METHOD_REFERENCE,
+    @Inject(method = LUMI_WORLD_INIT_HOOK_METHOD,
             at = @At("RETURN"),
             remap = false,
             require = 1)
     @SuppressWarnings("CastToIncompatibleInterface")
-    @Dynamic(LUMI_WORLD_BASE_INIT_MIXIN_VALUE)
+    @Dynamic(LUMI_WORLD_INIT_HOOK_INFO)
     private void lumiWorldInit(CallbackInfo ci) {
         this.lumi$root = (LumiWorldRoot) this;
         this.lumi$lightingEngine = LumiAPI.provideLightingEngine(this, theProfiler);
     }
 
+    // region World
     @Override
     public @NotNull LumiWorldRoot lumi$root() {
         return lumi$root;
@@ -69,7 +72,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
 
     @Override
     public @NotNull String lumi$worldID() {
-        return Tags.MOD_ID;
+        return "lumi_world";
     }
 
     @Override
@@ -107,6 +110,50 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
         return lumi$lightingEngine;
     }
 
+    @Override
+    public void lumi$setLightValue(@NotNull LightType lightType, int posX, int posY, int posZ, int lightValue) {
+        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
+        if (chunk != null) {
+            val subChunkPosX = posX & 15;
+            val subChunkPosZ = posZ & 15;
+            chunk.lumi$setLightValue(lightType, subChunkPosX, posY, subChunkPosZ, lightValue);
+        }
+    }
+
+    @Override
+    public void lumi$setBlockLightValue(int posX, int posY, int posZ, int lightValue) {
+        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
+        if (chunk != null) {
+            val subChunkPosX = posX & 15;
+            val subChunkPosZ = posZ & 15;
+            chunk.lumi$setBlockLightValue(subChunkPosX, posY, subChunkPosZ, lightValue);
+        }
+    }
+
+    @Override
+    public void lumi$setSkyLightValue(int posX, int posY, int posZ, int lightValue) {
+        if (!lumi$root().lumi$hasSky())
+            return;
+
+        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
+        if (chunk != null) {
+            val subChunkPosX = posX & 15;
+            val subChunkPosZ = posZ & 15;
+            chunk.lumi$setSkyLightValue(subChunkPosX, posY, subChunkPosZ, lightValue);
+        }
+    }
+    // endregion
+
+    // region Block Storage
+    @Override
+    public @NotNull String lumi$blockStorageID() {
+        return "lumi_world";
+    }
+
+    @Override
+    public @NotNull LumiWorld lumi$world() {
+        return this;
+    }
 
     @Override
     public int lumi$getBrightness(@NotNull LightType lightType, int posX, int posY, int posZ) {
@@ -144,16 +191,6 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     }
 
     @Override
-    public void lumi$setLightValue(@NotNull LightType lightType, int posX, int posY, int posZ, int lightValue) {
-        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
-        if (chunk != null) {
-            val subChunkPosX = posX & 15;
-            val subChunkPosZ = posZ & 15;
-            chunk.lumi$setLightValue(lightType, subChunkPosX, posY, subChunkPosZ, lightValue);
-        }
-    }
-
-    @Override
     public int lumi$getLightValue(@NotNull LightType lightType, int posX, int posY, int posZ) {
         val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
@@ -175,16 +212,6 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     }
 
     @Override
-    public void lumi$setBlockLightValue(int posX, int posY, int posZ, int lightValue) {
-        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
-        if (chunk != null) {
-            val subChunkPosX = posX & 15;
-            val subChunkPosZ = posZ & 15;
-            chunk.lumi$setBlockLightValue(subChunkPosX, posY, subChunkPosZ, lightValue);
-        }
-    }
-
-    @Override
     public int lumi$getBlockLightValue(int posX, int posY, int posZ) {
         val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
@@ -193,19 +220,6 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
             return chunk.lumi$getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
         }
         return BLOCK_LIGHT_TYPE.defaultLightValue();
-    }
-
-    @Override
-    public void lumi$setSkyLightValue(int posX, int posY, int posZ, int lightValue) {
-        if (!lumi$root().lumi$hasSky())
-            return;
-
-        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
-        if (chunk != null) {
-            val subChunkPosX = posX & 15;
-            val subChunkPosZ = posZ & 15;
-            chunk.lumi$setSkyLightValue(subChunkPosX, posY, subChunkPosZ, lightValue);
-        }
     }
 
     @Override
@@ -244,4 +258,5 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     public int lumi$getBlockOpacity(@NotNull Block block, int blockMeta, int posX, int posY, int posZ) {
         return block.getLightOpacity(this, posX, posY, posZ);
     }
+    // endregion
 }

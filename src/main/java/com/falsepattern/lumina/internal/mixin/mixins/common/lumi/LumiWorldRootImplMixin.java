@@ -9,11 +9,13 @@ package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import net.minecraft.block.Block;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.chunk.IChunkProvider;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -22,6 +24,7 @@ import org.spongepowered.asm.mixin.Unique;
 @Unique
 @Mixin(World.class)
 public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldRoot {
+    // region Shadow
     @Final
     @Shadow
     public WorldProvider provider;
@@ -33,6 +36,8 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
 
     @Shadow
     public abstract Block getBlock(int posX, int posY, int posZ);
+
+    @Shadow public abstract boolean isAirBlock(int posX, int posY, int posZ);
 
     @Shadow
     public abstract boolean doChunksNearChunkExist(int centerPosX, int centerPosY, int centerPosZ, int blockRange);
@@ -46,22 +51,16 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     @Shadow
     public abstract void func_147479_m(int posX, int posY, int posZ);
 
+    @Shadow public abstract TileEntity getTileEntity(int posX, int posY, int posZ);
+
     @Shadow
     public abstract boolean func_147451_t(int posX, int posY, int posZ);
+    // endregion
 
+    // region World Root
     @Override
     public @NotNull String lumi$worldRootID() {
         return "lumi_world_root";
-    }
-
-    @Override
-    public boolean lumi$isClientSide() {
-        return isRemote;
-    }
-
-    @Override
-    public boolean lumi$hasSky() {
-        return !provider.hasNoSky;
     }
 
     @Override
@@ -72,16 +71,6 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     @Override
     public void lumi$scheduleLightingUpdate(int posX, int posY, int posZ) {
         func_147451_t(posX, posY, posZ);
-    }
-
-    @Override
-    public @NotNull Block lumi$getBlock(int posX, int posY, int posZ) {
-        return getBlock(posX, posY, posZ);
-    }
-
-    @Override
-    public int lumi$getBlockMeta(int posX, int posY, int posZ) {
-        return getBlockMetadata(posX, posY, posZ);
     }
 
     @Override
@@ -98,4 +87,42 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     public boolean lumi$doChunksExistInRange(int centerPosX, int centerPosY, int centerPosZ, int blockRange) {
         return doChunksNearChunkExist(centerPosX, centerPosY, centerPosZ, blockRange);
     }
+    // endregion
+
+    // region Block Storage Root
+    @Override
+    public @NotNull String lumi$blockStorageRootID() {
+        return "lumi_world_root";
+    }
+
+    @Override
+    public boolean lumi$isClientSide() {
+        return isRemote;
+    }
+
+    @Override
+    public boolean lumi$hasSky() {
+        return !provider.hasNoSky;
+    }
+
+    @Override
+    public @NotNull Block lumi$getBlock(int posX, int posY, int posZ) {
+        return getBlock(posX, posY, posZ);
+    }
+
+    @Override
+    public int lumi$getBlockMeta(int posX, int posY, int posZ) {
+        return getBlockMetadata(posX, posY, posZ);
+    }
+
+    @Override
+    public boolean lumi$isAirBlock(int posX, int posY, int posZ) {
+        return isAirBlock(posX, posY, posZ);
+    }
+
+    @Override
+    public @Nullable TileEntity lumi$getTileEntity(int posX, int posY, int posZ) {
+        return getTileEntity(posX, posY, posZ);
+    }
+    // endregion
 }

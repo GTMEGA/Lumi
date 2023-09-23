@@ -348,7 +348,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             }
         }
 
-        chunk.lumi$minSkyLightHeight(minSkyLightHeight);
+        chunk.lumi$minSkyLightHeight(0);
         chunkRoot.lumi$markDirty();
     }
 

@@ -29,8 +29,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import static com.falsepattern.lumina.api.init.LumiChunkBaseInit.LUMI_CHUNK_BASE_INIT_METHOD_REFERENCE;
-import static com.falsepattern.lumina.api.init.LumiChunkBaseInit.LUMI_CHUNK_BASE_INIT_MIXIN_VALUE;
+import static com.falsepattern.lumina.api.init.LumiChunkInitHook.LUMI_CHUNK_INIT_HOOK_METHOD;
+import static com.falsepattern.lumina.api.init.LumiChunkInitHook.LUMI_CHUNK_INIT_HOOK_INFO;
 import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 
@@ -61,12 +61,12 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     private LumiWorld lumi$world;
     private boolean lumi$isLightingInitialized;
 
-    @Inject(method = LUMI_CHUNK_BASE_INIT_METHOD_REFERENCE,
+    @Inject(method = LUMI_CHUNK_INIT_HOOK_METHOD,
             at = @At("RETURN"),
             remap = false,
             require = 1)
     @SuppressWarnings("CastToIncompatibleInterface")
-    @Dynamic(LUMI_CHUNK_BASE_INIT_MIXIN_VALUE)
+    @Dynamic(LUMI_CHUNK_INIT_HOOK_INFO)
     private void lumiChunkInit(CallbackInfo ci) {
         this.lumi$root = (LumiChunkRoot) this;
         this.lumi$world = (LumiWorld) worldObj;
