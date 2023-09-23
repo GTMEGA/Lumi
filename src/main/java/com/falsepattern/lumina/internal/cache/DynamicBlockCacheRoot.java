@@ -6,13 +6,8 @@ import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import lombok.val;
 import lombok.var;
 import net.minecraft.block.Block;
-import net.minecraft.block.material.Material;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.ChunkCache;
-import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,9 +15,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 
 
-/**
- * TODO: Stores Blocks/Block Meta/Tile Entities/Air Checks
- */
+// TODO: On first call, this should become ready if it is not already ready
 public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
     static final int CHUNK_XZ_SIZE = 16;
     static final int CHUNK_XZ_BITMASK = 15;
@@ -39,55 +32,50 @@ public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
     static final int BITSHIFT_CHUNK_X = BITSIZE_CHUNK_Y;
     static final int BITSHIFT_CHUNK = BITSIZE_CHUNK_XZ + BITSIZE_CHUNK_XZ + BITSIZE_CHUNK_Y;
 
-    /**
-     * TODO: Center of the current focus, we work on a 3x3 set of chunks
-     */
-    int centerChunkPosX;
-    int centerChunkPosZ;
-    int minChunkPosX;
-    int minChunkPosZ;
+    private final DynamicBlockCache cache;
 
-    /**
-     * TODO: On construction, this is set to false, as the center pos is not defined
-     */
-    boolean isReady;
-
-    final LumiWorldRoot worldRoot;
+    private final LumiWorldRoot worldRoot;
 
     // Z/X 3/3
-    LumiChunkRoot[] rootChunks = new LumiChunkRoot[TOTAL_CACHED_CHUNK_COUNT];
+    private final LumiChunkRoot[] rootChunks = new LumiChunkRoot[TOTAL_CACHED_CHUNK_COUNT];
     // Used for populating
     private final ChunkCacheCompact helperCache = new ChunkCacheCompact();
 
     // CZ/CX/Z/X/Y 3/3/16/16/256
-    Block[] blocks = new Block[ELEMENT_COUNT_PER_CACHED_THING];
+    private final Block[] blocks = new Block[ELEMENT_COUNT_PER_CACHED_THING];
     // CZ/CX/Z/X/Y 3/3/16/16/256
-    int[] blockMetas = new int[ELEMENT_COUNT_PER_CACHED_THING];
+    private final int[] blockMetas = new int[ELEMENT_COUNT_PER_CACHED_THING];
     // CZ/CX/Z/X/Y 3/3/16/16/256
-    TileEntity[] tileEntities = new TileEntity[ELEMENT_COUNT_PER_CACHED_THING];
+    private final TileEntity[] tileEntities = new TileEntity[ELEMENT_COUNT_PER_CACHED_THING];
     // CZ/CX/Z/X/Y 3/3/16/16/256
-    BitSet airChecks = new BitSet(ELEMENT_COUNT_PER_CACHED_THING);
+    private final BitSet airChecks = new BitSet(ELEMENT_COUNT_PER_CACHED_THING);
 
     // CZ/CX/Z/X/Y 3/3/16/16/256
-    BitSet checkedBlocks = new BitSet(ELEMENT_COUNT_PER_CACHED_THING);
+    private final BitSet checkedBlocks = new BitSet(ELEMENT_COUNT_PER_CACHED_THING);
 
-    boolean lumi$hasSky;
+    private int minChunkPosX;
+    private int minChunkPosZ;
 
-    boolean isClientSide;
-
-    /**
-     * TODO: Unsure about the binding relationship atm, should be decided based on implementation
-     */
-    DynamicBlockCache cache;
+    private boolean isReady;
 
     public DynamicBlockCacheRoot(LumiWorldRoot worldRoot) {
         this.worldRoot = worldRoot;
-        cache = new DynamicBlockCache(this);
+        this.cache = new DynamicBlockCache(this);
     }
 
     @Override
     public @NotNull String lumi$blockCacheRootID() {
         return "lumi_dynamic_block_cache_root";
+    }
+
+    @Override
+    public void lumi$clearCache() {
+        isReady = false;
+        checkedBlocks.clear();
+        Arrays.fill(tileEntities, null);
+        Arrays.fill(rootChunks, null);
+        cache.resetCache();
+        // We don't need to clear the "blocks" array because blocks are singletons
     }
 
     @Override
@@ -97,12 +85,12 @@ public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
 
     @Override
     public boolean lumi$isClientSide() {
-        return isClientSide;
+        return worldRoot.lumi$isClientSide();
     }
 
     @Override
     public boolean lumi$hasSky() {
-        return lumi$hasSky;
+        return worldRoot.lumi$hasSky();
     }
 
     @Override
@@ -133,10 +121,6 @@ public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
         return tileEntities[index];
     }
 
-    /**
-     * TODO: Ensures the selected block is ready to be read
-     * TODO: could also be merged with a 'get index' method, to automatically reset & shift the focus
-     */
     private void prepareBlock(int cacheIndex, int posX, int posY, int posZ) {
         if (checkedBlocks.get(cacheIndex))
             return;
@@ -156,10 +140,7 @@ public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
         checkedBlocks.set(cacheIndex);
     }
 
-    /**
-     * TODO: Resets the entire cache, called any time the requested info is out of range, or `isReady` is false
-     */
-    void resetCache(int centerChunkPosX, int centerChunkPosZ) {
+    private void setupCache(int centerChunkPosX, int centerChunkPosZ) {
         val minChunkPosX = centerChunkPosX - 1;
         val minChunkPosZ = centerChunkPosZ - 1;
 
@@ -185,8 +166,6 @@ public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
             }
         }
         helperCache.init(worldRoot, rootChunks, CACHE_CHUNK_XZ_SIZE, minChunkPosX, minChunkPosZ);
-        this.centerChunkPosX = centerChunkPosX;
-        this.centerChunkPosZ = centerChunkPosZ;
         this.minChunkPosX = minChunkPosX;
         this.minChunkPosZ = minChunkPosZ;
         checkedBlocks.clear();
@@ -213,28 +192,15 @@ public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
         return chunkBase | subChunkOffset;
     }
 
-    LumiChunkRoot chunkFromBlockPos(int posX, int posZ) {
+    private LumiChunkRoot chunkFromBlockPos(int posX, int posZ) {
         val chunkPosX = (posX >> BITSIZE_CHUNK_XZ) - minChunkPosX;
         val chunkPosZ = (posZ >> BITSIZE_CHUNK_XZ) - minChunkPosZ;
 
         if (chunkPosX < 0 || chunkPosX >= CACHE_CHUNK_XZ_SIZE || chunkPosZ < 0 || chunkPosZ >= CACHE_CHUNK_XZ_SIZE) {
-            //TODO smarter shifting logic here
-            resetCache(chunkPosX + minChunkPosZ, chunkPosZ + minChunkPosZ);
+            // TODO smarter shifting logic here
+            setupCache(chunkPosX + minChunkPosZ, chunkPosZ + minChunkPosZ);
         }
 
         return rootChunks[chunkPosZ * CACHE_CHUNK_XZ_SIZE + chunkPosX];
-    }
-
-
-    /**
-     * TODO: Zero's out the bitset of the valid blocks, to be called once at the start or end of server tick
-     */
-    public void resetCache() {
-        isReady = false;
-        checkedBlocks.clear();
-        Arrays.fill(tileEntities, null);
-        Arrays.fill(rootChunks, null);
-        cache.resetCache();
-        // We don't need to clear the "blocks" array because blocks are singletons
     }
 }
