@@ -210,7 +210,13 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
         //val subChunkOffset = (subChunkZ * CHUNK_XZ_SIZE + subChunkX) * CHUNK_Y_SIZE + subChunkY;
         //All these are constants so we can reduce it to bit shuffling
         val subChunkOffset = (subChunkZ << BITSHIFT_CHUNK_Z) | (subChunkX << BITSHIFT_CHUNK_X) | subChunkY;
-        return chunkBase | subChunkOffset;
+        int index = chunkBase | subChunkOffset;
+        if (index < 0 || index >= blocks.length) {
+            chunkFromBlockPos(posX, posZ);
+            return cacheIndexFromBlockPos(posX, posY, posZ);
+        } else {
+            return index;
+        }
     }
 
     private @Nullable LumiChunkRoot chunkFromBlockPos(int posX, int posZ) {
