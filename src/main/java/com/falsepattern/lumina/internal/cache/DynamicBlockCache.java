@@ -121,5 +121,6 @@ public class DynamicBlockCache implements LumiBlockCache {
 
         blockBrightnessValues[cacheIndex] = world.lumi$getBlockBrightness(theBlock, theMeta, posX, posY, posZ);
         blockOpacityValues[cacheIndex] = world.lumi$getBlockOpacity(theBlock, theMeta, posX, posY, posZ);
+        checkedBlocks.set(cacheIndex);
     }
 }
