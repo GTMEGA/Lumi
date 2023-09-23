@@ -47,7 +47,8 @@ public class OrderedLongSet {
     }
 
     public void add(long value) {
-        if (theSet.add(value)) {
+        if (!theSet.contains(value)) {
+            theSet.add(value);
             theList.add(value);
         }
     }
