@@ -49,8 +49,6 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
     // CZ/CX/Z/X/Y 3/3/16/16/256
     private final int[] blockMetas = new int[ELEMENT_COUNT_PER_CACHED_THING];
     // CZ/CX/Z/X/Y 3/3/16/16/256
-    private final TileEntity[] tileEntities = new TileEntity[ELEMENT_COUNT_PER_CACHED_THING];
-    // CZ/CX/Z/X/Y 3/3/16/16/256
     private final BitSet airChecks = new BitSet(ELEMENT_COUNT_PER_CACHED_THING);
 
     // CZ/CX/Z/X/Y 3/3/16/16/256
@@ -82,7 +80,6 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
 
         worldCache.lumi$clearCache();
         // We don't need to clear the "blocks" array because blocks are singletons
-        Arrays.fill(tileEntities, null);
         Arrays.fill(rootChunks, null);
         checkedBlocks.clear();
 
@@ -121,7 +118,18 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
 
     @Override
     public @Nullable TileEntity lumi$getTileEntity(int posX, int posY, int posZ) {
-        return tileEntities[getIndex(posX, posY, posZ)];
+        val block = lumi$getBlock(posX, posY, posZ);
+        val blockMeta = lumi$getBlockMeta(posX, posY, posZ);
+        if (!block.hasTileEntity(blockMeta))
+            return null;
+        val chunkRoot = chunkFromBlockPos(posX, posZ);
+        if (chunkRoot == null)
+            return null;
+
+        val chunkBase = (Chunk) chunkRoot;
+        val subChunkX = posX & CHUNK_XZ_BITMASK;
+        val subChunkZ = posZ & CHUNK_XZ_BITMASK;
+        return chunkBase.getTileEntityUnsafe(subChunkX, posY, subChunkZ);
     }
 
     private int getIndex(int posX, int posY, int posZ) {
@@ -133,20 +141,19 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
         if (theChunk == null) {
             blocks[cacheIndex] = Blocks.air;
             blockMetas[cacheIndex] = 0;
-            tileEntities[cacheIndex] = null;
             airChecks.clear(cacheIndex);
             checkedBlocks.clear(cacheIndex);
         } else {
             val subChunkX = posX & CHUNK_XZ_BITMASK;
             val subChunkZ = posZ & CHUNK_XZ_BITMASK;
 
-            val block = blocks[cacheIndex] = theChunk.lumi$getBlock(subChunkX, posY, subChunkZ);
-            val meta = blockMetas[cacheIndex] = theChunk.lumi$getBlockMeta(subChunkX, posY, subChunkZ);
+            val block = theChunk.lumi$getBlock(subChunkX, posY, subChunkZ);
+            val blockMeta = theChunk.lumi$getBlockMeta(subChunkX, posY, subChunkZ);
 
-            tileEntities[cacheIndex] = ((Chunk) theChunk).getTileEntityUnsafe(subChunkX, posY, subChunkZ);
+            blocks[cacheIndex] = block;
+            blockMetas[cacheIndex] = blockMeta;
 
             airChecks.set(cacheIndex, block.isAir(helperCache, posX, posY, posZ));
-
             checkedBlocks.set(cacheIndex);
         }
         return cacheIndex;
@@ -186,7 +193,6 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
         this.maxChunkPosZ = maxChunkPosZ;
         checkedBlocks.clear();
         worldCache.lumi$clearCache();
-        Arrays.fill(tileEntities, null);
         isReady = true;
     }
 
