@@ -7,6 +7,7 @@ import lombok.Setter;
 import lombok.val;
 import lombok.var;
 import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.chunk.Chunk;
 import org.jetbrains.annotations.NotNull;
@@ -135,18 +136,25 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
             return;
 
         val theChunk = chunkFromBlockPos(posX, posZ);
+        if (theChunk == null) {
+            blocks[cacheIndex] = Blocks.air;
+            blockMetas[cacheIndex] = 0;
+            tileEntities[cacheIndex] = null;
+            airChecks.clear(cacheIndex);
+            checkedBlocks.clear(cacheIndex);
+        } else {
+            val subChunkX = posX & CHUNK_XZ_BITMASK;
+            val subChunkZ = posZ & CHUNK_XZ_BITMASK;
 
-        val subChunkX = posX & CHUNK_XZ_BITMASK;
-        val subChunkZ = posZ & CHUNK_XZ_BITMASK;
+            val block = blocks[cacheIndex] = theChunk.lumi$getBlock(subChunkX, posY, subChunkZ);
+            val meta = blockMetas[cacheIndex] = theChunk.lumi$getBlockMeta(subChunkX, posY, subChunkZ);
 
-        val block = blocks[cacheIndex] = theChunk.lumi$getBlock(subChunkX, posY, subChunkZ);
-        val meta = blockMetas[cacheIndex] = theChunk.lumi$getBlockMeta(subChunkX, posY, subChunkZ);
+            tileEntities[cacheIndex] = ((Chunk) theChunk).getTileEntityUnsafe(subChunkX, posY, subChunkZ);
 
-        tileEntities[cacheIndex] = ((Chunk)theChunk).getTileEntityUnsafe(subChunkX, posY, subChunkZ);
+            airChecks.set(cacheIndex, block.isAir(helperCache, posX, posY, posZ));
 
-        airChecks.set(cacheIndex, block.isAir(helperCache, posX, posY, posZ));
-
-        checkedBlocks.set(cacheIndex);
+            checkedBlocks.set(cacheIndex);
+        }
     }
 
     private void setupCache(int centerChunkPosX, int centerChunkPosZ) {
@@ -156,16 +164,18 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
         val maxChunkPosX = centerChunkPosX + 1;
         val maxChunkPosZ = centerChunkPosZ + 1;
 
-        for (var chunkPosZ = minChunkPosZ; chunkPosZ < maxChunkPosZ; chunkPosZ++) {
-            for (var chunkPosX = minChunkPosX; chunkPosX < maxChunkPosX; chunkPosX++) {
+        for (var chunkPosZ = 0; chunkPosZ < CACHE_CHUNK_XZ_SIZE; chunkPosZ++) {
+            val realChunkPosZ = chunkPosZ + minChunkPosZ;
+            for (var chunkPosX = 0; chunkPosX < CACHE_CHUNK_XZ_SIZE; chunkPosX++) {
                 val rootChunkIndex = (chunkPosZ * CACHE_CHUNK_XZ_SIZE) + chunkPosX;
+                val realChunkPosX = chunkPosX + minChunkPosX;
 
                 val chunkProvider = worldRoot.lumi$chunkProvider();
                 chunkExistsCheck:
                 {
-                    if (chunkProvider.chunkExists(chunkPosX, chunkPosZ))
+                    if (!chunkProvider.chunkExists(realChunkPosX, realChunkPosZ))
                         break chunkExistsCheck;
-                    val chunkBase = chunkProvider.provideChunk(chunkPosX, chunkPosZ);
+                    val chunkBase = chunkProvider.provideChunk(realChunkPosX, realChunkPosZ);
                     if (!(chunkBase instanceof LumiChunkRoot))
                         break chunkExistsCheck;
                     val chunkRoot = (LumiChunkRoot) chunkBase;
@@ -203,7 +213,7 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
         return chunkBase | subChunkOffset;
     }
 
-    private LumiChunkRoot chunkFromBlockPos(int posX, int posZ) {
+    private @Nullable LumiChunkRoot chunkFromBlockPos(int posX, int posZ) {
         val baseChunkPosX = posX >> BITSIZE_CHUNK_XZ;
         val baseChunkPosZ = posZ >> BITSIZE_CHUNK_XZ;
         if (!isReady) {
@@ -218,6 +228,21 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
         val chunkPosX = baseChunkPosX - minChunkPosX;
         val chunkPosZ = baseChunkPosZ - minChunkPosZ;
 
-        return rootChunks[chunkPosZ * CACHE_CHUNK_XZ_SIZE + chunkPosX];
+        {
+            val rootChunk = rootChunks[chunkPosZ * CACHE_CHUNK_XZ_SIZE + chunkPosX];
+            if (rootChunk != null)
+                return rootChunk;
+        }
+
+        val chunkProvider = worldRoot.lumi$chunkProvider();
+        if (!chunkProvider.chunkExists(baseChunkPosX, baseChunkPosZ))
+            return null;
+        val chunkBase = chunkProvider.provideChunk(baseChunkPosX, baseChunkPosZ);
+        if (!(chunkBase instanceof LumiChunkRoot))
+            return null;
+
+        val rootChunk = (LumiChunkRoot) chunkBase;
+        rootChunks[chunkPosZ * CACHE_CHUNK_XZ_SIZE + chunkPosX] = rootChunk;
+        return rootChunk;
     }
 }

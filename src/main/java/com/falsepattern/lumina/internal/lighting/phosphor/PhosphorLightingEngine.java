@@ -12,6 +12,8 @@ import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
+import com.falsepattern.lumina.api.storage.LumiBlockCache;
+import com.falsepattern.lumina.api.storage.LumiBlockCacheRoot;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import com.falsepattern.lumina.internal.collection.PosHashSet;
@@ -145,6 +147,9 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     private final LumiWorldRoot worldRoot;
     private final Profiler profiler;
 
+    private final LumiBlockCache blockCache;
+    private final LumiBlockCacheRoot blockCacheRoot;
+
     /**
      * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
      */
@@ -183,6 +188,9 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         this.world = world;
         this.worldRoot = world.lumi$root();
         this.profiler = profiler;
+
+        this.blockCache = world.lumi$blockCache();
+        this.blockCacheRoot = worldRoot.lumi$blockCacheRoot();
 
         val queuePool = PooledLongQueue.createPool();
         this.updateQueues = new TLongSet[LIGHT_VALUE_TYPES_COUNT];
@@ -268,7 +276,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     @Override
     public int getCurrentLightValue(@NotNull LightType lightType, int posX, int posY, int posZ) {
         processLightingUpdatesForType(lightType);
-        return clampLightValue(world.lumi$getLightValue(lightType, posX, posY, posZ));
+        return clampLightValue(blockCache.lumi$getLightValue(lightType, posX, posY, posZ));
     }
 
     @Override
@@ -280,7 +288,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     public void handleChunkInit(@NotNull LumiChunk chunk) {
         chunk.lumi$isLightingInitialized(false);
 
-        val hasSky = worldRoot.lumi$hasSky();
+        val hasSky = blockCacheRoot.lumi$hasSky();
 
         val chunkRoot = chunk.lumi$root();
 
@@ -537,7 +545,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
         chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ, minPosY);
 
-        if (worldRoot.lumi$hasSky())
+        if (blockCacheRoot.lumi$hasSky())
             relightSkyLightColumn(this,
                                   world,
                                   chunk,
@@ -660,7 +668,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
-        if (worldRoot.lumi$isClientSide() && !isCallingFromClientThread())
+        if (blockCacheRoot.lumi$isClientSide() && !isCallingFromClientThread())
             return;
 
         // Quickly check if the queue is empty before we acquire a more expensive lock.
@@ -684,7 +692,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
-        if (worldRoot.lumi$isClientSide() && !isCallingFromClientThread())
+        if (blockCacheRoot.lumi$isClientSide() && !isCallingFromClientThread())
             return;
 
         // Quickly check if the queue is empty before we acquire a more expensive lock.
@@ -1099,7 +1107,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             }
         }
 
-        val cursorBlockLightValueVal = world.lumi$getBlockBrightness(cursorBlock, cursorBlockMeta, posX, posY, posZ);
+        val cursorBlockLightValueVal = blockCache.lumi$getBlockBrightness(cursorBlock, cursorBlockMeta, posX, posY, posZ);
         return clampLightValue(cursorBlockLightValueVal);
     }
 
@@ -1107,7 +1115,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         val posX = blockPos.getX();
         val posY = blockPos.getY();
         val posZ = blockPos.getZ();
-        val blockOpacity = world.lumi$getBlockOpacity(block, blockMeta, posX, posY, posZ);
+        val blockOpacity = blockCache.lumi$getBlockOpacity(block, blockMeta, posX, posY, posZ);
         return clampBlockLightOpacity(blockOpacity);
     }
 

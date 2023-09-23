@@ -64,7 +64,6 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     @Dynamic(LUMI_WORLD_INIT_HOOK_INFO)
     private void lumiWorldInit(CallbackInfo ci) {
         this.lumi$root = (LumiWorldRoot) this;
-        this.lumi$lightingEngine = LumiAPI.provideLightingEngine(this, theProfiler);
 
         val blockCacheRoot = lumi$root.lumi$blockCacheRoot();
         if (blockCacheRoot instanceof DynamicBlockCacheRoot) {
@@ -73,6 +72,9 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
             dynBlockCacheRoot.setWorldCache(dynamicBlockCache);
             lumi$blockCache = dynamicBlockCache;
         }
+
+        // TODO: Poor init order, will not bind with RPLE!!
+        this.lumi$lightingEngine = LumiAPI.provideLightingEngine(this, theProfiler);
     }
 
     // region World
