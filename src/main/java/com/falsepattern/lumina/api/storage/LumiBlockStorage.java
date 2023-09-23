@@ -1,6 +1,7 @@
-package com.falsepattern.lumina.api.world;
+package com.falsepattern.lumina.api.storage;
 
 import com.falsepattern.lumina.api.lighting.LightType;
+import com.falsepattern.lumina.api.world.LumiWorld;
 import net.minecraft.block.Block;
 import org.jetbrains.annotations.NotNull;
 

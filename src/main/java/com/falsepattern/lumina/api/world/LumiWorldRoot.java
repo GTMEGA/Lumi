@@ -7,6 +7,7 @@
 
 package com.falsepattern.lumina.api.world;
 
+import com.falsepattern.lumina.api.storage.LumiBlockStorageRoot;
 import net.minecraft.world.chunk.IChunkProvider;
 import org.jetbrains.annotations.NotNull;
 

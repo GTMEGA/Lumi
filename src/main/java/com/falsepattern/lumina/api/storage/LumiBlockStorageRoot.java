@@ -1,4 +1,4 @@
-package com.falsepattern.lumina.api.world;
+package com.falsepattern.lumina.api.storage;
 
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;

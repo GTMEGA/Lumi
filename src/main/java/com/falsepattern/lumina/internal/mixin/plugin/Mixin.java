@@ -61,6 +61,9 @@ public enum Mixin implements IMixin {
 
     common_lumi_LumiSubChunkImplMixin(COMMON, always(), "lumi.LumiSubChunkImplMixin"),
     common_lumi_LumiSubChunkRootImplMixin(COMMON, always(), "lumi.LumiSubChunkRootImplMixin"),
+
+    common_lumi_LumiBlockCacheImplMixin(COMMON, always(), "lumi.LumiBlockCacheImplMixin"),
+    common_lumi_LumiBlockCacheRootImplMixin(COMMON, always(), "lumi.LumiBlockCacheRootImplMixin"),
     // endregion
 
     // region Phosphor Implementation
