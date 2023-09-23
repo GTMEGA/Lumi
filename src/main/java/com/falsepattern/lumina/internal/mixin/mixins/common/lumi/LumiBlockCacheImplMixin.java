@@ -100,7 +100,7 @@ public abstract class LumiBlockCacheImplMixin implements IBlockAccess, LumiBlock
 
     @Override
     public int lumi$getBrightness(int posX, int posY, int posZ) {
-        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
+        val chunk = getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
@@ -112,7 +112,7 @@ public abstract class LumiBlockCacheImplMixin implements IBlockAccess, LumiBlock
 
     @Override
     public int lumi$getLightValue(int posX, int posY, int posZ) {
-        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
+        val chunk = getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
@@ -123,7 +123,7 @@ public abstract class LumiBlockCacheImplMixin implements IBlockAccess, LumiBlock
 
     @Override
     public int lumi$getLightValue(@NotNull LightType lightType, int posX, int posY, int posZ) {
-        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
+        val chunk = getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
@@ -144,7 +144,7 @@ public abstract class LumiBlockCacheImplMixin implements IBlockAccess, LumiBlock
 
     @Override
     public int lumi$getBlockLightValue(int posX, int posY, int posZ) {
-        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
+        val chunk = getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
@@ -155,10 +155,10 @@ public abstract class LumiBlockCacheImplMixin implements IBlockAccess, LumiBlock
 
     @Override
     public int lumi$getSkyLightValue(int posX, int posY, int posZ) {
-        if (!lumi$root().lumi$hasSky())
+        if (!lumi$root.lumi$hasSky())
             return 0;
 
-        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
+        val chunk = getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
@@ -192,7 +192,7 @@ public abstract class LumiBlockCacheImplMixin implements IBlockAccess, LumiBlock
     // endregion
 
     @SuppressWarnings("InstanceofIncompatibleInterface")
-    private @Nullable LumiChunk lumi$getChunkFromBlockPosIfExists(int posX, int posZ) {
+    private @Nullable LumiChunk getChunkFromBlockPosIfExists(int posX, int posZ) {
         checks:
         {
             if (isEmpty)

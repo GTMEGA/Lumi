@@ -22,6 +22,7 @@ public abstract class LumiChunkCacheHookImplMixin implements LumiChunkCacheInitH
             at = @At("RETURN"),
             require = 1)
     private void lumiChunkCacheInitHook(CallbackInfo ci) {
+        lumi$onChunkCacheInit();
     }
 
     @Override
