@@ -1,9 +1,12 @@
 package com.falsepattern.lumina.internal.cache;
 
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
+import com.falsepattern.lumina.api.lighting.LightType;
+import com.falsepattern.lumina.api.storage.LumiBlockCache;
 import com.falsepattern.lumina.api.storage.LumiBlockCacheRoot;
+import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
-import lombok.Setter;
+import lombok.Getter;
 import lombok.val;
 import lombok.var;
 import net.minecraft.block.Block;
@@ -36,8 +39,7 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
 
     private final LumiWorldRoot worldRoot;
 
-    @Setter
-    private DynamicBlockCache worldCache;
+    private DynamicBlockCache blockCache = null;
 
     // Z/X 3/3
     private final LumiChunkRoot[] rootChunks = new LumiChunkRoot[TOTAL_CACHED_CHUNK_COUNT];
@@ -54,18 +56,20 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
     // CZ/CX/Z/X/Y 3/3/16/16/256
     private final BitSet checkedBlocks = new BitSet(ELEMENT_COUNT_PER_CACHED_THING);
 
+    @Getter
     private int minChunkPosX;
+    @Getter
     private int minChunkPosZ;
+    @Getter
     private int maxChunkPosX;
+    @Getter
     private int maxChunkPosZ;
 
+    @Getter
     private boolean isReady;
 
     public DynamicBlockCacheRoot(@NotNull LumiWorldRoot worldRoot) {
         this.worldRoot = worldRoot;
-        // Initialized in [com.falsepattern.lumina.internal.mixin.mixins.common.lumi.LumiWorldImplMixin]
-        //noinspection DataFlowIssue
-        this.worldCache = null;
     }
 
     @Override
@@ -74,11 +78,22 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
     }
 
     @Override
+    public @NotNull LumiBlockCache lumi$createBlockCache(LumiWorld world) {
+        if (blockCache == null)
+            blockCache = new DynamicBlockCache(world);
+        else if (blockCache.lumi$world() != world)
+            throw new IllegalArgumentException("Block cache already created for a different world");
+
+        return blockCache;
+    }
+
+    @Override
     public void lumi$clearCache() {
         if (!isReady)
             return;
 
-        worldCache.lumi$clearCache();
+        if (blockCache != null)
+            blockCache.lumi$clearCache();
         // We don't need to clear the "blocks" array because blocks are singletons
         Arrays.fill(rootChunks, null);
         checkedBlocks.clear();
@@ -192,7 +207,8 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
         this.maxChunkPosX = maxChunkPosX;
         this.maxChunkPosZ = maxChunkPosZ;
         checkedBlocks.clear();
-        worldCache.lumi$clearCache();
+        if (blockCache != null)
+            blockCache.lumi$clearCache();
         isReady = true;
     }
 
@@ -229,7 +245,6 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
 
         if (baseChunkPosX < minChunkPosX || baseChunkPosX >= maxChunkPosX ||
             baseChunkPosZ < minChunkPosZ || baseChunkPosZ >= maxChunkPosZ) {
-            // TODO smarter shifting logic here
             setupCache(baseChunkPosX, baseChunkPosZ);
         }
         val chunkPosX = baseChunkPosX - minChunkPosX;
@@ -247,5 +262,112 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
             return null;
 
         return rootChunks[chunkPosZ * CACHE_CHUNK_XZ_SIZE + chunkPosX] = (LumiChunkRoot) chunkBase;
+    }
+
+    public final class DynamicBlockCache implements LumiBlockCache {
+        private final LumiWorld world;
+
+        // CZ/CX/Z/X/Y 3/3/16/16/256
+        private final int[] blockBrightnessValues = new int[ELEMENT_COUNT_PER_CACHED_THING];
+        // CZ/CX/Z/X/Y 3/3/16/16/256
+        private final int[] blockOpacityValues = new int[ELEMENT_COUNT_PER_CACHED_THING];
+
+        // CZ/CX/Z/X/Y 3/3/16/16/256
+        private final BitSet checkedBlocks = new BitSet(ELEMENT_COUNT_PER_CACHED_THING);
+
+        public DynamicBlockCache(@NotNull LumiWorld world) {
+            this.world = world;
+        }
+
+        @Override
+        public @NotNull LumiBlockCacheRoot lumi$root() {
+            return DynamicBlockCacheRoot.this;
+        }
+
+        @Override
+        public @NotNull String lumi$BlockCacheID() {
+            return "lumi_dynamic_block_cache";
+        }
+
+        @Override
+        public void lumi$clearCache() {
+            checkedBlocks.clear();
+        }
+
+        @Override
+        public @NotNull String lumi$blockStorageID() {
+            return "lumi_dynamic_block_cache";
+        }
+
+        @Override
+        public @NotNull LumiWorld lumi$world() {
+            return world;
+        }
+
+        @Override
+        public int lumi$getBrightness(@NotNull LightType lightType, int posX, int posY, int posZ) {
+            return world.lumi$getBrightness(lightType, posX, posY, posZ);
+        }
+
+        @Override
+        public int lumi$getBrightness(int posX, int posY, int posZ) {
+            return world.lumi$getBrightness(posX, posY, posZ);
+        }
+
+        @Override
+        public int lumi$getLightValue(int posX, int posY, int posZ) {
+            return world.lumi$getLightValue(posX, posY, posZ);
+        }
+
+        @Override
+        public int lumi$getLightValue(@NotNull LightType lightType, int posX, int posY, int posZ) {
+            return world.lumi$getLightValue(lightType, posX, posY, posZ);
+        }
+
+        @Override
+        public int lumi$getBlockLightValue(int posX, int posY, int posZ) {
+            return world.lumi$getBlockLightValue(posX, posY, posZ);
+        }
+
+        @Override
+        public int lumi$getSkyLightValue(int posX, int posY, int posZ) {
+            return world.lumi$getSkyLightValue(posX, posY, posZ);
+        }
+
+        @Override
+        public int lumi$getBlockBrightness(int posX, int posY, int posZ) {
+            val index = DynamicBlockCacheRoot.this.getIndex(posX, posY, posZ);
+            prepareBlock(index, posX, posY, posZ);
+            return blockBrightnessValues[index];
+        }
+
+        @Override
+        public int lumi$getBlockOpacity(int posX, int posY, int posZ) {
+            val index = DynamicBlockCacheRoot.this.getIndex(posX, posY, posZ);
+            prepareBlock(index, posX, posY, posZ);
+            return blockOpacityValues[index];
+        }
+
+        @Override
+        public int lumi$getBlockBrightness(@NotNull Block block, int blockMeta, int posX, int posY, int posZ) {
+            return lumi$getBlockBrightness(posX, posY, posZ);
+        }
+
+        @Override
+        public int lumi$getBlockOpacity(@NotNull Block block, int blockMeta, int posX, int posY, int posZ) {
+            return lumi$getBlockOpacity(posX, posY, posZ);
+        }
+
+        private void prepareBlock(int cacheIndex, int posX, int posY, int posZ) {
+            if (checkedBlocks.get(cacheIndex))
+                return;
+
+            val theBlock = DynamicBlockCacheRoot.this.lumi$getBlock(posX, posY, posZ);
+            val theMeta = DynamicBlockCacheRoot.this.lumi$getBlockMeta(posX, posY, posZ);
+
+            blockBrightnessValues[cacheIndex] = world.lumi$getBlockBrightness(theBlock, theMeta, posX, posY, posZ);
+            blockOpacityValues[cacheIndex] = world.lumi$getBlockOpacity(theBlock, theMeta, posX, posY, posZ);
+            checkedBlocks.set(cacheIndex);
+        }
     }
 }

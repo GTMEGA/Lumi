@@ -15,8 +15,6 @@ import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.storage.LumiBlockCache;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
-import com.falsepattern.lumina.internal.cache.DynamicBlockCache;
-import com.falsepattern.lumina.internal.cache.DynamicBlockCacheRoot;
 import lombok.val;
 import net.minecraft.block.Block;
 import net.minecraft.profiler.Profiler;
@@ -66,12 +64,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
         this.lumi$root = (LumiWorldRoot) this;
 
         val blockCacheRoot = lumi$root.lumi$blockCacheRoot();
-        if (blockCacheRoot instanceof DynamicBlockCacheRoot) {
-            val dynBlockCacheRoot = (DynamicBlockCacheRoot) blockCacheRoot;
-            val dynamicBlockCache = new DynamicBlockCache(dynBlockCacheRoot, this);
-            dynBlockCacheRoot.setWorldCache(dynamicBlockCache);
-            lumi$blockCache = dynamicBlockCache;
-        }
+        lumi$blockCache = blockCacheRoot.lumi$createBlockCache(this);
 
         // TODO: Poor init order, will not bind with RPLE!!
         this.lumi$lightingEngine = LumiAPI.provideLightingEngine(this, theProfiler);
