@@ -11,6 +11,7 @@ import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
+import com.falsepattern.lumina.api.storage.LumiBlockCache;
 import com.falsepattern.lumina.api.storage.LumiBlockStorage;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
@@ -38,4 +39,6 @@ public interface LumiWorld extends LumiBlockStorage {
     void lumi$setBlockLightValue(int posX, int posY, int posZ, int lightValue);
 
     void lumi$setSkyLightValue(int posX, int posY, int posZ, int lightValue);
+
+    LumiBlockCache lumi$blockCache();
 }
