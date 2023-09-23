@@ -116,8 +116,8 @@ public final class DynamicBlockCache implements LumiBlockCache {
         val subChunkX = posX & CHUNK_XZ_BITMASK;
         val subChunkZ = posZ & CHUNK_XZ_BITMASK;
 
-        val theBlock = root.lumi$getBlock(subChunkX, posY, subChunkZ);
-        val theMeta = root.lumi$getBlockMeta(subChunkX, posY, subChunkZ);
+        val theBlock = root.lumi$getBlock(posX, posY, posZ);
+        val theMeta = root.lumi$getBlockMeta(posX, posY, posZ);
 
         blockBrightnessValues[cacheIndex] = world.lumi$getBlockBrightness(theBlock, theMeta, posX, posY, posZ);
         blockOpacityValues[cacheIndex] = world.lumi$getBlockOpacity(theBlock, theMeta, posX, posY, posZ);
