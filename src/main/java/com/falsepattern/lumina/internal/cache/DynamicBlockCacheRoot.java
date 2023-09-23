@@ -3,6 +3,7 @@ package com.falsepattern.lumina.internal.cache;
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import com.falsepattern.lumina.api.storage.LumiBlockCacheRoot;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
+import lombok.Setter;
 import lombok.val;
 import lombok.var;
 import net.minecraft.block.Block;
@@ -15,8 +16,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 
 
-// TODO: On first call, this should become ready if it is not already ready
-public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
+public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
     static final int CHUNK_XZ_SIZE = 16;
     static final int CHUNK_XZ_BITMASK = 15;
     static final int CHUNK_Y_SIZE = 256;
@@ -32,9 +32,10 @@ public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
     static final int BITSHIFT_CHUNK_X = BITSIZE_CHUNK_Y;
     static final int BITSHIFT_CHUNK = BITSIZE_CHUNK_XZ + BITSIZE_CHUNK_XZ + BITSIZE_CHUNK_Y;
 
-    private final DynamicBlockCache cache;
-
     private final LumiWorldRoot worldRoot;
+
+    @Setter
+    private DynamicBlockCache worldCache;
 
     // Z/X 3/3
     private final LumiChunkRoot[] rootChunks = new LumiChunkRoot[TOTAL_CACHED_CHUNK_COUNT];
@@ -60,9 +61,11 @@ public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
 
     private boolean isReady;
 
-    public DynamicBlockCacheRoot(LumiWorldRoot worldRoot) {
+    public DynamicBlockCacheRoot(@NotNull LumiWorldRoot worldRoot) {
         this.worldRoot = worldRoot;
-        this.cache = new DynamicBlockCache(this);
+        // Initialized in [com.falsepattern.lumina.internal.mixin.mixins.common.lumi.LumiWorldImplMixin]
+        //noinspection DataFlowIssue
+        this.worldCache = null;
     }
 
     @Override
@@ -76,7 +79,7 @@ public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
         checkedBlocks.clear();
         Arrays.fill(tileEntities, null);
         Arrays.fill(rootChunks, null);
-        cache.resetCache();
+        worldCache.lumi$clearCache();
         // We don't need to clear the "blocks" array because blocks are singletons
     }
 
@@ -173,7 +176,7 @@ public class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
         this.maxChunkPosX = maxChunkPosX;
         this.maxChunkPosZ = maxChunkPosZ;
         checkedBlocks.clear();
-        cache.resetCache();
+        worldCache.lumi$clearCache();
         Arrays.fill(tileEntities, null);
         isReady = true;
     }

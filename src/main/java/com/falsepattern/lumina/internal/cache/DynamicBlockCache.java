@@ -13,8 +13,7 @@ import java.util.BitSet;
 import static com.falsepattern.lumina.internal.cache.DynamicBlockCacheRoot.CHUNK_XZ_BITMASK;
 import static com.falsepattern.lumina.internal.cache.DynamicBlockCacheRoot.ELEMENT_COUNT_PER_CACHED_THING;
 
-// TODO: On first call, this should become ready if it is not already ready
-public class DynamicBlockCache implements LumiBlockCache {
+public final class DynamicBlockCache implements LumiBlockCache {
     private final DynamicBlockCacheRoot root;
     private final LumiWorld world;
 
@@ -26,9 +25,9 @@ public class DynamicBlockCache implements LumiBlockCache {
     // CZ/CX/Z/X/Y 3/3/16/16/256
     private final BitSet checkedBlocks = new BitSet(ELEMENT_COUNT_PER_CACHED_THING);
 
-    public DynamicBlockCache(DynamicBlockCacheRoot root) {
+    public DynamicBlockCache(@NotNull DynamicBlockCacheRoot root, @NotNull LumiWorld world) {
         this.root = root;
-        this.world = null;
+        this.world = world;
     }
 
     @Override
@@ -39,6 +38,11 @@ public class DynamicBlockCache implements LumiBlockCache {
     @Override
     public @NotNull String lumi$BlockCacheID() {
         return "lumi_dynamic_block_cache";
+    }
+
+    @Override
+    public void lumi$clearCache() {
+        checkedBlocks.clear();
     }
 
     @Override
@@ -103,10 +107,6 @@ public class DynamicBlockCache implements LumiBlockCache {
     @Override
     public int lumi$getBlockOpacity(@NotNull Block block, int blockMeta, int posX, int posY, int posZ) {
         return lumi$getBlockOpacity(posX, posY, posZ);
-    }
-
-    void resetCache() {
-        checkedBlocks.clear();
     }
 
     private void prepareBlock(int cacheIndex, int posX, int posY, int posZ) {

@@ -40,5 +40,5 @@ public interface LumiWorld extends LumiBlockStorage {
 
     void lumi$setSkyLightValue(int posX, int posY, int posZ, int lightValue);
 
-    LumiBlockCache lumi$blockCache();
+    @NotNull LumiBlockCache lumi$blockCache();
 }

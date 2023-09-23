@@ -7,7 +7,9 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
+import com.falsepattern.lumina.api.storage.LumiBlockCacheRoot;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
+import com.falsepattern.lumina.internal.cache.DynamicBlockCacheRoot;
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.IBlockAccess;
@@ -16,13 +18,17 @@ import net.minecraft.world.WorldProvider;
 import net.minecraft.world.chunk.IChunkProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import static com.falsepattern.lumina.api.init.LumiWorldInitHook.LUMI_WORLD_INIT_HOOK_INFO;
+import static com.falsepattern.lumina.api.init.LumiWorldInitHook.LUMI_WORLD_INIT_HOOK_METHOD;
+import static com.falsepattern.lumina.internal.mixin.plugin.MixinPlugin.LUMI_ROOT_IMPL_MIXIN_PRIORITY;
 
 @Unique
-@Mixin(World.class)
+@Mixin(value = World.class, priority = LUMI_ROOT_IMPL_MIXIN_PRIORITY)
 public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldRoot {
     // region Shadow
     @Final
@@ -57,6 +63,18 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     public abstract boolean func_147451_t(int posX, int posY, int posZ);
     // endregion
 
+    private LumiBlockCacheRoot lumi$blockCacheRoot = null;
+
+    @Inject(method = LUMI_WORLD_INIT_HOOK_METHOD,
+            at = @At("RETURN"),
+            remap = false,
+            require = 1)
+    @SuppressWarnings("CastToIncompatibleInterface")
+    @Dynamic(LUMI_WORLD_INIT_HOOK_INFO)
+    private void lumiWorldRootInit(CallbackInfo ci) {
+        this.lumi$blockCacheRoot = new DynamicBlockCacheRoot(this);
+    }
+
     // region World Root
     @Override
     public @NotNull String lumi$worldRootID() {
@@ -86,6 +104,11 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     @Override
     public boolean lumi$doChunksExistInRange(int centerPosX, int centerPosY, int centerPosZ, int blockRange) {
         return doChunksNearChunkExist(centerPosX, centerPosY, centerPosZ, blockRange);
+    }
+
+    @Override
+    public @NotNull LumiBlockCacheRoot lumi$blockCacheRoot() {
+        return lumi$blockCacheRoot;
     }
     // endregion
 

@@ -12,9 +12,11 @@ import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
+import com.falsepattern.lumina.api.storage.LumiBlockCache;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
-import com.falsepattern.lumina.internal.Tags;
+import com.falsepattern.lumina.internal.cache.DynamicBlockCache;
+import com.falsepattern.lumina.internal.cache.DynamicBlockCacheRoot;
 import lombok.val;
 import net.minecraft.block.Block;
 import net.minecraft.profiler.Profiler;
@@ -29,8 +31,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static com.falsepattern.lumina.api.init.LumiWorldInitHook.LUMI_WORLD_INIT_HOOK_METHOD;
 import static com.falsepattern.lumina.api.init.LumiWorldInitHook.LUMI_WORLD_INIT_HOOK_INFO;
+import static com.falsepattern.lumina.api.init.LumiWorldInitHook.LUMI_WORLD_INIT_HOOK_METHOD;
 import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 
@@ -52,6 +54,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
 
     private LumiWorldRoot lumi$root = null;
     private LumiLightingEngine lumi$lightingEngine = null;
+    private LumiBlockCache lumi$blockCache = null;
 
     @Inject(method = LUMI_WORLD_INIT_HOOK_METHOD,
             at = @At("RETURN"),
@@ -62,6 +65,12 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     private void lumiWorldInit(CallbackInfo ci) {
         this.lumi$root = (LumiWorldRoot) this;
         this.lumi$lightingEngine = LumiAPI.provideLightingEngine(this, theProfiler);
+
+        val blockCacheRoot = lumi$root.lumi$blockCacheRoot();
+        if (blockCacheRoot instanceof DynamicBlockCacheRoot) {
+            val dynBlockCacheRoot = (DynamicBlockCacheRoot) blockCacheRoot;
+            lumi$blockCache = new DynamicBlockCache(dynBlockCacheRoot, this);
+        }
     }
 
     // region World
@@ -141,6 +150,11 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
             val subChunkPosZ = posZ & 15;
             chunk.lumi$setSkyLightValue(subChunkPosX, posY, subChunkPosZ, lightValue);
         }
+    }
+
+    @Override
+    public @NotNull LumiBlockCache lumi$blockCache() {
+        return lumi$blockCache;
     }
     // endregion
 

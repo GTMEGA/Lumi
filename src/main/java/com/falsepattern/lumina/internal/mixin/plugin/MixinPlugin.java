@@ -17,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 
 @NoArgsConstructor
 public final class MixinPlugin implements IMixinPlugin {
+    public static final int LUMI_ROOT_IMPL_MIXIN_PRIORITY = 950;
     public static final int POST_CHUNK_API_MIXIN_PRIORITY = 1010;
 
     @Getter
