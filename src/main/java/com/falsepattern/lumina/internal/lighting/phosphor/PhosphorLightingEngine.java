@@ -16,10 +16,8 @@ import com.falsepattern.lumina.api.storage.LumiBlockCache;
 import com.falsepattern.lumina.api.storage.LumiBlockCacheRoot;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
-import com.falsepattern.lumina.internal.collection.PosHashSet;
 import cpw.mods.fml.relauncher.SideOnly;
 import gnu.trove.iterator.TLongIterator;
-import gnu.trove.set.TLongSet;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import lombok.var;
@@ -153,25 +151,25 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     /**
      * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
      */
-    private final TLongSet[] updateQueues;
+    private final OrderedLongSet[] updateQueues;
     /**
      * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
      */
-    private final TLongSet[] brighteningQueues;
+    private final OrderedLongSet[] brighteningQueues;
     /**
      * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
      */
-    private final TLongSet[] darkeningQueues;
+    private final OrderedLongSet[] darkeningQueues;
     /**
      * Layout of longs: [newLight(4)] [y(8)] [x(26)] [z(26)]
      */
-    private final TLongSet initialBrighteningQueue;
+    private final OrderedLongSet initialBrighteningQueue;
     /**
      * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
      */
-    private final TLongSet initialDarkeningQueue;
+    private final OrderedLongSet initialDarkeningQueue;
 
-    private @Nullable TLongSet currentQueue;
+    private @Nullable OrderedLongSet currentQueue;
     private @Nullable TLongIterator queueIterator;
 
     private final BlockPos.MutableBlockPos cursorBlockPos;
@@ -192,18 +190,17 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         this.blockCache = world.lumi$blockCache();
         this.blockCacheRoot = worldRoot.lumi$blockCacheRoot();
 
-        val queuePool = PooledLongQueue.createPool();
-        this.updateQueues = new TLongSet[LIGHT_VALUE_TYPES_COUNT];
+        this.updateQueues = new OrderedLongSet[LIGHT_VALUE_TYPES_COUNT];
         for (var i = 0; i < LIGHT_VALUE_TYPES_COUNT; i++)
-            this.updateQueues[i] = new PosHashSet();
-        this.brighteningQueues = new TLongSet[LIGHT_VALUE_RANGE];
+            this.updateQueues[i] = new OrderedLongSet();
+        this.brighteningQueues = new OrderedLongSet[LIGHT_VALUE_RANGE];
         for (var i = 0; i < LIGHT_VALUE_RANGE; i++)
-            this.brighteningQueues[i] = new PosHashSet();
-        this.darkeningQueues = new TLongSet[LIGHT_VALUE_RANGE];
+            this.brighteningQueues[i] = new OrderedLongSet();
+        this.darkeningQueues = new OrderedLongSet[LIGHT_VALUE_RANGE];
         for (var i = 0; i < LIGHT_VALUE_RANGE; i++)
-            this.darkeningQueues[i] = new PosHashSet();
-        this.initialBrighteningQueue = new PosHashSet();
-        this.initialDarkeningQueue = new PosHashSet();
+            this.darkeningQueues[i] = new OrderedLongSet();
+        this.initialBrighteningQueue = new OrderedLongSet();
+        this.initialDarkeningQueue = new OrderedLongSet();
 
         this.neighborBlocks = new NeighborBlock[NEIGHBOUR_COUNT];
         for (var i = 0; i < NEIGHBOUR_COUNT; i++)
@@ -768,7 +765,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         lock.unlock();
     }
 
-    private void processLightUpdateQueue(LightType lightType, TLongSet queue) {
+    private void processLightUpdateQueue(LightType lightType, OrderedLongSet queue) {
         if (isUpdating)
             return;
         isUpdating = true;
@@ -1046,7 +1043,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         blockPos.setPos(posX, posY, posZ);
     }
 
-    private void setQueue(@Nullable TLongSet queue) {
+    private void setQueue(@Nullable OrderedLongSet queue) {
         if (currentQueue != null)
             currentQueue.clear();
 
