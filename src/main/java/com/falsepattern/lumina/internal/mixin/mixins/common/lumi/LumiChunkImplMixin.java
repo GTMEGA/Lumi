@@ -29,8 +29,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import static com.falsepattern.lumina.api.init.LumiChunkInitHook.LUMI_CHUNK_INIT_HOOK_METHOD;
 import static com.falsepattern.lumina.api.init.LumiChunkInitHook.LUMI_CHUNK_INIT_HOOK_INFO;
+import static com.falsepattern.lumina.api.init.LumiChunkInitHook.LUMI_CHUNK_INIT_HOOK_METHOD;
 import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 
@@ -326,6 +326,8 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
                                     int subChunkPosX,
                                     int posY,
                                     int subChunkPosZ) {
+        if (!lumi$isLightingInitialized)
+            return block.getLightOpacity();
         val posX = (xPosition << 4) + subChunkPosX;
         val posZ = (zPosition << 4) + subChunkPosZ;
         return lumi$world.lumi$getBlockOpacity(block, blockMeta, posX, posY, posZ);
