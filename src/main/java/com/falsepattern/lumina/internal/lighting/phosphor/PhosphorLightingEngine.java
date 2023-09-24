@@ -485,19 +485,18 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
                 renderUpdateCheck:
                 {
-                    // FIXME: BLOCK CACHE
-                    val blockOpacity = clampBlockLightOpacity(
-                            chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ));
+                    // FIXME: BLOCK CACHE [TEST]
+                    val blockOpacity = getCachedBlockLightOpacity(posX, posY, posZ);
                     if (blockOpacity < MAX_BLOCK_LIGHT_OPACITY)
                         break renderUpdateCheck;
 
-                    // FIXME: BLOCK CACHE
-                    val blockBrightness = chunk.lumi$getBlockBrightness(subChunkPosX, posY, subChunkPosZ);
+                    // FIXME: BLOCK CACHE [TEST]
+                    val blockBrightness = getCachedBlockBrightness(posX, posY, posZ);
                     if (blockBrightness > MIN_LIGHT_VALUE)
                         break renderUpdateCheck;
 
-                    // FIXME: BLOCK CACHE
-                    val lightValue = chunk.lumi$getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
+                    // FIXME: BLOCK CACHE [TEST]
+                    val lightValue = getCachedBlockLightValue(posX, posY, posZ);
                     if (lightValue == MIN_LIGHT_VALUE)
                         continue;
 
