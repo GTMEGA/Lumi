@@ -1,5 +1,6 @@
-package com.falsepattern.lumina.api.storage;
+package com.falsepattern.lumina.api.cache;
 
+import com.falsepattern.lumina.api.storage.LumiBlockStorage;
 import org.jetbrains.annotations.NotNull;
 
 public interface LumiBlockCache extends LumiBlockStorage {

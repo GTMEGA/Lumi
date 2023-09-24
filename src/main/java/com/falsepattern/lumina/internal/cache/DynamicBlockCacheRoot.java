@@ -1,9 +1,9 @@
 package com.falsepattern.lumina.internal.cache;
 
+import com.falsepattern.lumina.api.cache.LumiBlockCache;
+import com.falsepattern.lumina.api.cache.LumiBlockCacheRoot;
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import com.falsepattern.lumina.api.lighting.LightType;
-import com.falsepattern.lumina.api.storage.LumiBlockCache;
-import com.falsepattern.lumina.api.storage.LumiBlockCacheRoot;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import lombok.Getter;
@@ -56,13 +56,9 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
     // CZ/CX/Z/X/Y 3/3/16/16/256
     private final BitSet checkedBlocks = new BitSet(ELEMENT_COUNT_PER_CACHED_THING);
 
-    @Getter
     private int minChunkPosX;
-    @Getter
     private int minChunkPosZ;
-    @Getter
     private int maxChunkPosX;
-    @Getter
     private int maxChunkPosZ;
 
     @Getter
@@ -85,6 +81,26 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
             throw new IllegalArgumentException("Block cache already created for a different world");
 
         return blockCache;
+    }
+
+    @Override
+    public int lumi$minChunkPosX() {
+        return minChunkPosX;
+    }
+
+    @Override
+    public int lumi$minChunkPosZ() {
+        return minChunkPosZ;
+    }
+
+    @Override
+    public int lumi$maxChunkPosX() {
+        return maxChunkPosX;
+    }
+
+    @Override
+    public int lumi$maxChunkPosZ() {
+        return maxChunkPosZ;
     }
 
     @Override
@@ -201,7 +217,7 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
                 rootChunks[rootChunkIndex] = null;
             }
         }
-        helperCache.init(worldRoot, rootChunks, CACHE_CHUNK_XZ_SIZE, minChunkPosX, minChunkPosZ);
+        helperCache.init(rootChunks, CACHE_CHUNK_XZ_SIZE, minChunkPosX, minChunkPosZ);
         this.minChunkPosX = minChunkPosX;
         this.minChunkPosZ = minChunkPosZ;
         this.maxChunkPosX = maxChunkPosX;

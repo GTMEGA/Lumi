@@ -7,17 +7,16 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
-import com.falsepattern.lumina.api.storage.LumiBlockCacheRoot;
+import com.falsepattern.lumina.api.cache.LumiBlockCacheRoot;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
-import com.falsepattern.lumina.internal.cache.DynamicBlockCacheRoot;
+import com.falsepattern.lumina.internal.cache.MultiHeadBlockCacheRoot;
+import com.falsepattern.lumina.internal.world.DefaultWorldProvider;
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.chunk.IChunkProvider;
-
-import com.falsepattern.lumina.internal.cache.MultiHeadDynamicBlockCacheRoot;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
@@ -67,20 +66,14 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
 
     private LumiBlockCacheRoot lumi$blockCacheRoot = null;
 
-    private static final boolean MULTIHEAD = true;
-
     @Inject(method = LUMI_WORLD_INIT_HOOK_METHOD,
             at = @At("RETURN"),
             remap = false,
             require = 1)
-    @SuppressWarnings("CastToIncompatibleInterface")
     @Dynamic(LUMI_WORLD_INIT_HOOK_INFO)
     private void lumiWorldRootInit(CallbackInfo ci) {
-        if (MULTIHEAD) {
-            this.lumi$blockCacheRoot = new MultiHeadDynamicBlockCacheRoot(this);
-        } else {
-            this.lumi$blockCacheRoot = new DynamicBlockCacheRoot(this);
-        }
+        if (DefaultWorldProvider.isRegistered())
+            this.lumi$blockCacheRoot = new MultiHeadBlockCacheRoot(this);
     }
 
     // region World Root

@@ -23,65 +23,54 @@ package com.falsepattern.lumina.internal.cache;
 
 
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
-import com.falsepattern.lumina.api.world.LumiWorldRoot;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import lombok.val;
-
+import lombok.var;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.util.ForgeDirection;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 /**
  * ChunkCache, but small and efficient
  */
-public class ChunkCacheCompact implements IBlockAccess {
+final class ChunkCacheCompact implements IBlockAccess {
     private int chunkX;
     private int chunkZ;
     private int dataSize;
     private Chunk[] chunkArray;
-    /** Reference to the World object. */
-    private World worldRoot;
 
-    public void init(LumiWorldRoot worldRoot, LumiChunkRoot[] chunkArray, int dataSize, int chunkX, int chunkZ) {
-        this.worldRoot = (World) worldRoot;
-        if (this.chunkArray == null || this.chunkArray.length != chunkArray.length) {
+    public void init(LumiChunkRoot[] chunkArray, int dataSize, int chunkX, int chunkZ) {
+        if (this.chunkArray == null || this.chunkArray.length != chunkArray.length)
             this.chunkArray = new Chunk[chunkArray.length];
-        }
-        for (int i = 0; i < chunkArray.length; i++) {
+        for (int i = 0; i < chunkArray.length; i++)
             this.chunkArray[i] = (Chunk) chunkArray[i];
-        }
         this.chunkX = chunkX;
         this.chunkZ = chunkZ;
         this.dataSize = dataSize;
     }
 
-
     public Block getBlock(int posX, int posY, int posZ) {
-        Block block = Blocks.air;
+        var block = Blocks.air;
 
         fetchBlock:
         {
             if (posY < 0 || posY >= 256) {
                 break fetchBlock;
             }
-            int cX = (posX >> 4) - this.chunkX;
-            int cZ = (posZ >> 4) - this.chunkZ;
+            val cX = (posX >> 4) - this.chunkX;
+            val cZ = (posZ >> 4) - this.chunkZ;
 
-            if (cX < 0 || cX >= dataSize || cZ < 0 || cZ >= dataSize) {
+            if (cX < 0 || cX >= dataSize || cZ < 0 || cZ >= dataSize)
                 break fetchBlock;
-            }
-            Chunk chunk = this.chunkArray[cZ * dataSize + cX];
 
-            if (chunk == null) {
+            val chunk = this.chunkArray[cZ * dataSize + cX];
+            if (chunk == null)
                 break fetchBlock;
-            }
 
             block = chunk.getBlock(posX & 15, posY, posZ & 15);
         }
@@ -90,10 +79,11 @@ public class ChunkCacheCompact implements IBlockAccess {
     }
 
     public TileEntity getTileEntity(int posX, int posY, int posZ) {
-        int cX = (posX >> 4) - this.chunkX;
-        int cZ = (posZ >> 4) - this.chunkZ;
+        val cX = (posX >> 4) - this.chunkX;
+        val cZ = (posZ >> 4) - this.chunkZ;
         if (cX < 0 || cX >= dataSize || cZ < 0 || cZ >= dataSize)
             return null;
+
         val chunk = chunkArray[cZ * dataSize + cX];
         if (chunk == null)
             return null;
@@ -135,12 +125,9 @@ public class ChunkCacheCompact implements IBlockAccess {
     }
 
     @Override
-    public boolean isSideSolid(int x, int y, int z, ForgeDirection side, boolean _default)
-    {
-        if (x < -30000000 || z < -30000000 || x >= 30000000 || z >= 30000000) {
+    public boolean isSideSolid(int x, int y, int z, ForgeDirection side, boolean _default) {
+        if (x < -30000000 || z < -30000000 || x >= 30000000 || z >= 30000000)
             return _default;
-        }
-
         return getBlock(x, y, z).isSideSolid(this, x, y, z, side);
     }
 

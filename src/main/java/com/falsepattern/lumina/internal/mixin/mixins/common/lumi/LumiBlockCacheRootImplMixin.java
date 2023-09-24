@@ -7,7 +7,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
-import com.falsepattern.lumina.api.storage.LumiBlockCacheRoot;
+import com.falsepattern.lumina.api.cache.LumiBlockCacheRoot;
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.ChunkCache;

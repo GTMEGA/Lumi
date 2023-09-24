@@ -7,11 +7,11 @@
 
 package com.falsepattern.lumina.api.world;
 
+import com.falsepattern.lumina.api.cache.LumiBlockCache;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
-import com.falsepattern.lumina.api.storage.LumiBlockCache;
 import com.falsepattern.lumina.api.storage.LumiBlockStorage;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;

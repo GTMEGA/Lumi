@@ -8,13 +8,14 @@
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
 import com.falsepattern.lumina.api.LumiAPI;
+import com.falsepattern.lumina.api.cache.LumiBlockCache;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
-import com.falsepattern.lumina.api.storage.LumiBlockCache;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
+import com.falsepattern.lumina.internal.world.DefaultWorldProvider;
 import lombok.val;
 import net.minecraft.block.Block;
 import net.minecraft.profiler.Profiler;
@@ -63,11 +64,11 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     private void lumiWorldInit(CallbackInfo ci) {
         this.lumi$root = (LumiWorldRoot) this;
 
-        val blockCacheRoot = lumi$root.lumi$blockCacheRoot();
-        lumi$blockCache = blockCacheRoot.lumi$createBlockCache(this);
-
-        // TODO: Poor init order, will not bind with RPLE!!
-        this.lumi$lightingEngine = LumiAPI.provideLightingEngine(this, theProfiler);
+        if (DefaultWorldProvider.isRegistered()) {
+            val blockCacheRoot = lumi$root.lumi$blockCacheRoot();
+            this.lumi$blockCache = blockCacheRoot.lumi$createBlockCache(this);
+            this.lumi$lightingEngine = LumiAPI.provideLightingEngine(this, theProfiler);
+        }
     }
 
     // region World

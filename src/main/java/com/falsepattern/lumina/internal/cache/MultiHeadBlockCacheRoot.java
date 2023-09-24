@@ -21,31 +21,30 @@
 
 package com.falsepattern.lumina.internal.cache;
 
+import com.falsepattern.lumina.api.cache.LumiBlockCache;
+import com.falsepattern.lumina.api.cache.LumiBlockCacheRoot;
 import com.falsepattern.lumina.api.lighting.LightType;
-import com.falsepattern.lumina.api.storage.LumiBlockCache;
-import com.falsepattern.lumina.api.storage.LumiBlockCacheRoot;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import lombok.val;
+import lombok.var;
+import net.minecraft.block.Block;
+import net.minecraft.tileentity.TileEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.block.Block;
-import net.minecraft.tileentity.TileEntity;
-
 import java.util.Arrays;
 
-public class MultiHeadDynamicBlockCacheRoot implements LumiBlockCacheRoot {
+public final class MultiHeadBlockCacheRoot implements LumiBlockCacheRoot {
     private static final int MULTIHEAD_CACHE_COUNT = 8;
 
-    private final DynamicBlockCacheRoot fallback;
-    private final DynamicBlockCacheRoot[] cacheRoots = new DynamicBlockCacheRoot[MULTIHEAD_CACHE_COUNT];
+    private final LumiBlockCacheRoot fallback;
+    private final LumiBlockCacheRoot[] cacheRoots = new DynamicBlockCacheRoot[MULTIHEAD_CACHE_COUNT];
     private final LRU lru = new LRU();
 
-    public MultiHeadDynamicBlockCacheRoot(@NotNull LumiWorldRoot worldRoot) {
-        for (int i = 0; i < MULTIHEAD_CACHE_COUNT; i++) {
+    public MultiHeadBlockCacheRoot(@NotNull LumiWorldRoot worldRoot) {
+        for (int i = 0; i < MULTIHEAD_CACHE_COUNT; i++)
             cacheRoots[i] = new DynamicBlockCacheRoot(worldRoot);
-        }
         fallback = cacheRoots[0];
     }
 
@@ -60,10 +59,29 @@ public class MultiHeadDynamicBlockCacheRoot implements LumiBlockCacheRoot {
     }
 
     @Override
+    public int lumi$minChunkPosX() {
+        return fallback.lumi$minChunkPosX();
+    }
+
+    @Override
+    public int lumi$minChunkPosZ() {
+        return fallback.lumi$minChunkPosZ();
+    }
+
+    @Override
+    public int lumi$maxChunkPosX() {
+        return fallback.lumi$maxChunkPosX();
+    }
+
+    @Override
+    public int lumi$maxChunkPosZ() {
+        return fallback.lumi$maxChunkPosZ();
+    }
+
+    @Override
     public void lumi$clearCache() {
-        for (int i = 0; i < MULTIHEAD_CACHE_COUNT; i++) {
+        for (var i = 0; i < MULTIHEAD_CACHE_COUNT; i++)
             cacheRoots[i].lumi$clearCache();
-        }
     }
 
     @Override
@@ -104,11 +122,14 @@ public class MultiHeadDynamicBlockCacheRoot implements LumiBlockCacheRoot {
         return fallback.lumi$getTileEntity(posX, posY, posZ);
     }
 
-    private boolean inRange(DynamicBlockCacheRoot cache, int chunkPosX, int chunkPosZ) {
-        return cache.getMinChunkPosX() <= chunkPosX && cache.getMaxChunkPosX() >= chunkPosX && cache.getMinChunkPosZ() <= chunkPosZ && cache.getMaxChunkPosZ() >= chunkPosZ;
+    private boolean inRange(LumiBlockCacheRoot cache, int chunkPosX, int chunkPosZ) {
+        return cache.lumi$minChunkPosX() <= chunkPosX &&
+               cache.lumi$maxChunkPosX() >= chunkPosX &&
+               cache.lumi$minChunkPosZ() <= chunkPosZ &&
+               cache.lumi$maxChunkPosZ() >= chunkPosZ;
     }
 
-    private DynamicBlockCacheRoot getCacheRoot(int chunkPosX, int chunkPosZ) {
+    private LumiBlockCacheRoot getCacheRoot(int chunkPosX, int chunkPosZ) {
         for (int i = 0; i < MULTIHEAD_CACHE_COUNT; i++) {
             if (inRange(cacheRoots[i], chunkPosX, chunkPosZ)) {
                 lru.update(i);
@@ -119,20 +140,19 @@ public class MultiHeadDynamicBlockCacheRoot implements LumiBlockCacheRoot {
         return cacheRoots[last];
     }
 
-    public class MultiHeadDynamicBlockCache implements LumiBlockCache {
-        private final DynamicBlockCacheRoot.DynamicBlockCache fallback;
-        private final DynamicBlockCacheRoot.DynamicBlockCache[] caches = new DynamicBlockCacheRoot.DynamicBlockCache[MULTIHEAD_CACHE_COUNT];
+    private final class MultiHeadDynamicBlockCache implements LumiBlockCache {
+        private final LumiBlockCache fallback;
+        private final LumiBlockCache[] caches = new DynamicBlockCacheRoot.DynamicBlockCache[MULTIHEAD_CACHE_COUNT];
 
         public MultiHeadDynamicBlockCache(@NotNull LumiWorld world) {
-            for (int i = 0; i < MULTIHEAD_CACHE_COUNT; i++) {
-                caches[i] = (DynamicBlockCacheRoot.DynamicBlockCache) cacheRoots[i].lumi$createBlockCache(world);
-            }
+            for (var i = 0; i < MULTIHEAD_CACHE_COUNT; i++)
+                caches[i] = cacheRoots[i].lumi$createBlockCache(world);
             fallback = caches[0];
         }
 
         @Override
         public @NotNull LumiBlockCacheRoot lumi$root() {
-            return MultiHeadDynamicBlockCacheRoot.this;
+            return MultiHeadBlockCacheRoot.this;
         }
 
         @Override
@@ -202,33 +222,33 @@ public class MultiHeadDynamicBlockCacheRoot implements LumiBlockCacheRoot {
 
         @Override
         public void lumi$clearCache() {
-            for (int i = 0; i < MULTIHEAD_CACHE_COUNT; i++) {
+            for (var i = 0; i < MULTIHEAD_CACHE_COUNT; i++)
                 caches[i].lumi$clearCache();
-            }
         }
 
-        private boolean inRange(DynamicBlockCacheRoot.DynamicBlockCache cache, int chunkPosX, int chunkPosZ) {
-            val parent = (DynamicBlockCacheRoot) cache.lumi$root();
-            return parent.getMinChunkPosX() <= chunkPosX && parent.getMaxChunkPosX() >= chunkPosX && parent.getMinChunkPosZ() <= chunkPosZ && parent.getMaxChunkPosZ() >= chunkPosZ;
+        private boolean inRange(LumiBlockCache cache, int chunkPosX, int chunkPosZ) {
+            val cacheRoot = cache.lumi$root();
+            return cacheRoot.lumi$minChunkPosX() <= chunkPosX &&
+                   cacheRoot.lumi$maxChunkPosX() >= chunkPosX &&
+                   cacheRoot.lumi$minChunkPosZ() <= chunkPosZ &&
+                   cacheRoot.lumi$maxChunkPosZ() >= chunkPosZ;
         }
 
-        private DynamicBlockCacheRoot.DynamicBlockCache getCache(int chunkPosX, int chunkPosZ) {
-            for (int i = 0; i < MULTIHEAD_CACHE_COUNT; i++) {
+        private LumiBlockCache getCache(int chunkPosX, int chunkPosZ) {
+            for (var i = 0; i < MULTIHEAD_CACHE_COUNT; i++) {
                 if (inRange(caches[i], chunkPosX, chunkPosZ)) {
                     lru.update(i);
                     return caches[i];
                 }
             }
-            int last = lru.last();
-            return caches[last];
+            return caches[lru.last()];
         }
-
     }
 
-    public static class LRU {
+    private static class LRU {
         private final int[] keys;
 
-        public LRU() {
+        private LRU() {
             this.keys = new int[MULTIHEAD_CACHE_COUNT];
             for (int i = 0; i < MULTIHEAD_CACHE_COUNT; i++) {
                 keys[i] = i;
@@ -236,10 +256,9 @@ public class MultiHeadDynamicBlockCacheRoot implements LumiBlockCacheRoot {
         }
 
         public synchronized void update(int value) {
-            for (int i = 0; i < MULTIHEAD_CACHE_COUNT; i++) {
-                if (keys[i] != value) {
+            for (var i = 0; i < MULTIHEAD_CACHE_COUNT; i++) {
+                if (keys[i] != value)
                     continue;
-                }
                 if (i != 0) {
                     shiftRight(i);
                     keys[0] = value;
@@ -250,16 +269,15 @@ public class MultiHeadDynamicBlockCacheRoot implements LumiBlockCacheRoot {
         }
 
         public synchronized int last() {
-            int last = keys[MULTIHEAD_CACHE_COUNT - 1];
+            val last = keys[MULTIHEAD_CACHE_COUNT - 1];
             shiftRight(MULTIHEAD_CACHE_COUNT - 1);
             keys[0] = last;
             return last;
         }
 
         private void shiftRight(int start) {
-            for (int i = start; i > 0; i--) {
+            for (var i = start; i > 0; i--)
                 keys[i] = keys[i - 1];
-            }
         }
     }
 }
