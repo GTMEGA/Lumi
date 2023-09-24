@@ -285,7 +285,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     public void handleChunkInit(@NotNull LumiChunk chunk) {
         chunk.lumi$isLightingInitialized(false);
 
-        val blockCache = chunk.lumi$world().lumi$blockCache();
+        //val blockCache = chunk.lumi$world().lumi$blockCache();
 
         val hasSky = blockCacheRoot.lumi$hasSky();
 
@@ -299,17 +299,18 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
         var minSkyLightHeight = Integer.MAX_VALUE;
         for (int subChunkPosX = 0; subChunkPosX < 16; ++subChunkPosX) {
+            val cachePosX = subChunkPosX + basePosX;
             int subChunkPosZ = 0;
             while (subChunkPosZ < 16) {
-                val cachePosX = subChunkPosX + basePosX;
                 val cachePosZ = subChunkPosZ + basePosZ;
                 var skyLightHeight = maxPosY;
 
                 while (true) {
                     if (skyLightHeight > 0) {
                         val posY = skyLightHeight - 1;
+                        //TODO Investigate worldgen-time caching
                         val blockOpacity = clampSkyLightOpacity(
-                                blockCache.lumi$getBlockOpacity(cachePosX, posY, cachePosZ));
+                                chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ));
                         if (blockOpacity == MIN_SKY_LIGHT_OPACITY) {
                             skyLightHeight--;
                             continue;
@@ -324,7 +325,8 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                         skyLightHeight = (basePosY + 16) - 1;
 
                         do {
-                            var blockOpacity = clampSkyLightOpacity(blockCache.lumi$getBlockOpacity(cachePosX, skyLightHeight, cachePosZ));
+                            //TODO Investigate worldgen-time caching
+                            var blockOpacity = clampSkyLightOpacity(chunk.lumi$getBlockOpacity(subChunkPosX, skyLightHeight, subChunkPosZ));
                             if (blockOpacity == MIN_SKY_LIGHT_OPACITY && lightLevel != MAX_LIGHT_VALUE)
                                 blockOpacity = 1;
 
@@ -366,21 +368,27 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     public void handleClientChunkInit(@NotNull LumiChunk chunk) {
         val chunkRoot = chunk.lumi$root();
 
+        val blockCache = chunk.lumi$world().lumi$blockCache();
+
+
+        val basePosX = chunk.lumi$chunkPosX() << 4;
         val basePosY = chunkRoot.lumi$topPreparedSubChunkBasePosY();
+        val basePosZ = chunk.lumi$chunkPosZ() << 4;
         val maxPosY = basePosY + 15;
 
         var minSkyLightHeight = Integer.MAX_VALUE;
         for (int subChunkPosX = 0; subChunkPosX < 16; ++subChunkPosX) {
+            val cachePosX = subChunkPosX + basePosX;
             var subChunkPosZ = 0;
 
             while (subChunkPosZ < 16) {
+                val cachePosZ = subChunkPosZ + basePosZ;
                 var skyLightHeight = maxPosY;
                 while (true) {
                     if (skyLightHeight > 0) {
                         val posY = skyLightHeight - 1;
-                        // FIXME: BLOCK CACHE
                         val blockOpacity = clampSkyLightOpacity(
-                                chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ));
+                                blockCache.lumi$getBlockOpacity(cachePosX, posY, cachePosZ));
                         if (blockOpacity == MIN_SKY_LIGHT_OPACITY) {
                             skyLightHeight--;
                             continue;
@@ -431,6 +439,8 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         var queuedRandomLightUpdates = chunk.lumi$queuedRandomLightUpdates();
         if (queuedRandomLightUpdates >= MAX_QUEUED_RANDOM_LIGHT_UPDATES)
             return;
+
+        val blockCache = chunk.lumi$world().lumi$blockCache();
 
         val isUpdating = chunkRoot.lumi$isUpdating();
         val isClientSide = worldRoot.lumi$isClientSide();
@@ -489,19 +499,16 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
                 renderUpdateCheck:
                 {
-                    // FIXME: BLOCK CACHE
                     val blockOpacity = clampBlockLightOpacity(
-                            chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ));
+                            blockCache.lumi$getBlockOpacity(posX, posY, posZ));
                     if (blockOpacity < MAX_BLOCK_LIGHT_OPACITY)
                         break renderUpdateCheck;
 
-                    // FIXME: BLOCK CACHE
-                    val blockBrightness = chunk.lumi$getBlockBrightness(subChunkPosX, posY, subChunkPosZ);
+                    val blockBrightness = blockCache.lumi$getBlockBrightness(posX, posY, posZ);
                     if (blockBrightness > MIN_LIGHT_VALUE)
                         break renderUpdateCheck;
 
-                    // FIXME: BLOCK CACHE
-                    val lightValue = chunk.lumi$getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
+                    val lightValue = blockCache.lumi$getBlockLightValue(posX, posY, posZ);
                     if (lightValue == MIN_LIGHT_VALUE)
                         continue;
 
@@ -533,16 +540,23 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         val subChunkPosX = posX & 15;
         val subChunkPosZ = posZ & 15;
 
+        val blockCache = chunk.lumi$world().lumi$blockCache();
+
         var maxPosY = chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ) & 255;
         var minPosY = Math.max((posY + 1) & 255, maxPosY);
+
+        val basePosX = chunk.lumi$chunkPosX() << 4;
+        val basePosZ = chunk.lumi$chunkPosZ() << 4;
+
+        val cachePosX = basePosX + subChunkPosX;
+        val cachePosZ = basePosZ + subChunkPosZ;
 
         if (!chunk.lumi$canBlockSeeSky(subChunkPosX, minPosY, subChunkPosZ))
             return;
 
-        // FIXME: BLOCK CACHE
-        while (minPosY > 0 && clampSkyLightOpacity(chunk.lumi$getBlockOpacity(subChunkPosX,
+        while (minPosY > 0 && clampSkyLightOpacity(blockCache.lumi$getBlockOpacity(cachePosX,
                                                                               minPosY - 1,
-                                                                              subChunkPosZ)) == MIN_SKY_LIGHT_OPACITY) {
+                                                                              cachePosZ)) == MIN_SKY_LIGHT_OPACITY) {
 
             --minPosY;
         }
