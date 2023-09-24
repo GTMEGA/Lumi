@@ -525,6 +525,7 @@ final class PhosphorUtil {
         if (!world.lumi$root().lumi$doChunksExistInRange(minPosX, minPosY, minPosZ, maxPosX, maxPosY, maxPosZ))
             return;
 
+        val blockCache = world.lumi$blockCache();
         for (var chunkPosY = 0; chunkPosY < 16; chunkPosY++) {
             val subChunk = chunk.lumi$getSubChunkIfPrepared(chunkPosY);
             if (subChunk == null)
@@ -534,11 +535,12 @@ final class PhosphorUtil {
             for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
                 for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
                     for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
+                        val posX = basePosX + subChunkPosX;
                         val posY = basePosY + subChunkPosY;
-                        val brightness = chunk.lumi$getBlockBrightness(subChunkPosX, posY, subChunkPosZ);
+                        val posZ = basePosZ + subChunkPosZ;
+                        // FIXME: BLOCK CACHE
+                        val brightness = blockCache.lumi$getBlockBrightness(posX, posY, posZ);
                         if (brightness > 0) {
-                            val posX = basePosX + subChunkPosX;
-                            val posZ = basePosZ + subChunkPosZ;
                             world.lumi$lightingEngine().scheduleLightingUpdate(BLOCK_LIGHT_TYPE, posX, posY, posZ);
                         }
                     }
