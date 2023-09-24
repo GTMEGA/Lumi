@@ -1165,6 +1165,36 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         return subChunk.lumi$root().lumi$getBlockMeta(subChunkPosX, subChunkPosY, subChunkPosZ);
     }
 
+    /**
+     * Read Through
+     */
+    private int getCachedBlockLightValue(int posX, int posY, int posZ) {
+        return blockCache.lumi$getBlockLightValue(posX, posY, posZ);
+    }
+
+    /**
+     * Read Through
+     */
+    private int getCachedSkyLightValue(int posX, int posY, int posZ) {
+        return blockCache.lumi$getSkyLightValue(posX, posY, posZ);
+    }
+
+    private int getCachedBlockBrightness(int posX, int posY, int posZ) {
+        return blockCache.lumi$getBlockBrightness(posX, posY, posZ);
+    }
+
+    private int getCachedBlockLightOpacity(int posX, int posY, int posZ) {
+        return clampBlockLightOpacity(getCachedBlockOpacity(posX, posY, posZ));
+    }
+
+    private int getCachedSkyLightOpacity(int posX, int posY, int posZ) {
+        return clampSkyLightOpacity(getCachedBlockOpacity(posX, posY, posZ));
+    }
+
+    private int getCachedBlockOpacity(int posX, int posY, int posZ) {
+        return blockCache.lumi$getBlockOpacity(posX, posY, posZ);
+    }
+
     @NoArgsConstructor
     private static class NeighborBlock {
         private final BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos();
