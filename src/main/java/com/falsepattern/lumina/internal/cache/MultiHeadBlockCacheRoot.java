@@ -229,9 +229,9 @@ public final class MultiHeadBlockCacheRoot implements LumiBlockCacheRoot {
         private boolean inRange(LumiBlockCache cache, int chunkPosX, int chunkPosZ) {
             val cacheRoot = cache.lumi$root();
             return cacheRoot.lumi$minChunkPosX() <= chunkPosX &&
-                   cacheRoot.lumi$maxChunkPosX() >= chunkPosX &&
+                   cacheRoot.lumi$maxChunkPosX() > chunkPosX &&
                    cacheRoot.lumi$minChunkPosZ() <= chunkPosZ &&
-                   cacheRoot.lumi$maxChunkPosZ() >= chunkPosZ;
+                   cacheRoot.lumi$maxChunkPosZ() > chunkPosZ;
         }
 
         private LumiBlockCache getCache(int chunkPosX, int chunkPosZ) {
