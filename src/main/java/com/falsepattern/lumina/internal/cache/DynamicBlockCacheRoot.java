@@ -16,8 +16,10 @@ import net.minecraft.world.chunk.Chunk;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.List;
 
 
 public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
@@ -39,7 +41,7 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
 
     private final LumiWorldRoot worldRoot;
 
-    private DynamicBlockCache blockCache = null;
+    private List<DynamicBlockCache> blockCaches = new ArrayList<>();
 
     // Z/X 3/3
     private final LumiChunkRoot[] rootChunks = new LumiChunkRoot[TOTAL_CACHED_CHUNK_COUNT];
@@ -79,12 +81,9 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
 
     @Override
     public @NotNull LumiBlockCache lumi$createBlockCache(LumiWorld world) {
-        if (blockCache == null)
-            blockCache = new DynamicBlockCache(world);
-        else if (blockCache.lumi$world() != world)
-            throw new IllegalArgumentException("Block cache already created for a different world");
-
-        return blockCache;
+        val newCache = new DynamicBlockCache(world);
+        blockCaches.add(newCache);
+        return newCache;
     }
 
     @Override
@@ -92,8 +91,9 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
         if (!isReady)
             return;
 
-        if (blockCache != null)
+        for (val blockCache: blockCaches) {
             blockCache.lumi$clearCache();
+        }
         // We don't need to clear the "blocks" array because blocks are singletons
         Arrays.fill(rootChunks, null);
         checkedBlocks.clear();
@@ -207,8 +207,9 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
         this.maxChunkPosX = maxChunkPosX;
         this.maxChunkPosZ = maxChunkPosZ;
         checkedBlocks.clear();
-        if (blockCache != null)
+        for (val blockCache: blockCaches) {
             blockCache.lumi$clearCache();
+        }
         isReady = true;
     }
 
