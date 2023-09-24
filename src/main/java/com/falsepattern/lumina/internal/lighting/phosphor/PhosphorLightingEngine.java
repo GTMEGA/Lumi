@@ -378,6 +378,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                 while (true) {
                     if (skyLightHeight > 0) {
                         val posY = skyLightHeight - 1;
+                        // FIXME: BLOCK CACHE
                         val blockOpacity = clampSkyLightOpacity(
                                 chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ));
                         if (blockOpacity == MIN_SKY_LIGHT_OPACITY) {
@@ -488,15 +489,18 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
                 renderUpdateCheck:
                 {
+                    // FIXME: BLOCK CACHE
                     val blockOpacity = clampBlockLightOpacity(
                             chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ));
                     if (blockOpacity < MAX_BLOCK_LIGHT_OPACITY)
                         break renderUpdateCheck;
 
+                    // FIXME: BLOCK CACHE
                     val blockBrightness = chunk.lumi$getBlockBrightness(subChunkPosX, posY, subChunkPosZ);
                     if (blockBrightness > MIN_LIGHT_VALUE)
                         break renderUpdateCheck;
 
+                    // FIXME: BLOCK CACHE
                     val lightValue = chunk.lumi$getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
                     if (lightValue == MIN_LIGHT_VALUE)
                         continue;
@@ -535,6 +539,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         if (!chunk.lumi$canBlockSeeSky(subChunkPosX, minPosY, subChunkPosZ))
             return;
 
+        // FIXME: BLOCK CACHE
         while (minPosY > 0 && clampSkyLightOpacity(chunk.lumi$getBlockOpacity(subChunkPosX,
                                                                               minPosY - 1,
                                                                               subChunkPosZ)) == MIN_SKY_LIGHT_OPACITY) {
