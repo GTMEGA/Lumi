@@ -315,6 +315,8 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
                                        int subChunkPosX,
                                        int posY,
                                        int subChunkPosZ) {
+        if (!lumi$isLightingInitialized)
+            return block.getLightValue();
         val posX = (xPosition << 4) + subChunkPosX;
         val posZ = (zPosition << 4) + subChunkPosZ;
         return lumi$world.lumi$getBlockBrightness(block, blockMeta, posX, posY, posZ);
