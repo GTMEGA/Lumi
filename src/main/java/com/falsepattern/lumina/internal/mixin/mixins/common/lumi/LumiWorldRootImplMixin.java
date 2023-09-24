@@ -16,6 +16,8 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.chunk.IChunkProvider;
+
+import com.falsepattern.lumina.internal.cache.MultiHeadDynamicBlockCacheRoot;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
@@ -65,6 +67,8 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
 
     private LumiBlockCacheRoot lumi$blockCacheRoot = null;
 
+    private static final boolean MULTIHEAD = true;
+
     @Inject(method = LUMI_WORLD_INIT_HOOK_METHOD,
             at = @At("RETURN"),
             remap = false,
@@ -72,7 +76,11 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     @SuppressWarnings("CastToIncompatibleInterface")
     @Dynamic(LUMI_WORLD_INIT_HOOK_INFO)
     private void lumiWorldRootInit(CallbackInfo ci) {
-        this.lumi$blockCacheRoot = new DynamicBlockCacheRoot(this);
+        if (MULTIHEAD) {
+            this.lumi$blockCacheRoot = new MultiHeadDynamicBlockCacheRoot(this);
+        } else {
+            this.lumi$blockCacheRoot = new DynamicBlockCacheRoot(this);
+        }
     }
 
     // region World Root
