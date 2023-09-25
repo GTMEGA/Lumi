@@ -301,7 +301,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         val basePosY = chunkRoot.lumi$topPreparedSubChunkBasePosY();
         val basePosZ = chunk.lumi$chunkPosZ() << 4;
 
-        val maxPosY = basePosY + 15;
+        val maxPosY = basePosY + 16;
 
         var minSkyLightHeight = Integer.MAX_VALUE;
         for (int subChunkPosX = 0; subChunkPosX < 16; ++subChunkPosX) {
@@ -552,7 +552,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             return;
 
         // FIXME: BLOCK CACHE [TEST}
-        while (minPosY > 0 && getCachedSkyLightOpacity(posX, minPosY - 1, posZ) == MIN_SKY_LIGHT_OPACITY)
+        while (minPosY > 0 && world.lumi$getBlockOpacity(posX, minPosY - 1, posZ) == MIN_SKY_LIGHT_OPACITY)
             --minPosY;
 
         if (minPosY == maxPosY)
