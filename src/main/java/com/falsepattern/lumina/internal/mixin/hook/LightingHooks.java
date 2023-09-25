@@ -7,6 +7,7 @@
 
 package com.falsepattern.lumina.internal.mixin.hook;
 
+import com.falsepattern.lumina.api.LumiChunkAPI;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -88,9 +89,8 @@ public final class LightingHooks {
 
         resetPrecipitationHeightMap(chunkBase);
         for (val world : lumiWorldsFromBaseWorld(worldBase)) {
-            val lightingEngine = world.lumi$lightingEngine();
             val chunk = world.lumi$wrap(chunkBase);
-            lightingEngine.handleChunkInit(chunk);
+            LumiChunkAPI.scheduleChunkLightingEngineInit(chunk);
         }
     }
 
