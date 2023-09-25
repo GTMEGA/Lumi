@@ -144,6 +144,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     private final LumiWorld world;
     private final LumiWorldRoot worldRoot;
+    private final boolean isClientSide;
     private final Profiler profiler;
 
     private final LumiBlockCache blockCache;
@@ -186,6 +187,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     PhosphorLightingEngine(LumiWorld world, Profiler profiler) {
         this.world = world;
         this.worldRoot = world.lumi$root();
+        this.isClientSide = worldRoot.lumi$isClientSide();
         this.profiler = profiler;
 
         this.blockCache = world.lumi$blockCache();
@@ -441,9 +443,6 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         if (queuedRandomLightUpdates >= MAX_QUEUED_RANDOM_LIGHT_UPDATES)
             return;
 
-        val isUpdating = chunkRoot.lumi$isUpdating();
-        val isClientSide = worldRoot.lumi$isClientSide();
-
         final int maxUpdateIterations;
         if (isClientSide && isUpdating) {
             maxUpdateIterations = 256;
@@ -679,7 +678,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
-        if (blockCacheRoot.lumi$isClientSide() && !isCallingFromClientThread())
+        if (isClientSide && !isCallingFromClientThread())
             return;
 
         // Quickly check if the queue is empty before we acquire a more expensive lock.
@@ -703,7 +702,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
-        if (blockCacheRoot.lumi$isClientSide() && !isCallingFromClientThread())
+        if (isClientSide && !isCallingFromClientThread())
             return;
 
         // Quickly check if the queue is empty before we acquire a more expensive lock.
@@ -740,7 +739,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     private boolean isQueueFull(OrderedLongSet queue) {
         val queueSize = queue.size();
-        if (blockCacheRoot.lumi$isClientSide()) {
+        if (isClientSide) {
             return queueSize >= MAX_SCHEDULED_UPDATES_CLIENT;
         } else {
             return queueSize >= MAX_SCHEDULED_UPDATES_SERVER;
