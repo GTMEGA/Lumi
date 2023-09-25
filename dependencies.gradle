@@ -24,4 +24,7 @@ dependencies {
     // Lombok
     compileOnly("org.projectlombok:lombok:1.18.28")
     annotationProcessor("org.projectlombok:lombok:1.18.28")
+
+    // JourneyMap (compat fix)
+    compileOnly(deobfCurse("journeymap-32274:4500658"))
 }

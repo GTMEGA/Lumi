@@ -54,6 +54,25 @@ public final class LightingHooks {
         return maxLightValue;
     }
 
+    public static int getCurrentLightValueUncached(Chunk chunkBase,
+                                                   EnumSkyBlock baseLightType,
+                                                   int subChunkPosX,
+                                                   int posY,
+                                                   int subChunkPosZ) {
+        val worldBase = chunkBase.worldObj;
+        val lightType = LightType.of(baseLightType);
+        val posX = (chunkBase.xPosition << 4) + subChunkPosX;
+        val posZ = (chunkBase.zPosition << 4) + subChunkPosZ;
+
+        var maxLightValue = 0;
+        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+            val lightingEngine = world.lumi$lightingEngine();
+            val lightValue = lightingEngine.getCurrentLightValueUncached(lightType, posX, posY, posZ);
+            maxLightValue = Math.max(maxLightValue, lightValue);
+        }
+        return maxLightValue;
+    }
+
     public static int getMaxBrightness(Chunk chunkBase,
                                        EnumSkyBlock baseLightType,
                                        int subChunkPosX,

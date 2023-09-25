@@ -50,6 +50,8 @@ public interface LumiLightingEngine {
 
     int getCurrentLightValue(@NotNull LightType lightType, int posX, int posY, int posZ);
 
+    int getCurrentLightValueUncached(@NotNull LightType lightType, int posX, int posY, int posZ);
+
     boolean isChunkFullyLit(@NotNull LumiChunk chunk);
 
     void handleChunkInit(@NotNull LumiChunk chunk);

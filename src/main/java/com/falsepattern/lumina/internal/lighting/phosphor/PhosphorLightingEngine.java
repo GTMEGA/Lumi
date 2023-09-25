@@ -280,6 +280,11 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
+    public int getCurrentLightValueUncached(@NotNull LightType lightType, int posX, int posY, int posZ) {
+        return clampLightValue(world.lumi$getLightValue(lightType, posX, posY, posZ));
+    }
+
+    @Override
     public boolean isChunkFullyLit(@NotNull LumiChunk chunk) {
         return PhosphorUtil.isChunkFullyLit(world, chunk, profiler);
     }

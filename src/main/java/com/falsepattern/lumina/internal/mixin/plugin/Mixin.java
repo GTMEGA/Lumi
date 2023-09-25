@@ -20,6 +20,7 @@ import static com.falsepattern.lib.mixin.IMixin.Side.CLIENT;
 import static com.falsepattern.lib.mixin.IMixin.Side.COMMON;
 import static com.falsepattern.lumina.internal.mixin.plugin.TargetedMod.ARCHAIC_FIX;
 import static com.falsepattern.lumina.internal.mixin.plugin.TargetedMod.FASTCRAFT;
+import static com.falsepattern.lumina.internal.mixin.plugin.TargetedMod.JOURNEYMAP;
 
 @RequiredArgsConstructor
 public enum Mixin implements IMixin {
@@ -78,6 +79,9 @@ public enum Mixin implements IMixin {
     common_fastcraft_WorldMixin(COMMON, require(FASTCRAFT), "fastcraft.WorldMixin"),
     //endregion FastCraft Compat
 
+    //region JourneyMap Compat
+    client_journeymap_ForgeHelper_1_7_10Mixin(CLIENT, require(JOURNEYMAP), "journeymap.ForgeHelper_1_7_10Mixin"),
+    //endregion JourneyMap Compat
     ;
 
     @Getter
