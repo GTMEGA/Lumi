@@ -719,7 +719,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     private void scheduleLightingUpdate(LightType lightType, long posLong) {
         val queue = updateQueues[lightType.ordinal()];
-        if (queue.size() >= 100_000)
+        if (queue.size() >= MAX_SCHEDULED_UPDATES)
             processLightingUpdatesForType(lightType);
 
         queue.add(posLong);
