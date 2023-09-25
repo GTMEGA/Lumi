@@ -8,15 +8,19 @@
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
 import com.falsepattern.lumina.api.cache.LumiBlockCacheRoot;
+import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import com.falsepattern.lumina.internal.cache.MultiHeadBlockCacheRoot;
 import com.falsepattern.lumina.internal.world.DefaultWorldProvider;
+import lombok.val;
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.chunk.IChunkProvider;
+import net.minecraft.world.gen.ChunkProviderServer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.*;
@@ -44,7 +48,8 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     @Shadow
     public abstract Block getBlock(int posX, int posY, int posZ);
 
-    @Shadow public abstract boolean isAirBlock(int posX, int posY, int posZ);
+    @Shadow
+    public abstract boolean isAirBlock(int posX, int posY, int posZ);
 
     @Shadow
     public abstract boolean doChunksNearChunkExist(int centerPosX, int centerPosY, int centerPosZ, int blockRange);
@@ -58,11 +63,15 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     @Shadow
     public abstract void func_147479_m(int posX, int posY, int posZ);
 
-    @Shadow public abstract TileEntity getTileEntity(int posX, int posY, int posZ);
+    @Shadow
+    public abstract TileEntity getTileEntity(int posX, int posY, int posZ);
 
     @Shadow
     public abstract boolean func_147451_t(int posX, int posY, int posZ);
     // endregion
+
+    @Shadow
+    public abstract boolean chunkExists(int p_72916_1_, int p_72916_2_);
 
     private LumiBlockCacheRoot lumi$blockCacheRoot = null;
 
@@ -105,6 +114,18 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     @Override
     public boolean lumi$doChunksExistInRange(int centerPosX, int centerPosY, int centerPosZ, int blockRange) {
         return doChunksNearChunkExist(centerPosX, centerPosY, centerPosZ, blockRange);
+    }
+
+    @Override
+    public @Nullable LumiChunkRoot lumi$getChunkRootIfExistsFromChunkPos(int chunkPosX, int chunkPosZ) {
+        if (chunkProvider instanceof ChunkProviderServer) {
+            val chunkProviderServer = (ChunkProviderServer) chunkProvider;
+            val loadedChunks = chunkProviderServer.loadedChunkHashMap;
+            return (LumiChunkRoot) loadedChunks.getValueByKey(ChunkCoordIntPair.chunkXZ2Int(chunkPosX, chunkPosZ));
+        }
+        if (chunkProvider.chunkExists(chunkPosX, chunkPosZ))
+            return (LumiChunkRoot) chunkProvider.provideChunk(chunkPosX, chunkPosZ);
+        return null;
     }
 
     @Override

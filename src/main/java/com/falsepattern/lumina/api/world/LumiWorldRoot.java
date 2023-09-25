@@ -8,9 +8,11 @@
 package com.falsepattern.lumina.api.world;
 
 import com.falsepattern.lumina.api.cache.LumiBlockCacheRoot;
+import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import com.falsepattern.lumina.api.storage.LumiBlockStorageRoot;
 import net.minecraft.world.chunk.IChunkProvider;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public interface LumiWorldRoot extends LumiBlockStorageRoot {
@@ -25,6 +27,8 @@ public interface LumiWorldRoot extends LumiBlockStorageRoot {
     boolean lumi$doChunksExistInRange(int minPosX, int minPosY, int minPosZ, int maxPosX, int maxPosY, int maxPosZ);
 
     boolean lumi$doChunksExistInRange(int centerPosX, int centerPosY, int centerPosZ, int blockRange);
+
+    @Nullable LumiChunkRoot lumi$getChunkRootIfExistsFromChunkPos(int chunkPosX, int chunkPosZ);
 
     @NotNull LumiBlockCacheRoot lumi$blockCacheRoot();
 }
