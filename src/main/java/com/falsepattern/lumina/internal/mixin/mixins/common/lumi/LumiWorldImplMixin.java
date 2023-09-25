@@ -43,12 +43,6 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     @Final
     @Shadow
     public Profiler theProfiler;
-
-    @Shadow
-    public abstract Chunk getChunkFromBlockCoords(int posX, int posZ);
-
-    @Shadow
-    public abstract Chunk getChunkFromChunkCoords(int chunkPosX, int chunkPosZ);
     // endregion
 
     private LumiWorldRoot lumi$root = null;
@@ -95,20 +89,18 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     }
 
     @Override
-    @SuppressWarnings("InstanceofIncompatibleInterface")
     public @Nullable LumiChunk lumi$getChunkFromBlockPosIfExists(int posX, int posZ) {
-        val chunkBase = getChunkFromBlockCoords(posX, posZ);
-        if (chunkBase instanceof LumiChunk)
-            return (LumiChunk) chunkBase;
+        val chunkRoot = lumi$root.lumi$getChunkRootFromBlockPosIfExists(posX, posZ);
+        if (chunkRoot instanceof LumiChunk)
+            return (LumiChunk) chunkRoot;
         return null;
     }
 
     @Override
-    @SuppressWarnings("InstanceofIncompatibleInterface")
     public @Nullable LumiChunk lumi$getChunkFromChunkPosIfExists(int chunkPosX, int chunkPosZ) {
-        val chunkBase = getChunkFromChunkCoords(chunkPosX, chunkPosZ);
-        if (chunkBase instanceof LumiChunk)
-            return (LumiChunk) chunkBase;
+        val chunkRoot = lumi$root.lumi$getChunkRootFromChunkPosIfExists(chunkPosX, chunkPosZ);
+        if (chunkRoot instanceof LumiChunk)
+            return (LumiChunk) chunkRoot;
         return null;
     }
 

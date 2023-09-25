@@ -28,7 +28,9 @@ public interface LumiWorldRoot extends LumiBlockStorageRoot {
 
     boolean lumi$doChunksExistInRange(int centerPosX, int centerPosY, int centerPosZ, int blockRange);
 
-    @Nullable LumiChunkRoot lumi$getChunkRootIfExistsFromChunkPos(int chunkPosX, int chunkPosZ);
+    @Nullable LumiChunkRoot lumi$getChunkRootFromBlockPosIfExists(int posX, int posZ);
+
+    @Nullable LumiChunkRoot lumi$getChunkRootFromChunkPosIfExists(int chunkPosX, int chunkPosZ);
 
     @NotNull LumiBlockCacheRoot lumi$blockCacheRoot();
 }

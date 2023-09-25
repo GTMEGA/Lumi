@@ -202,7 +202,7 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
             for (var chunkPosX = 0; chunkPosX < CACHE_CHUNK_XZ_SIZE; chunkPosX++) {
                 val rootChunkIndex = (chunkPosZ * CACHE_CHUNK_XZ_SIZE) + chunkPosX;
                 val realChunkPosX = chunkPosX + minChunkPosX;
-                rootChunks[rootChunkIndex] = worldRoot.lumi$getChunkRootIfExistsFromChunkPos(realChunkPosX,
+                rootChunks[rootChunkIndex] = worldRoot.lumi$getChunkRootFromChunkPosIfExists(realChunkPosX,
                                                                                              realChunkPosZ);
             }
         }
