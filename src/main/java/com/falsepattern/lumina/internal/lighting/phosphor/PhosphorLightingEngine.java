@@ -1166,14 +1166,14 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
      * Read Through
      */
     private int getCachedLightValue(LightType lightType, BlockPos blockPos) {
-        return getCachedLightValue(lightType, blockPos.getX(), blockPos.getY(), blockPos.getZ());
+        return clampLightValue(getCachedLightValue(lightType, blockPos.getX(), blockPos.getY(), blockPos.getZ()));
     }
 
     /**
      * Read Through
      */
     private int getCachedLightValue(LightType lightType, int posX, int posY, int posZ) {
-        return blockCache.lumi$getLightValue(lightType, posX, posY, posZ);
+        return clampLightValue(blockCache.lumi$getLightValue(lightType, posX, posY, posZ));
     }
 
     /**
@@ -1187,14 +1187,14 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
      * Read Through
      */
     private int getCachedBlockLightValue(int posX, int posY, int posZ) {
-        return blockCache.lumi$getBlockLightValue(posX, posY, posZ);
+        return clampLightValue(blockCache.lumi$getBlockLightValue(posX, posY, posZ));
     }
 
     /**
      * Read Through
      */
     private int getCachedSkyLightValue(int posX, int posY, int posZ) {
-        return blockCache.lumi$getSkyLightValue(posX, posY, posZ);
+        return clampLightValue(blockCache.lumi$getSkyLightValue(posX, posY, posZ));
     }
 
     private int getCachedBlockBrightness(BlockPos blockPos) {
@@ -1210,15 +1210,11 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     private int getCachedBlockLightOpacity(int posX, int posY, int posZ) {
-        return clampBlockLightOpacity(getCachedBlockOpacity(posX, posY, posZ));
+        return clampBlockLightOpacity(blockCache.lumi$getBlockOpacity(posX, posY, posZ));
     }
 
     private int getCachedSkyLightOpacity(int posX, int posY, int posZ) {
-        return clampSkyLightOpacity(getCachedBlockOpacity(posX, posY, posZ));
-    }
-
-    private int getCachedBlockOpacity(int posX, int posY, int posZ) {
-        return blockCache.lumi$getBlockOpacity(posX, posY, posZ);
+        return clampSkyLightOpacity(blockCache.lumi$getBlockOpacity(posX, posY, posZ));
     }
     // endregion
 
