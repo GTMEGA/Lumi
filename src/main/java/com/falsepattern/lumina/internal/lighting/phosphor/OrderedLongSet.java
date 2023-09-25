@@ -28,6 +28,12 @@ import gnu.trove.list.array.TLongArrayList;
 public class OrderedLongSet {
     private final PosHashSet theSet;
     private final TLongArrayList theList;
+
+    public OrderedLongSet(int initialSize) {
+        theSet = new PosHashSet(initialSize, 0.7F);
+        theList = new TLongArrayList(initialSize);
+    }
+
     public OrderedLongSet() {
         theSet = new PosHashSet();
         theList = new TLongArrayList();
@@ -47,10 +53,8 @@ public class OrderedLongSet {
     }
 
     public void add(long value) {
-        if (!theSet.contains(value)) {
-            theSet.add(value);
+        if (theSet.add(value))
             theList.add(value);
-        }
     }
 
     public int size() {

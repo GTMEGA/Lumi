@@ -195,7 +195,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
         this.updateQueues = new OrderedLongSet[LIGHT_VALUE_TYPES_COUNT];
         for (var i = 0; i < LIGHT_VALUE_TYPES_COUNT; i++)
-            this.updateQueues[i] = new OrderedLongSet();
+            this.updateQueues[i] = new OrderedLongSet(isClientSide ? MAX_SCHEDULED_UPDATES_CLIENT : MAX_SCHEDULED_UPDATES_SERVER);
         this.brighteningQueues = new OrderedLongSet[LIGHT_VALUE_RANGE];
         for (var i = 0; i < LIGHT_VALUE_RANGE; i++)
             this.brighteningQueues[i] = new OrderedLongSet();
