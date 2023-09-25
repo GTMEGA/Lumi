@@ -52,7 +52,8 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     /**
      * Maximum scheduled lighting updates before processing the updates is forced.
      */
-    private static final int MAX_SCHEDULED_UPDATES = 50_000;
+    private static final int MAX_SCHEDULED_UPDATES_SERVER = 50_000;
+    private static final int MAX_SCHEDULED_UPDATES_CLIENT = 10_000;
 
     /**
      * Bit length of the Z coordinate in a pos long.
@@ -728,11 +729,22 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     private void scheduleLightingUpdate(LightType lightType, long posLong) {
+        acquireLock();
         val queue = updateQueues[lightType.ordinal()];
-        if (queue.size() >= MAX_SCHEDULED_UPDATES)
+        if (isQueueFull(queue))
             processLightingUpdatesForType(lightType);
 
         queue.add(posLong);
+        releaseLock();
+    }
+
+    private boolean isQueueFull(OrderedLongSet queue) {
+        val queueSize = queue.size();
+        if (blockCacheRoot.lumi$isClientSide()) {
+            return queueSize >= MAX_SCHEDULED_UPDATES_CLIENT;
+        } else {
+            return queueSize >= MAX_SCHEDULED_UPDATES_SERVER;
+        }
     }
 
     @SideOnly(CLIENT)

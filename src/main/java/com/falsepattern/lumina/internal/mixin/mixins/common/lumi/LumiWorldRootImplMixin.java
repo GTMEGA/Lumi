@@ -19,6 +19,7 @@ import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
+import net.minecraft.world.chunk.EmptyChunk;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.gen.ChunkProviderServer;
 import org.jetbrains.annotations.NotNull;
@@ -69,9 +70,6 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     @Shadow
     public abstract boolean func_147451_t(int posX, int posY, int posZ);
     // endregion
-
-    @Shadow
-    public abstract boolean chunkExists(int p_72916_1_, int p_72916_2_);
 
     private LumiBlockCacheRoot lumi$blockCacheRoot = null;
 
@@ -128,10 +126,15 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
         if (chunkProvider instanceof ChunkProviderServer) {
             val chunkProviderServer = (ChunkProviderServer) chunkProvider;
             val loadedChunks = chunkProviderServer.loadedChunkHashMap;
-            return (LumiChunkRoot) loadedChunks.getValueByKey(ChunkCoordIntPair.chunkXZ2Int(chunkPosX, chunkPosZ));
+            val chunk = loadedChunks.getValueByKey(ChunkCoordIntPair.chunkXZ2Int(chunkPosX, chunkPosZ));
+            if (chunk instanceof LumiChunkRoot && !(chunk instanceof EmptyChunk))
+                return (LumiChunkRoot) chunk;
         }
-        if (chunkProvider.chunkExists(chunkPosX, chunkPosZ))
-            return (LumiChunkRoot) chunkProvider.provideChunk(chunkPosX, chunkPosZ);
+        if (chunkProvider.chunkExists(chunkPosX, chunkPosZ)) {
+            val chunk = chunkProvider.provideChunk(chunkPosX, chunkPosZ);
+            if (chunk instanceof LumiChunkRoot && !(chunk instanceof EmptyChunk))
+                return (LumiChunkRoot) chunk;
+        }
         return null;
     }
 
