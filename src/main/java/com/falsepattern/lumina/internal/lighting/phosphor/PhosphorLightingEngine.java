@@ -375,10 +375,20 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                 var skyLightHeight = maxPosY;
                 while (true) {
                     if (skyLightHeight > 0) {
+
                         val posY = skyLightHeight - 1;
                         // FIXME: BLOCK CACHE [INIT]
-                        val blockOpacity = clampSkyLightOpacity(
-                                chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ));
+                        val block = chunkRoot.lumi$getBlock(subChunkPosX, posY, subChunkPosZ);
+                        val blockMeta = chunkRoot.lumi$getBlockMeta(subChunkPosX, posY, subChunkPosZ);
+                        final int blockOpacity;
+                        if (block == Blocks.air) {
+                            blockOpacity = 0;
+                        } else {
+                            blockOpacity = clampSkyLightOpacity(chunk.lumi$getBlockOpacity(block, blockMeta,
+                                                                                           subChunkPosX,
+                                                                                           posY,
+                                                                                           subChunkPosZ));
+                        }
                         if (blockOpacity == MIN_SKY_LIGHT_OPACITY) {
                             skyLightHeight--;
                             continue;
