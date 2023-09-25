@@ -52,7 +52,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     /**
      * Maximum scheduled lighting updates before processing the updates is forced.
      */
-    private static final int MAX_SCHEDULED_UPDATES = 1 << 22;
+    private static final int MAX_SCHEDULED_UPDATES = 50_000;
 
     /**
      * Bit length of the Z coordinate in a pos long.
