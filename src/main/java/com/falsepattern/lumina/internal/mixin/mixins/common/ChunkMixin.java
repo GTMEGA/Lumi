@@ -163,7 +163,7 @@ public abstract class ChunkMixin {
      */
     @Overwrite
     public void enqueueRelightChecks() {
-        LightingHooks.doRandomChunkLightingUpdates(thiz());
+//        LightingHooks.doRandomChunkLightingUpdates(thiz());
     }
 
     private Chunk thiz() {

@@ -158,15 +158,15 @@ public final class LightingHooks {
     }
 
     public static void doRandomChunkLightingUpdates(Chunk chunkBase) {
-        if (!chunkBase.worldObj.isRemote && chunkBase.inhabitedTime < 10 * 20)
-            return;
-
-        val worldBase = chunkBase.worldObj;
-        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
-            val chunk = world.lumi$wrap(chunkBase);
-            val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.doRandomChunkLightingUpdates(chunk);
-        }
+//        if (!chunkBase.worldObj.isRemote && chunkBase.inhabitedTime < 10 * 20)
+//            return;
+//
+//        val worldBase = chunkBase.worldObj;
+//        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+//            val chunk = world.lumi$wrap(chunkBase);
+//            val lightingEngine = world.lumi$lightingEngine();
+//            lightingEngine.doRandomChunkLightingUpdates(chunk);
+//        }
     }
 
     public static void resetQueuedRandomLightUpdates(Chunk chunkBase) {
