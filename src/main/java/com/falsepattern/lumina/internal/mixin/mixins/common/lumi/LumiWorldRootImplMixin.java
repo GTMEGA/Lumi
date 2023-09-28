@@ -123,12 +123,16 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
 
     @Override
     public @Nullable LumiChunkRoot lumi$getChunkRootFromChunkPosIfExists(int chunkPosX, int chunkPosZ) {
+        if (chunkProvider == null)
+            return null;
         if (chunkProvider instanceof ChunkProviderServer) {
             val chunkProviderServer = (ChunkProviderServer) chunkProvider;
             val loadedChunks = chunkProviderServer.loadedChunkHashMap;
-            val chunk = loadedChunks.getValueByKey(ChunkCoordIntPair.chunkXZ2Int(chunkPosX, chunkPosZ));
-            if (chunk instanceof LumiChunkRoot && !(chunk instanceof EmptyChunk))
-                return (LumiChunkRoot) chunk;
+            if (loadedChunks != null) {
+                val chunk = loadedChunks.getValueByKey(ChunkCoordIntPair.chunkXZ2Int(chunkPosX, chunkPosZ));
+                if (chunk instanceof LumiChunkRoot && !(chunk instanceof EmptyChunk))
+                    return (LumiChunkRoot) chunk;
+            }
         }
         if (chunkProvider.chunkExists(chunkPosX, chunkPosZ)) {
             val chunk = chunkProvider.provideChunk(chunkPosX, chunkPosZ);
