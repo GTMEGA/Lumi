@@ -7,156 +7,83 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
-import com.falsepattern.lumina.api.LumiAPI;
 import com.falsepattern.lumina.api.cache.LumiBlockCache;
+import com.falsepattern.lumina.api.cache.LumiBlockCacheRoot;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
-import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
-import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
-import com.falsepattern.lumina.api.world.LumiWorldRoot;
-import com.falsepattern.lumina.internal.world.DefaultWorldProvider;
 import lombok.val;
 import net.minecraft.block.Block;
-import net.minecraft.profiler.Profiler;
+import net.minecraft.world.ChunkCache;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.Dynamic;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static com.falsepattern.lumina.api.init.LumiWorldInitHook.LUMI_WORLD_INIT_HOOK_INFO;
-import static com.falsepattern.lumina.api.init.LumiWorldInitHook.LUMI_WORLD_INIT_HOOK_METHOD;
+import static com.falsepattern.lumina.api.init.LumiChunkCacheInitHook.LUMI_CHUNK_CACHE_INIT_HOOK_INFO;
+import static com.falsepattern.lumina.api.init.LumiChunkCacheInitHook.LUMI_CHUNK_CACHE_INIT_HOOK_METHOD;
 import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 
 @Unique
-@Mixin(World.class)
-public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
+@Mixin(ChunkCache.class)
+public abstract class LumiBlockCacheImplMixin implements IBlockAccess, LumiBlockCache {
     // region Shadow
-    @Mutable
-    @Final
     @Shadow
-    public Profiler theProfiler;
+    private int chunkX;
+    @Shadow
+    private int chunkZ;
+    @Shadow
+    private Chunk[][] chunkArray;
+    @Shadow
+    private boolean isEmpty;
+    @Shadow
+    private World worldObj;
     // endregion
 
-    private LumiWorldRoot lumi$root = null;
-    private LumiLightingEngine lumi$lightingEngine = null;
-    private LumiBlockCache lumi$blockCache = null;
+    private LumiBlockCacheRoot lumi$root = null;
+    private LumiWorld lumi$world = null;
 
-    @Inject(method = LUMI_WORLD_INIT_HOOK_METHOD,
+    @Inject(method = LUMI_CHUNK_CACHE_INIT_HOOK_METHOD,
             at = @At("RETURN"),
             remap = false,
             require = 1)
     @SuppressWarnings("CastToIncompatibleInterface")
-    @Dynamic(LUMI_WORLD_INIT_HOOK_INFO)
-    private void lumiWorldInit(CallbackInfo ci) {
-        this.lumi$root = (LumiWorldRoot) this;
-
-        if (DefaultWorldProvider.isRegistered()) {
-            val blockCacheRoot = lumi$root.lumi$blockCacheRoot();
-            this.lumi$blockCache = blockCacheRoot.lumi$createBlockCache(this);
-            this.lumi$lightingEngine = LumiAPI.provideLightingEngine(this, theProfiler);
-        }
+    @Dynamic(LUMI_CHUNK_CACHE_INIT_HOOK_INFO)
+    private void lumiBlockChunkCacheInit(CallbackInfo ci) {
+        this.lumi$root = (LumiBlockCacheRoot) this;
+        this.lumi$world = (LumiWorld) worldObj;
     }
 
-    // region World
+    // region Block Cache
     @Override
-    public @NotNull LumiWorldRoot lumi$root() {
+    public @NotNull LumiBlockCacheRoot lumi$root() {
         return lumi$root;
     }
 
     @Override
-    public @NotNull String lumi$worldID() {
-        return "lumi_world";
-    }
-
-    @Override
-    @SuppressWarnings("CastToIncompatibleInterface")
-    public @NotNull LumiChunk lumi$wrap(@NotNull Chunk chunkBase) {
-        return (LumiChunk) chunkBase;
-    }
-
-    @Override
-    @SuppressWarnings("CastToIncompatibleInterface")
-    public @NotNull LumiSubChunk lumi$wrap(@NotNull ExtendedBlockStorage subChunkBase) {
-        return (LumiSubChunk) subChunkBase;
-    }
-
-    @Override
-    public @Nullable LumiChunk lumi$getChunkFromBlockPosIfExists(int posX, int posZ) {
-        val chunkRoot = lumi$root.lumi$getChunkRootFromBlockPosIfExists(posX, posZ);
-        if (chunkRoot instanceof LumiChunk)
-            return (LumiChunk) chunkRoot;
-        return null;
-    }
-
-    @Override
-    public @Nullable LumiChunk lumi$getChunkFromChunkPosIfExists(int chunkPosX, int chunkPosZ) {
-        val chunkRoot = lumi$root.lumi$getChunkRootFromChunkPosIfExists(chunkPosX, chunkPosZ);
-        if (chunkRoot instanceof LumiChunk)
-            return (LumiChunk) chunkRoot;
-        return null;
-    }
-
-    @Override
-    public @NotNull LumiLightingEngine lumi$lightingEngine() {
-        return lumi$lightingEngine;
-    }
-
-    @Override
-    public void lumi$setLightValue(@NotNull LightType lightType, int posX, int posY, int posZ, int lightValue) {
-        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
-        if (chunk != null) {
-            val subChunkPosX = posX & 15;
-            val subChunkPosZ = posZ & 15;
-            chunk.lumi$setLightValue(lightType, subChunkPosX, posY, subChunkPosZ, lightValue);
-        }
-    }
-
-    @Override
-    public void lumi$setBlockLightValue(int posX, int posY, int posZ, int lightValue) {
-        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
-        if (chunk != null) {
-            val subChunkPosX = posX & 15;
-            val subChunkPosZ = posZ & 15;
-            chunk.lumi$setBlockLightValue(subChunkPosX, posY, subChunkPosZ, lightValue);
-        }
-    }
-
-    @Override
-    public void lumi$setSkyLightValue(int posX, int posY, int posZ, int lightValue) {
-        if (!lumi$root().lumi$hasSky())
-            return;
-
-        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
-        if (chunk != null) {
-            val subChunkPosX = posX & 15;
-            val subChunkPosZ = posZ & 15;
-            chunk.lumi$setSkyLightValue(subChunkPosX, posY, subChunkPosZ, lightValue);
-        }
-    }
-
-    @Override
-    public @NotNull LumiBlockCache lumi$blockCache() {
-        return lumi$blockCache;
+    public @NotNull String lumi$BlockCacheID() {
+        return "lumi_block_cache";
     }
     // endregion
 
     // region Block Storage
     @Override
     public @NotNull String lumi$blockStorageID() {
-        return "lumi_world";
+        return "lumi_block_cache";
     }
 
     @Override
     public @NotNull LumiWorld lumi$world() {
-        return this;
+        return lumi$world;
     }
 
     @Override
@@ -173,7 +100,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
 
     @Override
     public int lumi$getBrightness(int posX, int posY, int posZ) {
-        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
+        val chunk = getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
@@ -185,7 +112,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
 
     @Override
     public int lumi$getLightValue(int posX, int posY, int posZ) {
-        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
+        val chunk = getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
@@ -196,7 +123,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
 
     @Override
     public int lumi$getLightValue(@NotNull LightType lightType, int posX, int posY, int posZ) {
-        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
+        val chunk = getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
@@ -217,7 +144,7 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
 
     @Override
     public int lumi$getBlockLightValue(int posX, int posY, int posZ) {
-        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
+        val chunk = getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
@@ -228,10 +155,10 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
 
     @Override
     public int lumi$getSkyLightValue(int posX, int posY, int posZ) {
-        if (!lumi$root().lumi$hasSky())
+        if (!lumi$root.lumi$hasSky())
             return 0;
 
-        val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
+        val chunk = getChunkFromBlockPosIfExists(posX, posZ);
         if (chunk != null) {
             val subChunkPosX = posX & 15;
             val subChunkPosZ = posZ & 15;
@@ -263,4 +190,32 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
         return block.getLightOpacity(this, posX, posY, posZ);
     }
     // endregion
+
+    @SuppressWarnings("InstanceofIncompatibleInterface")
+    private @Nullable LumiChunk getChunkFromBlockPosIfExists(int posX, int posZ) {
+        checks:
+        {
+            if (isEmpty)
+                break checks;
+
+            val chunkPosX = posX >> 4;
+            val chunkPosZ = posZ >> 4;
+            val xChunkIndex = chunkPosX - chunkX;
+            val zChunkIndex = chunkPosZ - chunkZ;
+
+            if (xChunkIndex < 0 || xChunkIndex >= chunkArray.length)
+                break checks;
+
+            val zChunkArray = chunkArray[xChunkIndex];
+            if (zChunkArray == null)
+                break checks;
+            if (zChunkIndex < 0 || zChunkIndex >= zChunkArray.length)
+                break checks;
+
+            val chunkBase = zChunkArray[zChunkIndex];
+            if (chunkBase instanceof LumiChunk)
+                return (LumiChunk) chunkBase;
+        }
+        return null;
+    }
 }

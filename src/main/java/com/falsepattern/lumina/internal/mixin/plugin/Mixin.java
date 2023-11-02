@@ -20,6 +20,7 @@ import static com.falsepattern.lib.mixin.IMixin.Side.CLIENT;
 import static com.falsepattern.lib.mixin.IMixin.Side.COMMON;
 import static com.falsepattern.lumina.internal.mixin.plugin.TargetedMod.ARCHAIC_FIX;
 import static com.falsepattern.lumina.internal.mixin.plugin.TargetedMod.FASTCRAFT;
+import static com.falsepattern.lumina.internal.mixin.plugin.TargetedMod.JOURNEYMAP;
 
 @RequiredArgsConstructor
 public enum Mixin implements IMixin {
@@ -43,13 +44,13 @@ public enum Mixin implements IMixin {
     // endregion
 
     // region LUMINA Initialization
-    common_init_LumiChunkBaseInitImplMixin(COMMON, always(), "init.LumiChunkBaseInitImplMixin"),
+    common_init_LumiChunkInitHookImplMixinMixin(COMMON, always(), "init.LumiChunkInitHookImplMixin"),
     common_init_LumiChunkInitTaskQueueImplMixin(COMMON, always(), "init.LumiChunkInitTaskQueueImplMixin"),
+    common_init_LumiExtendedBlockStorageInitHookImplMixin(COMMON, always(), "init.LumiExtendedBlockStorageInitHookImplMixin"),
+    common_init_LumiWorldInitHookImplMixin(COMMON, always(), "init.LumiWorldInitHookImplMixin"),
+    common_init_LumiChunkCacheHookImplMixin(COMMON, always(), "init.LumiChunkCacheHookImplMixin"),
 
-    common_init_LumiSubChunkBaseInitImplMixin(COMMON, always(), "init.LumiSubChunkBaseInitImplMixin"),
-
-    common_init_LumiWorldBaseInitImplMixin(COMMON, always(), "init.LumiWorldBaseInitImplMixin"),
-    client_init_LumiWorldBaseInitImplMixin(CLIENT, always(), "init.LumiWorldBaseInitImplMixin"),
+    client_init_LumiWorldInitHookImplMixinMixin(CLIENT, always(), "init.LumiWorldInitHookImplMixin"),
     // endregion
 
     // region LUMINA Implementation
@@ -61,6 +62,9 @@ public enum Mixin implements IMixin {
 
     common_lumi_LumiSubChunkImplMixin(COMMON, always(), "lumi.LumiSubChunkImplMixin"),
     common_lumi_LumiSubChunkRootImplMixin(COMMON, always(), "lumi.LumiSubChunkRootImplMixin"),
+
+    common_lumi_LumiBlockCacheImplMixin(COMMON, always(), "lumi.LumiBlockCacheImplMixin"),
+    common_lumi_LumiBlockCacheRootImplMixin(COMMON, always(), "lumi.LumiBlockCacheRootImplMixin"),
     // endregion
 
     // region Phosphor Implementation
@@ -75,6 +79,9 @@ public enum Mixin implements IMixin {
     common_fastcraft_WorldMixin(COMMON, require(FASTCRAFT), "fastcraft.WorldMixin"),
     //endregion FastCraft Compat
 
+    //region JourneyMap Compat
+    client_journeymap_ForgeHelper_1_7_10Mixin(CLIENT, require(JOURNEYMAP), "journeymap.ForgeHelper_1_7_10Mixin"),
+    //endregion JourneyMap Compat
     ;
 
     @Getter

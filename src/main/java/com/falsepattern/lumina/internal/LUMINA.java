@@ -17,10 +17,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import static com.falsepattern.lumina.internal.Tags.*;
-import static com.falsepattern.lumina.internal.data.ChunkNBTManager.chunkNBTManager;
-import static com.falsepattern.lumina.internal.data.ChunkPacketManager.chunkPacketManager;
-import static com.falsepattern.lumina.internal.data.SubChunkNBTManager.subChunkNBTManager;
 import static com.falsepattern.lumina.internal.lighting.LightingEngineManager.lightingEngineManager;
+import static com.falsepattern.lumina.internal.storage.ChunkNBTManager.chunkNBTManager;
+import static com.falsepattern.lumina.internal.storage.ChunkPacketManager.chunkPacketManager;
+import static com.falsepattern.lumina.internal.storage.SubChunkNBTManager.subChunkNBTManager;
 import static com.falsepattern.lumina.internal.world.WorldProviderManager.worldProviderManager;
 
 @Mod(modid = MOD_ID,

@@ -8,16 +8,16 @@
 package com.falsepattern.lumina.internal.lighting.phosphor;
 
 import com.falsepattern.lib.compat.BlockPos;
+import com.falsepattern.lumina.api.cache.LumiBlockCache;
+import com.falsepattern.lumina.api.cache.LumiBlockCacheRoot;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
-import com.falsepattern.lumina.internal.collection.PosHashSet;
 import cpw.mods.fml.relauncher.SideOnly;
 import gnu.trove.iterator.TLongIterator;
-import gnu.trove.set.TLongSet;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import lombok.var;
@@ -52,7 +52,8 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     /**
      * Maximum scheduled lighting updates before processing the updates is forced.
      */
-    private static final int MAX_SCHEDULED_UPDATES = 1 << 22;
+    private static final int MAX_SCHEDULED_UPDATES_SERVER = 50_000;
+    private static final int MAX_SCHEDULED_UPDATES_CLIENT = 10_000;
 
     /**
      * Bit length of the Z coordinate in a pos long.
@@ -143,30 +144,34 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     private final LumiWorld world;
     private final LumiWorldRoot worldRoot;
+    private final boolean isClientSide;
     private final Profiler profiler;
+
+    private final LumiBlockCache blockCache;
+    private final LumiBlockCacheRoot blockCacheRoot;
 
     /**
      * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
      */
-    private final TLongSet[] updateQueues;
+    private final OrderedLongSet[] updateQueues;
     /**
      * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
      */
-    private final TLongSet[] brighteningQueues;
+    private final OrderedLongSet[] brighteningQueues;
     /**
      * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
      */
-    private final TLongSet[] darkeningQueues;
+    private final OrderedLongSet[] darkeningQueues;
     /**
      * Layout of longs: [newLight(4)] [y(8)] [x(26)] [z(26)]
      */
-    private final TLongSet initialBrighteningQueue;
+    private final OrderedLongSet initialBrighteningQueue;
     /**
      * Layout of longs: [padding(4)] [y(8)] [x(26)] [z(26)]
      */
-    private final TLongSet initialDarkeningQueue;
+    private final OrderedLongSet initialDarkeningQueue;
 
-    private @Nullable TLongSet currentQueue;
+    private @Nullable OrderedLongSet currentQueue;
     private @Nullable TLongIterator queueIterator;
 
     private final BlockPos.MutableBlockPos cursorBlockPos;
@@ -182,20 +187,23 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     PhosphorLightingEngine(LumiWorld world, Profiler profiler) {
         this.world = world;
         this.worldRoot = world.lumi$root();
+        this.isClientSide = worldRoot.lumi$isClientSide();
         this.profiler = profiler;
 
-        val queuePool = PooledLongQueue.createPool();
-        this.updateQueues = new TLongSet[LIGHT_VALUE_TYPES_COUNT];
+        this.blockCache = world.lumi$blockCache();
+        this.blockCacheRoot = worldRoot.lumi$blockCacheRoot();
+
+        this.updateQueues = new OrderedLongSet[LIGHT_VALUE_TYPES_COUNT];
         for (var i = 0; i < LIGHT_VALUE_TYPES_COUNT; i++)
-            this.updateQueues[i] = new PosHashSet();
-        this.brighteningQueues = new TLongSet[LIGHT_VALUE_RANGE];
+            this.updateQueues[i] = new OrderedLongSet(isClientSide ? MAX_SCHEDULED_UPDATES_CLIENT : MAX_SCHEDULED_UPDATES_SERVER);
+        this.brighteningQueues = new OrderedLongSet[LIGHT_VALUE_RANGE];
         for (var i = 0; i < LIGHT_VALUE_RANGE; i++)
-            this.brighteningQueues[i] = new PosHashSet();
-        this.darkeningQueues = new TLongSet[LIGHT_VALUE_RANGE];
+            this.brighteningQueues[i] = new OrderedLongSet();
+        this.darkeningQueues = new OrderedLongSet[LIGHT_VALUE_RANGE];
         for (var i = 0; i < LIGHT_VALUE_RANGE; i++)
-            this.darkeningQueues[i] = new PosHashSet();
-        this.initialBrighteningQueue = new PosHashSet();
-        this.initialDarkeningQueue = new PosHashSet();
+            this.darkeningQueues[i] = new OrderedLongSet();
+        this.initialBrighteningQueue = new OrderedLongSet();
+        this.initialDarkeningQueue = new OrderedLongSet();
 
         this.neighborBlocks = new NeighborBlock[NEIGHBOUR_COUNT];
         for (var i = 0; i < NEIGHBOUR_COUNT; i++)
@@ -268,6 +276,11 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     @Override
     public int getCurrentLightValue(@NotNull LightType lightType, int posX, int posY, int posZ) {
         processLightingUpdatesForType(lightType);
+        return clampLightValue(blockCache.lumi$getLightValue(lightType, posX, posY, posZ));
+    }
+
+    @Override
+    public int getCurrentLightValueUncached(@NotNull LightType lightType, int posX, int posY, int posZ) {
         return clampLightValue(world.lumi$getLightValue(lightType, posX, posY, posZ));
     }
 
@@ -280,7 +293,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     public void handleChunkInit(@NotNull LumiChunk chunk) {
         chunk.lumi$isLightingInitialized(false);
 
-        val hasSky = worldRoot.lumi$hasSky();
+        val hasSky = blockCacheRoot.lumi$hasSky();
 
         val chunkRoot = chunk.lumi$root();
 
@@ -288,7 +301,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         val basePosY = chunkRoot.lumi$topPreparedSubChunkBasePosY();
         val basePosZ = chunk.lumi$chunkPosZ() << 4;
 
-        val maxPosY = basePosY + 15;
+        val maxPosY = basePosY + 16;
 
         var minSkyLightHeight = Integer.MAX_VALUE;
         for (int subChunkPosX = 0; subChunkPosX < 16; ++subChunkPosX) {
@@ -299,6 +312,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                 while (true) {
                     if (skyLightHeight > 0) {
                         val posY = skyLightHeight - 1;
+                        // FIXME: BLOCK CACHE [INIT]
                         val blockOpacity = clampSkyLightOpacity(
                                 chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ));
                         if (blockOpacity == MIN_SKY_LIGHT_OPACITY) {
@@ -315,6 +329,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                         skyLightHeight = (basePosY + 16) - 1;
 
                         do {
+                            // FIXME: BLOCK CACHE [INIT]
                             var blockOpacity = clampSkyLightOpacity(chunk.lumi$getBlockOpacity(subChunkPosX, skyLightHeight, subChunkPosZ));
                             if (blockOpacity == MIN_SKY_LIGHT_OPACITY && lightLevel != MAX_LIGHT_VALUE)
                                 blockOpacity = 1;
@@ -368,9 +383,20 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                 var skyLightHeight = maxPosY;
                 while (true) {
                     if (skyLightHeight > 0) {
+
                         val posY = skyLightHeight - 1;
-                        val blockOpacity = clampSkyLightOpacity(
-                                chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ));
+                        // FIXME: BLOCK CACHE [INIT]
+                        val block = chunkRoot.lumi$getBlock(subChunkPosX, posY, subChunkPosZ);
+                        val blockMeta = chunkRoot.lumi$getBlockMeta(subChunkPosX, posY, subChunkPosZ);
+                        final int blockOpacity;
+                        if (block == Blocks.air) {
+                            blockOpacity = 0;
+                        } else {
+                            blockOpacity = clampSkyLightOpacity(chunk.lumi$getBlockOpacity(block, blockMeta,
+                                                                                           subChunkPosX,
+                                                                                           posY,
+                                                                                           subChunkPosZ));
+                        }
                         if (blockOpacity == MIN_SKY_LIGHT_OPACITY) {
                             skyLightHeight--;
                             continue;
@@ -421,9 +447,6 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         var queuedRandomLightUpdates = chunk.lumi$queuedRandomLightUpdates();
         if (queuedRandomLightUpdates >= MAX_QUEUED_RANDOM_LIGHT_UPDATES)
             return;
-
-        val isUpdating = chunkRoot.lumi$isUpdating();
-        val isClientSide = worldRoot.lumi$isClientSide();
 
         final int maxUpdateIterations;
         if (isClientSide && isUpdating) {
@@ -479,16 +502,18 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
                 renderUpdateCheck:
                 {
-                    val blockOpacity = clampBlockLightOpacity(
-                            chunk.lumi$getBlockOpacity(subChunkPosX, posY, subChunkPosZ));
+                    // FIXME: BLOCK CACHE [TEST]
+                    val blockOpacity = getCachedBlockLightOpacity(posX, posY, posZ);
                     if (blockOpacity < MAX_BLOCK_LIGHT_OPACITY)
                         break renderUpdateCheck;
 
-                    val blockBrightness = chunk.lumi$getBlockBrightness(subChunkPosX, posY, subChunkPosZ);
+                    // FIXME: BLOCK CACHE [TEST]
+                    val blockBrightness = getCachedBlockBrightness(posX, posY, posZ);
                     if (blockBrightness > MIN_LIGHT_VALUE)
                         break renderUpdateCheck;
 
-                    val lightValue = chunk.lumi$getBlockLightValue(subChunkPosX, posY, subChunkPosZ);
+                    // FIXME: BLOCK CACHE [TEST]
+                    val lightValue = getCachedBlockLightValue(posX, posY, posZ);
                     if (lightValue == MIN_LIGHT_VALUE)
                         continue;
 
@@ -526,18 +551,16 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         if (!chunk.lumi$canBlockSeeSky(subChunkPosX, minPosY, subChunkPosZ))
             return;
 
-        while (minPosY > 0 && clampSkyLightOpacity(chunk.lumi$getBlockOpacity(subChunkPosX,
-                                                                              minPosY - 1,
-                                                                              subChunkPosZ)) == MIN_SKY_LIGHT_OPACITY) {
-
+        // FIXME: BLOCK CACHE [TEST}
+        while (minPosY > 0 && world.lumi$getBlockOpacity(posX, minPosY - 1, posZ) == MIN_SKY_LIGHT_OPACITY)
             --minPosY;
-        }
+
         if (minPosY == maxPosY)
             return;
 
         chunk.lumi$skyLightHeight(subChunkPosX, subChunkPosZ, minPosY);
 
-        if (worldRoot.lumi$hasSky())
+        if (blockCacheRoot.lumi$hasSky())
             relightSkyLightColumn(this,
                                   world,
                                   chunk,
@@ -660,7 +683,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
-        if (worldRoot.lumi$isClientSide() && !isCallingFromClientThread())
+        if (isClientSide && !isCallingFromClientThread())
             return;
 
         // Quickly check if the queue is empty before we acquire a more expensive lock.
@@ -684,7 +707,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
-        if (worldRoot.lumi$isClientSide() && !isCallingFromClientThread())
+        if (isClientSide && !isCallingFromClientThread())
             return;
 
         // Quickly check if the queue is empty before we acquire a more expensive lock.
@@ -710,11 +733,22 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     private void scheduleLightingUpdate(LightType lightType, long posLong) {
+        acquireLock();
         val queue = updateQueues[lightType.ordinal()];
-        if (queue.size() >= 100_000)
+        if (isQueueFull(queue))
             processLightingUpdatesForType(lightType);
 
         queue.add(posLong);
+        releaseLock();
+    }
+
+    private boolean isQueueFull(OrderedLongSet queue) {
+        val queueSize = queue.size();
+        if (isClientSide) {
+            return queueSize >= MAX_SCHEDULED_UPDATES_CLIENT;
+        } else {
+            return queueSize >= MAX_SCHEDULED_UPDATES_SERVER;
+        }
     }
 
     @SideOnly(CLIENT)
@@ -760,7 +794,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         lock.unlock();
     }
 
-    private void processLightUpdateQueue(LightType lightType, TLongSet queue) {
+    private void processLightUpdateQueue(LightType lightType, OrderedLongSet queue) {
         if (isUpdating)
             return;
         isUpdating = true;
@@ -777,7 +811,9 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             if (cursorChunk == null)
                 continue;
 
-            val cursorCurrentLightValue = getCursorCurrentLightValue(lightType);
+            // FIXME: BLOCK CACHE [TEST]
+            val cursorCurrentLightValue = getCachedCursorCurrentLightValue(lightType);
+//            val cursorCurrentLightValue = getCursorCurrentLightValue(lightType);
             val cursorUpdatedLightValue = getCursorUpdatedLightValue(lightType);
             if (cursorCurrentLightValue < cursorUpdatedLightValue) {
                 // Don't enqueue directly for brightening in order to avoid duplicate scheduling
@@ -793,7 +829,9 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         while (nextItem()) {
             // Sets the light to newLight to only schedule once. Clear leading bits of curData for later
             val cursorDataLightValue = (int) (cursorData >> LIGHT_VALUE_BIT_SHIFT & LIGHT_VALUE_BIT_MASK);
-            if (cursorDataLightValue > getCursorCurrentLightValue(lightType)) {
+            // FIXME: BLOCK CACHE [TEST]
+            if (cursorDataLightValue > getCachedCursorCurrentLightValue(lightType)) {
+//            if (cursorDataLightValue > getCursorCurrentLightValue(lightType)) {
                 val posLong = cursorData & BLOCK_POS_BIT_MASK;
                 enqueueBrightening(cursorBlockPos, posLong, cursorDataLightValue, cursorChunk, lightType);
             }
@@ -802,7 +840,9 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         setQueue(initialDarkeningQueue);
         while (nextItem()) {
             // Sets the light to 0 to only schedule once
-            val cursorCurrentLightValue = getCursorCurrentLightValue(lightType);
+            // FIXME: BLOCK CACHE [TEST]
+            val cursorCurrentLightValue = getCachedCursorCurrentLightValue(lightType);
+//            val cursorCurrentLightValue = getCursorCurrentLightValue(lightType);
             if (cursorCurrentLightValue != 0)
                 enqueueDarkening(cursorBlockPos, cursorData, cursorCurrentLightValue, cursorChunk, lightType);
         }
@@ -815,20 +855,27 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
             setQueue(darkeningQueues[queueIndex]);
             while (nextItem()) {
+                // FIXME: BLOCK CACHE [TEST]
                 // Don't darken if we got brighter due to some other change
-                if (getCursorCurrentLightValue(lightType) >= queueIndex)
+                if (getCachedCursorCurrentLightValue(lightType) >= queueIndex)
                     continue;
+//                if (getCursorCurrentLightValue(lightType) >= queueIndex)
+//                    continue;
 
-                val cursorBlock = getBlockFromChunk(cursorChunk, cursorBlockPos);
-                val cursorBlockMeta = getBlockMetaFromChunk(cursorChunk, cursorBlockPos);
-                val cursorBlockLightValue = getCursorBlockLightValue(cursorBlock, cursorBlockMeta, lightType);
+                // FIXME: BLOCK CACHE [TEST]
+//                val cursorBlock = getBlockFromChunk(cursorChunk, cursorBlockPos);
+//                val cursorBlockMeta = getBlockMetaFromChunk(cursorChunk, cursorBlockPos);
+//                val cursorBlockLightValue = getCursorBlockLightValue(cursorBlock, cursorBlockMeta, lightType);
+                val cursorBlockLightValue = getCachedCursorBlockLightValue(lightType);
 
                 // If luminosity is high enough, opacity is irrelevant
                 final int cursorBlockOpacity;
                 if (cursorBlockLightValue >= MAX_LIGHT_VALUE - 1) {
                     cursorBlockOpacity = 1;
                 } else {
-                    cursorBlockOpacity = getBlockLightOpacity(cursorBlockPos, cursorBlock, cursorBlockMeta);
+                    // FIXME: BLOCK CACHE [TEST]
+//                    cursorBlockOpacity = getBlockLightOpacity(cursorBlockPos, cursorBlock, cursorBlockMeta);
+                    cursorBlockOpacity = getCachedBlockLightOpacity(cursorBlockPos);
                 }
 
                 // Only darken neighbors if we indeed became darker
@@ -848,9 +895,11 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                     if (neighbor.lightValue == 0)
                         continue;
 
-                    val neighborBlock = getBlockFromSubChunk(neighbor.subChunk, neighbor.blockPos);
-                    val neighborBlockMeta = getBlockMetaFromSubChunk(neighbor.subChunk, neighbor.blockPos);
-                    val neighborBlockOpacity = getBlockLightOpacity(neighbor.blockPos, neighborBlock, neighborBlockMeta);
+                    // FIXME: BLOCK CACHE [TEST]
+                    val neighborBlockOpacity = getCachedBlockLightOpacity(neighbor.blockPos);
+//                    val neighborBlock = getBlockFromSubChunk(neighbor.subChunk, neighbor.blockPos);
+//                    val neighborBlockMeta = getBlockMetaFromSubChunk(neighbor.subChunk, neighbor.blockPos);
+//                    val neighborBlockOpacity = getBlockLightOpacity(neighbor.blockPos, neighborBlock, neighborBlockMeta);
 
                     // If we can't darken the neighbor, no one else can (because of processing order) -> safe to let us be illuminated by it
                     if (queueIndex - neighborBlockOpacity >= neighbor.lightValue) {
@@ -870,7 +919,9 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             setQueue(brighteningQueues[queueIndex]);
             while (nextItem()) {
                 // Only process this if nothing else has happened at this position since scheduling
-                if (getCursorCurrentLightValue(lightType) == queueIndex) {
+                // FIXME: BLOCK CACHE [TEST]
+                if (getCachedCursorCurrentLightValue(lightType) == queueIndex) {
+//                if (getCursorCurrentLightValue(lightType) == queueIndex) {
                     val posX = cursorBlockPos.getX();
                     val posY = cursorBlockPos.getY();
                     val posZ = cursorBlockPos.getZ();
@@ -897,7 +948,8 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             neighbor.posLong = cursorData + BLOCK_SIDE_BIT_OFFSET[i];
             if ((neighbor.posLong & POS_OVERFLOW_CHECK_BIT_MASK) != 0) {
                 neighbor.chunk = null;
-                neighbor.subChunk = null;
+                // FIXME: BLOCK CACHE [TEST]
+//                neighbor.subChunk = null;
                 continue;
             }
 
@@ -911,40 +963,31 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             if (neighbor.chunk == null)
                 continue;
 
-            val chunkPosY = neighbor.blockPos.getY() / 16;
-            neighbor.subChunk = neighbor.chunk.lumi$getSubChunkIfPrepared(chunkPosY);
-            neighbor.lightValue = getCachedLightFor(neighbor.chunk, neighbor.subChunk, lightType, neighbor.blockPos);
+            // FIXME: BLOCK CACHE [TEST]
+//            val chunkPosY = neighbor.blockPos.getY() / 16;
+//            neighbor.subChunk = neighbor.chunk.lumi$getSubChunkIfPrepared(chunkPosY);
+//            neighbor.lightValue = getCachedLightFor(neighbor.chunk, neighbor.subChunk, lightType, neighbor.blockPos);
+            neighbor.lightValue = getCachedLightValue(lightType, neighbor.blockPos);
         }
-    }
-
-    private static int getCachedLightFor(LumiChunk chunk,
-                                         @Nullable LumiSubChunk subChunk,
-                                         LightType lightType,
-                                         BlockPos blockPos) {
-        val posY = blockPos.getY();
-        val subChunkPosX = blockPos.getX() & 15;
-        val subChunkPosZ = blockPos.getZ() & 15;
-
-        if (subChunk != null) {
-            val subChunkPosY = posY & 15;
-            return clampLightValue(subChunk.lumi$getLightValue(lightType, subChunkPosX, subChunkPosY, subChunkPosZ));
-        }
-        return clampLightValue(chunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ));
     }
 
     private int getCursorUpdatedLightValue(LightType lightType) {
         if (cursorChunk == null)
             return lightType.defaultLightValue();
 
-        val block = getBlockFromChunk(cursorChunk, cursorBlockPos);
-        val blockMeta = getBlockMetaFromChunk(cursorChunk, cursorBlockPos);
+//        val block = getBlockFromChunk(cursorChunk, cursorBlockPos);
+//        val blockMeta = getBlockMetaFromChunk(cursorChunk, cursorBlockPos);
 
-        val cursorBlockLightValue = getCursorBlockLightValue(block, blockMeta, lightType);
+        // FIXME: BLOCK CACHE [TEST]
+        val cursorBlockLightValue = getCachedCursorBlockLightValue(lightType);
+//        val cursorBlockLightValue = getCursorBlockLightValue(block, blockMeta, lightType);
         final int cursorBlockOpacity;
         if (cursorBlockLightValue >= MAX_LIGHT_VALUE - 1) {
             cursorBlockOpacity = 1;
         } else {
-            cursorBlockOpacity = getBlockLightOpacity(cursorBlockPos, block, blockMeta);
+            // FIXME: BLOCK CACHE [TEST]
+            cursorBlockOpacity = getCachedBlockLightOpacity(cursorBlockPos);
+//            cursorBlockOpacity = getBlockLightOpacity(cursorBlockPos, block, blockMeta);
         }
 
         return getCursorUpdatedLightValue(cursorBlockLightValue, cursorBlockOpacity, lightType);
@@ -972,9 +1015,11 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             if (neighbor.chunk == null)
                 continue;
 
-            val block = getBlockFromSubChunk(neighbor.subChunk, neighbor.blockPos);
-            val blockMeta = getBlockMetaFromSubChunk(neighbor.subChunk, neighbor.blockPos);
-            val blockOpacity = getBlockLightOpacity(neighbor.blockPos, block, blockMeta);
+            // FIXME: BLOCK CACHE [TEST]
+            val blockOpacity = getCachedBlockLightOpacity(neighbor.blockPos);
+//            val block = getBlockFromSubChunk(neighbor.subChunk, neighbor.blockPos);
+//            val blockMeta = getBlockMetaFromSubChunk(neighbor.subChunk, neighbor.blockPos);
+//            val blockOpacity = getBlockLightOpacity(neighbor.blockPos, block, blockMeta);
 
             val newLightValue = cursorLightValue - blockOpacity;
             if (newLightValue > neighbor.lightValue)
@@ -1019,26 +1064,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         chunk.lumi$root().lumi$markDirty();
     }
 
-    private static long posLongFromBlockPos(BlockPos blockPos) {
-        return posLongFromPosXYZ(blockPos.getX(), blockPos.getY(), blockPos.getZ());
-    }
-
-    private static long posLongFromPosXYZ(int posX, int posY, int posZ) {
-        // The additional logic is needed as the X and Z may be negative, and this preserves the sign value.
-        return ((long) posX + (1L << POS_X_BIT_LENGTH - 1L) << POS_X_BIT_SHIFT) |
-               ((long) posY << POS_Y_BIT_SHIFT) |
-               ((long) posZ + (1L << POS_Z_BIT_LENGTH - 1L) << POS_Z_BIT_SHIFT);
-    }
-
-    private static void blockPosFromPosLong(BlockPos.MutableBlockPos blockPos, long longPos) {
-        // The additional logic is needed as the X and Z may be negative, and this preserves the sign value.
-        val posX = (int) (longPos >> POS_X_BIT_SHIFT & POS_X_BIT_MASK) - (1L << POS_X_BIT_LENGTH - 1L);
-        val posY = (int) (longPos >> POS_Y_BIT_SHIFT & POS_Y_BIT_MASK);
-        val posZ = (int) (longPos >> POS_Z_BIT_SHIFT & POS_Z_BIT_MASK) - (1L << POS_Z_BIT_LENGTH - 1L);
-        blockPos.setPos(posX, posY, posZ);
-    }
-
-    private void setQueue(@Nullable TLongSet queue) {
+    private void setQueue(@Nullable OrderedLongSet queue) {
         if (currentQueue != null)
             currentQueue.clear();
 
@@ -1074,6 +1100,147 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         return true;
     }
 
+    private @Nullable LumiChunk getChunk(BlockPos blockPos) {
+        val chunkPosX = blockPos.getX() >> 4;
+        val chunkPosZ = blockPos.getZ() >> 4;
+        return getLoadedChunk(world, chunkPosX, chunkPosZ);
+    }
+
+    private static long posLongFromBlockPos(BlockPos blockPos) {
+        return posLongFromPosXYZ(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+    }
+
+    private static long posLongFromPosXYZ(int posX, int posY, int posZ) {
+        // The additional logic is needed as the X and Z may be negative, and this preserves the sign value.
+        return ((long) posX + (1L << POS_X_BIT_LENGTH - 1L) << POS_X_BIT_SHIFT) |
+               ((long) posY << POS_Y_BIT_SHIFT) |
+               ((long) posZ + (1L << POS_Z_BIT_LENGTH - 1L) << POS_Z_BIT_SHIFT);
+    }
+
+    private static void blockPosFromPosLong(BlockPos.MutableBlockPos blockPos, long longPos) {
+        // The additional logic is needed as the X and Z may be negative, and this preserves the sign value.
+        val posX = (int) (longPos >> POS_X_BIT_SHIFT & POS_X_BIT_MASK) - (1L << POS_X_BIT_LENGTH - 1L);
+        val posY = (int) (longPos >> POS_Y_BIT_SHIFT & POS_Y_BIT_MASK);
+        val posZ = (int) (longPos >> POS_Z_BIT_SHIFT & POS_Z_BIT_MASK) - (1L << POS_Z_BIT_LENGTH - 1L);
+        blockPos.setPos(posX, posY, posZ);
+    }
+
+    @NoArgsConstructor
+    private static class NeighborBlock {
+        private final BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos();
+
+        private long posLong = 0L;
+
+        private @Nullable LumiChunk chunk = null;
+        // FIXME: BLOCK CACHE [TEST]
+//        private @Nullable LumiSubChunk subChunk = null;
+
+        private int lightValue = 0;
+    }
+
+    // region Caching
+
+    /**
+     * Read Through
+     */
+    private int getCachedCursorCurrentLightValue(LightType lightType) {
+        if (cursorChunk == null)
+            return lightType.defaultLightValue();
+        return getCachedLightValue(lightType, cursorBlockPos);
+    }
+
+    private int getCachedCursorBlockLightValue(LightType lightType) {
+        val posX = cursorBlockPos.getX();
+        val posY = cursorBlockPos.getY();
+        val posZ = cursorBlockPos.getZ();
+
+        if (lightType == SKY_LIGHT_TYPE) {
+            val subChunkPosX = posX & 15;
+            val subChunkPosZ = posZ & 15;
+            if (cursorChunk != null && cursorChunk.lumi$canBlockSeeSky(subChunkPosX, posY, subChunkPosZ)) {
+                return SKY_LIGHT_TYPE.defaultLightValue();
+            } else {
+                return 0;
+            }
+        }
+
+        return getCachedBlockBrightness(posX, posY, posZ);
+    }
+
+    /**
+     * Read Through
+     */
+    private int getCachedLightValue(LightType lightType, BlockPos blockPos) {
+        return clampLightValue(getCachedLightValue(lightType, blockPos.getX(), blockPos.getY(), blockPos.getZ()));
+    }
+
+    /**
+     * Read Through
+     */
+    private int getCachedLightValue(LightType lightType, int posX, int posY, int posZ) {
+        return clampLightValue(blockCache.lumi$getLightValue(lightType, posX, posY, posZ));
+    }
+
+    /**
+     * Read Through
+     */
+    private int getCachedBlockLightValue(BlockPos blockPos) {
+        return getCachedBlockLightValue(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+    }
+
+    /**
+     * Read Through
+     */
+    private int getCachedBlockLightValue(int posX, int posY, int posZ) {
+        return clampLightValue(blockCache.lumi$getBlockLightValue(posX, posY, posZ));
+    }
+
+    /**
+     * Read Through
+     */
+    private int getCachedSkyLightValue(int posX, int posY, int posZ) {
+        return clampLightValue(blockCache.lumi$getSkyLightValue(posX, posY, posZ));
+    }
+
+    private int getCachedBlockBrightness(BlockPos blockPos) {
+        return getCachedBlockBrightness(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+    }
+
+    private int getCachedBlockBrightness(int posX, int posY, int posZ) {
+        return clampLightValue(blockCache.lumi$getBlockBrightness(posX, posY, posZ));
+    }
+
+    private int getCachedBlockLightOpacity(BlockPos blockPos) {
+        return getCachedBlockLightOpacity(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+    }
+
+    private int getCachedBlockLightOpacity(int posX, int posY, int posZ) {
+        return clampBlockLightOpacity(blockCache.lumi$getBlockOpacity(posX, posY, posZ));
+    }
+
+    private int getCachedSkyLightOpacity(int posX, int posY, int posZ) {
+        return clampSkyLightOpacity(blockCache.lumi$getBlockOpacity(posX, posY, posZ));
+    }
+    // endregion
+
+    // region Deprecated
+    @Deprecated
+    private static int getCachedLightFor(LumiChunk chunk,
+                                         @Nullable LumiSubChunk subChunk,
+                                         LightType lightType,
+                                         BlockPos blockPos) {
+        val posY = blockPos.getY();
+        val subChunkPosX = blockPos.getX() & 15;
+        val subChunkPosZ = blockPos.getZ() & 15;
+
+        if (subChunk != null) {
+            val subChunkPosY = posY & 15;
+            return clampLightValue(subChunk.lumi$getLightValue(lightType, subChunkPosX, subChunkPosY, subChunkPosZ));
+        }
+        return clampLightValue(chunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ));
+    }
+
+    @Deprecated
     private int getCursorCurrentLightValue(LightType lightType) {
         if (cursorChunk == null)
             return lightType.defaultLightValue();
@@ -1084,6 +1251,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         return clampLightValue(cursorChunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ));
     }
 
+    @Deprecated
     private int getCursorBlockLightValue(Block cursorBlock, int cursorBlockMeta, LightType lightType) {
         val posX = cursorBlockPos.getX();
         val posY = cursorBlockPos.getY();
@@ -1099,24 +1267,20 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             }
         }
 
-        val cursorBlockLightValueVal = world.lumi$getBlockBrightness(cursorBlock, cursorBlockMeta, posX, posY, posZ);
+        val cursorBlockLightValueVal = blockCache.lumi$getBlockBrightness(cursorBlock, cursorBlockMeta, posX, posY, posZ);
         return clampLightValue(cursorBlockLightValueVal);
     }
 
+    @Deprecated
     private int getBlockLightOpacity(BlockPos blockPos, Block block, int blockMeta) {
         val posX = blockPos.getX();
         val posY = blockPos.getY();
         val posZ = blockPos.getZ();
-        val blockOpacity = world.lumi$getBlockOpacity(block, blockMeta, posX, posY, posZ);
+        val blockOpacity = blockCache.lumi$getBlockOpacity(block, blockMeta, posX, posY, posZ);
         return clampBlockLightOpacity(blockOpacity);
     }
 
-    private @Nullable LumiChunk getChunk(BlockPos blockPos) {
-        val chunkPosX = blockPos.getX() >> 4;
-        val chunkPosZ = blockPos.getZ() >> 4;
-        return getLoadedChunk(world, chunkPosX, chunkPosZ);
-    }
-
+    @Deprecated
     public static Block getBlockFromChunk(@Nullable LumiChunk chunk, BlockPos blockPos) {
         if (chunk == null)
             return Blocks.air;
@@ -1126,6 +1290,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         return getBlockFromSubChunk(subChunk, blockPos);
     }
 
+    @Deprecated
     public static Block getBlockFromSubChunk(@Nullable LumiSubChunk subChunk, BlockPos blockPos) {
         if (subChunk == null)
             return Blocks.air;
@@ -1136,6 +1301,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         return subChunk.lumi$root().lumi$getBlock(subChunkPosX, subChunkPosY, subChunkPosZ);
     }
 
+    @Deprecated
     public static int getBlockMetaFromChunk(@Nullable LumiChunk chunk, BlockPos blockPos) {
         if (chunk == null)
             return 0;
@@ -1145,6 +1311,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         return getBlockMetaFromSubChunk(subChunk, blockPos);
     }
 
+    @Deprecated
     public static int getBlockMetaFromSubChunk(@Nullable LumiSubChunk subChunk, BlockPos blockPos) {
         if (subChunk == null)
             return 0;
@@ -1154,17 +1321,6 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         val subChunkPosZ = blockPos.getZ() & 15;
         return subChunk.lumi$root().lumi$getBlockMeta(subChunkPosX, subChunkPosY, subChunkPosZ);
     }
-
-    @NoArgsConstructor
-    private static class NeighborBlock {
-        private final BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos();
-
-        private long posLong = 0L;
-
-        private @Nullable LumiChunk chunk = null;
-        private @Nullable LumiSubChunk subChunk = null;
-
-        private int lightValue = 0;
-    }
+    // endregion
 }
 

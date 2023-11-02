@@ -26,8 +26,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.nio.ByteBuffer;
 
-import static com.falsepattern.lumina.api.init.LumiSubChunkBaseInit.LUMI_SUB_CHUNK_BASE_INIT_METHOD_REFERENCE;
-import static com.falsepattern.lumina.api.init.LumiSubChunkBaseInit.LUMI_SUB_CHUNK_BASE_INIT_MIXIN_VALUE;
+import static com.falsepattern.lumina.api.init.LumiExtendedBlockStorageInitHook.LUMI_EXTENDED_BLOCK_STORAGE_INIT_HOOK_METHOD;
+import static com.falsepattern.lumina.api.init.LumiExtendedBlockStorageInitHook.LUMI_EXTENDED_BLOCK_STORAGE_INIT_HOOK_INFO;
 
 @Unique
 @Mixin(ExtendedBlockStorage.class)
@@ -41,12 +41,12 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
     private LumiSubChunkRoot lumi$root;
 
 
-    @Inject(method = LUMI_SUB_CHUNK_BASE_INIT_METHOD_REFERENCE,
+    @Inject(method = LUMI_EXTENDED_BLOCK_STORAGE_INIT_HOOK_METHOD,
             at = @At("RETURN"),
             remap = false,
             require = 1)
     @SuppressWarnings("CastToIncompatibleInterface")
-    @Dynamic(LUMI_SUB_CHUNK_BASE_INIT_MIXIN_VALUE)
+    @Dynamic(LUMI_EXTENDED_BLOCK_STORAGE_INIT_HOOK_INFO)
     private void lumiSubChunkInit(CallbackInfo ci) {
         this.lumi$root = (LumiSubChunkRoot) this;
     }

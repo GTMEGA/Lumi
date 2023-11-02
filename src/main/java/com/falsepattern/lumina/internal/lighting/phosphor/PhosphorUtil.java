@@ -20,7 +20,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagShort;
 import net.minecraft.profiler.Profiler;
-import net.minecraft.world.chunk.EmptyChunk;
 import org.jetbrains.annotations.Nullable;
 
 import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
@@ -95,8 +94,10 @@ final class PhosphorUtil {
     }
 
     static boolean isChunkFullyLit(LumiWorld world, LumiChunk chunk, Profiler profiler) {
-        if (!chunk.lumi$isLightingInitialized())
-            initChunkLighting(world, chunk, profiler);
+        if (!chunk.lumi$isLightingInitialized()) {
+            if (!initChunkLighting(world, chunk, profiler))
+                return false;
+        }
 
         for (int zOffset = -1; zOffset <= 1; ++zOffset) {
             for (int xOffset = -1; xOffset <= 1; ++xOffset) {
@@ -160,15 +161,7 @@ final class PhosphorUtil {
     }
 
     static @Nullable LumiChunk getLoadedChunk(LumiWorld world, int chunkPosX, int chunkPosZ) {
-        val provider = world.lumi$root().lumi$chunkProvider();
-        if (!provider.chunkExists(chunkPosX, chunkPosZ))
-            return null;
-
-        val chunkBase = provider.provideChunk(chunkPosX, chunkPosZ);
-        if (chunkBase instanceof EmptyChunk && world.lumi$root().lumi$isClientSide()) {
-            return null;
-        }
-        return world.lumi$wrap(chunkBase);
+        return world.lumi$getChunkFromChunkPosIfExists(chunkPosX, chunkPosZ);
     }
 
     static void relightSkyLightColumn(LumiLightingEngine lightingEngine,
@@ -510,7 +503,7 @@ final class PhosphorUtil {
                boundaryFacingBits;
     }
 
-    private static void initChunkLighting(LumiWorld world, LumiChunk chunk, Profiler profiler) {
+    private static boolean initChunkLighting(LumiWorld world, LumiChunk chunk, Profiler profiler) {
         val basePosX = chunk.lumi$chunkPosX() << 4;
         val basePosZ = chunk.lumi$chunkPosZ() << 4;
 
@@ -523,8 +516,10 @@ final class PhosphorUtil {
         val maxPosZ = basePosZ + 31;
 
         if (!world.lumi$root().lumi$doChunksExistInRange(minPosX, minPosY, minPosZ, maxPosX, maxPosY, maxPosZ))
-            return;
+            return false;
 
+        val lightingEngine = world.lumi$lightingEngine();
+        val blockCache = world.lumi$blockCache();
         for (var chunkPosY = 0; chunkPosY < 16; chunkPosY++) {
             val subChunk = chunk.lumi$getSubChunkIfPrepared(chunkPosY);
             if (subChunk == null)
@@ -534,13 +529,13 @@ final class PhosphorUtil {
             for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
                 for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
                     for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
+                        val posX = basePosX + subChunkPosX;
                         val posY = basePosY + subChunkPosY;
-                        val brightness = chunk.lumi$getBlockBrightness(subChunkPosX, posY, subChunkPosZ);
-                        if (brightness > 0) {
-                            val posX = basePosX + subChunkPosX;
-                            val posZ = basePosZ + subChunkPosZ;
-                            world.lumi$lightingEngine().scheduleLightingUpdate(BLOCK_LIGHT_TYPE, posX, posY, posZ);
-                        }
+                        val posZ = basePosZ + subChunkPosZ;
+                        // FIXME: BLOCK CACHE
+                        val brightness = blockCache.lumi$getBlockBrightness(posX, posY, posZ);
+                        if (brightness > 0)
+                            lightingEngine.scheduleLightingUpdate(BLOCK_LIGHT_TYPE, posX, posY, posZ);
                     }
                 }
             }
@@ -552,5 +547,7 @@ final class PhosphorUtil {
         }
 
         chunk.lumi$isLightingInitialized(true);
+        lightingEngine.processLightingUpdatesForType(BLOCK_LIGHT_TYPE);
+        return true;
     }
 }

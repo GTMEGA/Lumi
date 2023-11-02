@@ -7,7 +7,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.init;
 
-import com.falsepattern.lumina.api.init.LumiChunkBaseInit;
+import com.falsepattern.lumina.api.init.LumiChunkInitHook;
 import net.minecraft.world.chunk.Chunk;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -17,15 +17,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Unique
 @Mixin(Chunk.class)
-public abstract class LumiChunkBaseInitImplMixin implements LumiChunkBaseInit {
+public abstract class LumiChunkInitHookImplMixin implements LumiChunkInitHook {
     @Inject(method = "<init>*",
             at = @At("RETURN"),
             require = 3)
-    private void lumiChunkBaseInit(CallbackInfo ci) {
-        lumi$chunkBaseInit();
+    private void lumiChunkInitHook(CallbackInfo ci) {
+        lumi$onChunkInit();
     }
 
     @Override
-    public void lumi$chunkBaseInit() {
-    }
+    public void lumi$onChunkInit() {}
 }

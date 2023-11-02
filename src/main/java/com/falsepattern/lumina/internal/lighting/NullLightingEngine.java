@@ -72,6 +72,11 @@ public final class NullLightingEngine implements LumiLightingEngine {
     public int getCurrentLightValue(@NotNull LightType lightType, int posX, int posY, int posZ) {return 0;}
 
     @Override
+    public int getCurrentLightValueUncached(@NotNull LightType lightType, int posX, int posY, int posZ) {
+        return 0;
+    }
+
+    @Override
     public boolean isChunkFullyLit(@NotNull LumiChunk chunk) {return false;}
 
     @Override

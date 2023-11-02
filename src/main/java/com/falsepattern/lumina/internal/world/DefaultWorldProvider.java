@@ -10,6 +10,7 @@ package com.falsepattern.lumina.internal.world;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldProvider;
 import com.falsepattern.lumina.internal.Tags;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
@@ -20,9 +21,15 @@ import static lombok.AccessLevel.PRIVATE;
 @NoArgsConstructor(access = PRIVATE)
 public final class DefaultWorldProvider implements LumiWorldProvider {
     private static final DefaultWorldProvider INSTANCE = new DefaultWorldProvider();
+    @Getter
+    private static boolean isRegistered;
 
     public static DefaultWorldProvider defaultWorldProvider() {
         return INSTANCE;
+    }
+
+    public static void setRegistered() {
+        isRegistered = true;
     }
 
     @Override

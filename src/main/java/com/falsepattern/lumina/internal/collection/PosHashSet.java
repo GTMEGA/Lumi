@@ -13,6 +13,13 @@ import lombok.val;
 public class PosHashSet extends TLongHashSet {
     private static final int HASH_PRIME = 92821;
 
+    public PosHashSet() {
+    }
+
+    public PosHashSet(int initialCapacity, float load_factor) {
+        super(initialCapacity, load_factor);
+    }
+
     private static int ballerHash(long key) {
         val a = (int) key;
         val b = (int) (key >>> 32);

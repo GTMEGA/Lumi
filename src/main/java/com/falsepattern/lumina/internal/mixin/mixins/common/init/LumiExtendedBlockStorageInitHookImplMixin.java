@@ -7,7 +7,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.init;
 
-import com.falsepattern.lumina.api.init.LumiSubChunkBaseInit;
+import com.falsepattern.lumina.api.init.LumiExtendedBlockStorageInitHook;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -17,15 +17,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Unique
 @Mixin(ExtendedBlockStorage.class)
-public abstract class LumiSubChunkBaseInitImplMixin implements LumiSubChunkBaseInit {
+public abstract class LumiExtendedBlockStorageInitHookImplMixin implements LumiExtendedBlockStorageInitHook {
     @Inject(method = "<init>*",
             at = @At("RETURN"),
             require = 1)
-    private void lumiChunkBaseInit(CallbackInfo ci) {
-        lumi$subChunkBaseInit();
+    private void lumiExtendedBlockStorageHook(CallbackInfo ci) {
+        lumi$onExtendedBlockStorageInit();
     }
 
     @Override
-    public void lumi$subChunkBaseInit() {
-    }
+    public void lumi$onExtendedBlockStorageInit() {}
 }

@@ -10,10 +10,10 @@ package com.falsepattern.lumina.api.init;
 import static com.falsepattern.lumina.api.LumiAPI.LUMI_MOD_NAME;
 
 @SuppressWarnings("unused")
-public interface LumiWorldBaseInit {
-    String LUMI_WORLD_BASE_INIT_MIXIN_VALUE = "Implemented by [" + LUMI_MOD_NAME + "] with the interface " +
-                                              "[com.falsepattern.lumina.api.init.LumiWorldBaseInit]";
-    String LUMI_WORLD_BASE_INIT_METHOD_REFERENCE = "lumi$worldBaseInit()V";
+public interface LumiChunkInitHook {
+    String LUMI_CHUNK_INIT_HOOK_INFO = "Implemented by [" + LUMI_MOD_NAME + "] with the interface " +
+                                       "[com.falsepattern.lumina.api.init.LumiChunkInitHook]";
+    String LUMI_CHUNK_INIT_HOOK_METHOD = "lumi$onChunkInit()V";
 
-    void lumi$worldBaseInit();
+    void lumi$onChunkInit();
 }

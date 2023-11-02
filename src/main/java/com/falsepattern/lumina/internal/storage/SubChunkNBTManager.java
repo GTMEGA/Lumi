@@ -5,34 +5,36 @@
  * or send a letter to Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
  */
 
-package com.falsepattern.lumina.internal.data;
+package com.falsepattern.lumina.internal.storage;
 
 import com.falsepattern.chunk.api.ChunkDataManager;
 import com.falsepattern.chunk.api.ChunkDataRegistry;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
+import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
+import com.falsepattern.lumina.internal.Tags;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import lombok.var;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.apache.logging.log4j.Logger;
 
 import static com.falsepattern.lumina.api.world.LumiWorldProvider.WORLD_PROVIDER_VERSION_NBT_TAG_NAME;
 import static com.falsepattern.lumina.internal.LUMINA.createLogger;
-import static com.falsepattern.lumina.internal.Tags.MOD_ID;
 import static com.falsepattern.lumina.internal.world.WorldProviderManager.worldProviderManager;
 import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor(access = PRIVATE)
-public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManager {
-    private static final Logger LOG = createLogger("Chunk NBT Manager");
+public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTDataManager {
+    private static final Logger LOG = createLogger("Sub Chunk NBT Manager");
 
-    private static final ChunkNBTManager INSTANCE = new ChunkNBTManager();
+    private static final SubChunkNBTManager INSTANCE = new SubChunkNBTManager();
 
     private boolean isRegistered = false;
 
-    public static ChunkNBTManager chunkNBTManager() {
+    public static SubChunkNBTManager subChunkNBTManager() {
         return INSTANCE;
     }
 
@@ -47,16 +49,16 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
 
     @Override
     public String domain() {
-        return MOD_ID;
+        return Tags.MOD_ID;
     }
 
     @Override
     public String id() {
-        return "lumi_chunk";
+        return "lumi_sub_chunk";
     }
 
     @Override
-    public void writeChunkToNBT(Chunk chunkBase, NBTTagCompound output) {
+    public void writeSectionToNBT(Chunk chunkBase, ExtendedBlockStorage subChunkBase, NBTTagCompound output) {
         val worldBase = chunkBase.worldObj;
         val worldProviderManager = worldProviderManager();
         val worldProviderCount = worldProviderManager.worldProviderCount();
@@ -67,13 +69,14 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
             val world = worldProvider.provideWorld(worldBase);
             if (world == null)
                 continue;
+            val subChunk = world.lumi$wrap(subChunkBase);
             val chunk = world.lumi$wrap(chunkBase);
             val lightingEngine = world.lumi$lightingEngine();
 
             val worldTagName = world.lumi$worldID();
             val worldTag = new NBTTagCompound();
-            writeChunkData(chunk, worldTag);
-            writeLightingEngineData(chunk, lightingEngine, worldTag);
+            writeSubChunkData(subChunk, worldTag);
+            writeLightingEngineData(chunk, subChunk, lightingEngine, worldTag);
 
             val worldProviderVersion = worldProvider.worldProviderVersion();
             worldTag.setString(WORLD_PROVIDER_VERSION_NBT_TAG_NAME, worldProviderVersion);
@@ -82,7 +85,7 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
     }
 
     @Override
-    public void readChunkFromNBT(Chunk chunkBase, NBTTagCompound input) {
+    public void readSectionFromNBT(Chunk chunkBase, ExtendedBlockStorage subChunkBase, NBTTagCompound input) {
         val worldBase = chunkBase.worldObj;
         val worldProviderManager = worldProviderManager();
         val worldProviderCount = worldProviderManager.worldProviderCount();
@@ -94,6 +97,7 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
             if (world == null)
                 continue;
             val chunk = world.lumi$wrap(chunkBase);
+            val subChunk = world.lumi$wrap(subChunkBase);
             val lightingEngine = world.lumi$lightingEngine();
 
             tagCheck:
@@ -107,57 +111,61 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
                 if (!worldProviderVersion.equals(worldTag.getString(WORLD_PROVIDER_VERSION_NBT_TAG_NAME)))
                     break tagCheck;
 
-                readChunkData(chunk, worldTag);
-                readLightingEngineData(chunk, lightingEngine, worldTag);
+                readSubChunkData(subChunk, worldTag);
+                readLightingEngineData(chunk, subChunk, lightingEngine, worldTag);
                 continue;
             }
 
-            initChunkData(chunk);
-            initLightingEngineData(chunk, lightingEngine);
+            initSubChunkData(subChunk);
+            initLightingEngineData(chunk, subChunk, lightingEngine);
         }
     }
 
-    private static void initChunkData(LumiChunk chunk) {
+    private static void initSubChunkData(LumiSubChunk subChunk) {
         val emptyTag = new NBTTagCompound();
-        chunk.lumi$readFromNBT(emptyTag);
+        subChunk.lumi$readFromNBT(emptyTag);
     }
 
-    private static void initLightingEngineData(LumiChunk chunk, LumiLightingEngine lightingEngine) {
+    private static void initLightingEngineData(LumiChunk chunk,
+                                               LumiSubChunk subChunk,
+                                               LumiLightingEngine lightingEngine) {
         val emptyTag = new NBTTagCompound();
-        lightingEngine.readChunkFromNBT(chunk, emptyTag);
+        lightingEngine.readSubChunkFromNBT(chunk, subChunk, emptyTag);
     }
 
-    private static void writeChunkData(LumiChunk chunk, NBTTagCompound output) {
-        val chunkTagName = chunk.lumi$chunkID();
-        val chunkTag = new NBTTagCompound();
-        chunk.lumi$writeToNBT(chunkTag);
-        output.setTag(chunkTagName, chunkTag);
+    private static void writeSubChunkData(LumiSubChunk subChunk, NBTTagCompound output) {
+        val subChunkTagName = subChunk.lumi$subChunkID();
+        val subChunkTag = new NBTTagCompound();
+        subChunk.lumi$writeToNBT(subChunkTag);
+        output.setTag(subChunkTagName, subChunkTag);
     }
 
     private static void writeLightingEngineData(LumiChunk chunk,
+                                                LumiSubChunk subChunk,
                                                 LumiLightingEngine lightingEngine,
-                                                NBTTagCompound output) {
+                                                NBTTagCompound worldTag) {
         val lightingEngineTagName = lightingEngine.lightingEngineID();
         val lightingEngineTag = new NBTTagCompound();
-        lightingEngine.writeChunkToNBT(chunk, lightingEngineTag);
-        output.setTag(lightingEngineTagName, lightingEngineTag);
+        lightingEngine.writeSubChunkToNBT(chunk, subChunk, lightingEngineTag);
+        worldTag.setTag(lightingEngineTagName, lightingEngineTag);
     }
 
-    private static void readChunkData(LumiChunk chunk, NBTTagCompound input) {
-        val chunkTagName = chunk.lumi$chunkID();
-        if (input.hasKey(chunkTagName, 10)) {
-            val chunkTag = input.getCompoundTag(chunkTagName);
-            chunk.lumi$readFromNBT(chunkTag);
+    private static void readSubChunkData(LumiSubChunk subChunk, NBTTagCompound input) {
+        val subChunkTagName = subChunk.lumi$subChunkID();
+        if (input.hasKey(subChunkTagName, 10)) {
+            val subChunkTag = input.getCompoundTag(subChunkTagName);
+            subChunk.lumi$readFromNBT(subChunkTag);
         }
     }
 
     private static void readLightingEngineData(LumiChunk chunk,
+                                               LumiSubChunk subChunk,
                                                LumiLightingEngine lightingEngine,
                                                NBTTagCompound input) {
         val lightingEngineTagName = lightingEngine.lightingEngineID();
         if (input.hasKey(lightingEngineTagName, 10)) {
             val lightingEngineTag = input.getCompoundTag(lightingEngineTagName);
-            lightingEngine.readChunkFromNBT(chunk, lightingEngineTag);
+            lightingEngine.readSubChunkFromNBT(chunk, subChunk, lightingEngineTag);
         }
     }
 }

@@ -20,8 +20,10 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
+import static com.falsepattern.lumina.internal.mixin.plugin.MixinPlugin.LUMI_ROOT_IMPL_MIXIN_PRIORITY;
+
 @Unique
-@Mixin(Chunk.class)
+@Mixin(value = Chunk.class, priority = LUMI_ROOT_IMPL_MIXIN_PRIORITY)
 public abstract class LumiChunkRootImplMixin implements LumiChunkRoot {
     @Shadow
     private ExtendedBlockStorage[] storageArrays;
