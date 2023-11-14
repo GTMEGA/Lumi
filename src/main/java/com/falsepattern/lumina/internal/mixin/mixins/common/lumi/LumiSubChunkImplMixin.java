@@ -152,4 +152,14 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
             return skylightArray.get(subChunkPosX, subChunkPosY, subChunkPosZ);
         return 0;
     }
+
+    @Override
+    public NibbleArray lumi$getBlockLightArray() {
+        return blocklightArray;
+    }
+
+    @Override
+    public NibbleArray lumi$getSkyLightArray() {
+        return skylightArray;
+    }
 }

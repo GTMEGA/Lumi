@@ -9,6 +9,8 @@ package com.falsepattern.lumina.api.chunk;
 
 import com.falsepattern.lumina.api.lighting.LightType;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.chunk.NibbleArray;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
@@ -17,6 +19,8 @@ import java.nio.ByteBuffer;
 public interface LumiSubChunk {
     String BLOCK_LIGHT_NBT_TAG_NAME = "block_light";
     String SKY_LIGHT_NBT_TAG_NAME = "sky_light";
+    String BLOCK_LIGHT_NBT_TAG_NAME_VANILLA = "BlockLight";
+    String SKY_LIGHT_NBT_TAG_NAME_VANILLA = "SkyLight";
 
     @NotNull LumiSubChunkRoot lumi$root();
 
@@ -48,4 +52,7 @@ public interface LumiSubChunk {
     void lumi$setSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
 
     int lumi$getSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
+
+    NibbleArray lumi$getBlockLightArray();
+    NibbleArray lumi$getSkyLightArray();
 }

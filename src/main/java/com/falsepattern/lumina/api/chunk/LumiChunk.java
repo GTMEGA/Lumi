@@ -24,6 +24,9 @@ public interface LumiChunk {
 
     String IS_LIGHT_INITIALIZED_NBT_TAG_NAME = "lighting_initialized";
     String SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME = "sky_light_height_map";
+    String LUMINA_WORLD_TAG_PREFIX = "lumi_";
+    String IS_LIGHT_INITIALIZED_NBT_TAG_NAME_VANILLA = "LightPopulated";
+    String SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME_VANILLA = "HeightMap";
 
     @NotNull LumiChunkRoot lumi$root();
 
@@ -102,4 +105,6 @@ public interface LumiChunk {
     boolean lumi$isLightingInitialized();
 
     void lumi$resetLighting();
+
+    int[] lumi$skyLightHeightMap();
 }

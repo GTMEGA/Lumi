@@ -412,4 +412,9 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
         lumi$isLightingInitialized = false;
         lumi$world.lumi$lightingEngine().handleChunkInit(this);
     }
+
+    @Override
+    public int[] lumi$skyLightHeightMap() {
+        return heightMap;
+    }
 }

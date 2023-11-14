@@ -18,6 +18,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.Chunk;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Arrays;
+
 import static com.falsepattern.lumina.api.world.LumiWorldProvider.WORLD_PROVIDER_VERSION_NBT_TAG_NAME;
 import static com.falsepattern.lumina.internal.LUMINA.createLogger;
 import static com.falsepattern.lumina.internal.Tags.MOD_ID;
@@ -45,6 +47,12 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
         LOG.info("Registered data manager");
     }
 
+
+    @Override
+    public boolean chunkPrivilegedAccess() {
+        return true;
+    }
+
     @Override
     public String domain() {
         return MOD_ID;
@@ -60,6 +68,8 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
         val worldBase = chunkBase.worldObj;
         val worldProviderManager = worldProviderManager();
         val worldProviderCount = worldProviderManager.worldProviderCount();
+        boolean populated = true;
+        int[] heightMap = null;
         for (var providerInternalID = 0; providerInternalID < worldProviderCount; providerInternalID++) {
             val worldProvider = worldProviderManager.getWorldProviderByInternalID(providerInternalID);
             if (worldProvider == null)
@@ -70,19 +80,43 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
             val chunk = world.lumi$wrap(chunkBase);
             val lightingEngine = world.lumi$lightingEngine();
 
-            val worldTagName = world.lumi$worldID();
-            val worldTag = new NBTTagCompound();
+            val worldTag = Utils.writeWorldTag(output, world, worldProvider);
+
             writeChunkData(chunk, worldTag);
             writeLightingEngineData(chunk, lightingEngine, worldTag);
 
-            val worldProviderVersion = worldProvider.worldProviderVersion();
-            worldTag.setString(WORLD_PROVIDER_VERSION_NBT_TAG_NAME, worldProviderVersion);
-            output.setTag(worldTagName, worldTag);
+            populated &= chunk.lumi$isLightingInitialized();
+            var currentHeightMap = chunk.lumi$skyLightHeightMap();
+            if (currentHeightMap == null)
+                continue;
+            if (heightMap == null) {
+                heightMap = Arrays.copyOf(currentHeightMap, currentHeightMap.length);
+                continue;
+            }
+
+            int len = Math.min(heightMap.length, currentHeightMap.length);
+            for (int i = 0; i < len; i++) {
+                heightMap[i] = Math.min(heightMap[i], currentHeightMap[i]);
+            }
         }
+        output.setIntArray(LumiChunk.SKY_LIGHT_HEIGHT_MAP_NBT_TAG_NAME_VANILLA, heightMap);
+        output.setBoolean(LumiChunk.IS_LIGHT_INITIALIZED_NBT_TAG_NAME_VANILLA, populated);
     }
+
 
     @Override
     public void readChunkFromNBT(Chunk chunkBase, NBTTagCompound input) {
+        if (input.hasKey(domain())) {
+            var domain = input.getCompoundTag(domain());
+            if (domain.hasKey(id())) {
+                readChunkFromNBTImpl(chunkBase, domain.getCompoundTag(id()), true);
+                return;
+            }
+        }
+        readChunkFromNBTImpl(chunkBase, input, false);
+    }
+
+    public void readChunkFromNBTImpl(Chunk chunkBase, NBTTagCompound input, boolean legacy) {
         val worldBase = chunkBase.worldObj;
         val worldProviderManager = worldProviderManager();
         val worldProviderCount = worldProviderManager.worldProviderCount();
@@ -96,24 +130,14 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
             val chunk = world.lumi$wrap(chunkBase);
             val lightingEngine = world.lumi$lightingEngine();
 
-            tagCheck:
-            {
-                val worldTagName = world.lumi$worldID();
-                if (!input.hasKey(worldTagName, 10))
-                    break tagCheck;
-                val worldTag = input.getCompoundTag(worldTagName);
-
-                val worldProviderVersion = worldProvider.worldProviderVersion();
-                if (!worldProviderVersion.equals(worldTag.getString(WORLD_PROVIDER_VERSION_NBT_TAG_NAME)))
-                    break tagCheck;
-
+            val worldTag = Utils.readWorldTag(input, world, worldProvider, legacy);
+            if (worldTag == null) {
+                initChunkData(chunk);
+                initLightingEngineData(chunk, lightingEngine);
+            } else {
                 readChunkData(chunk, worldTag);
                 readLightingEngineData(chunk, lightingEngine, worldTag);
-                continue;
             }
-
-            initChunkData(chunk);
-            initLightingEngineData(chunk, lightingEngine);
         }
     }
 
