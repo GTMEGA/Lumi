@@ -21,6 +21,8 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
@@ -194,5 +196,25 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
             val lightingEngineTag = input.getCompoundTag(lightingEngineTagName);
             lightingEngine.readSubChunkFromNBT(chunk, subChunk, lightingEngineTag);
         }
+    }
+
+    @Override
+    public @NotNull String version() {
+        return Tags.VERSION;
+    }
+
+    @Override
+    public @Nullable String newInstallDescription() {
+        return "Lumina chunk lighting data. Chunk lighting will be recomputed from scratch when loading old worlds.";
+    }
+
+    @Override
+    public @NotNull String uninstallMessage() {
+        return "Lumina chunk lighting data. Fully compatible with vanilla, corruption very unlikely.";
+    }
+
+    @Override
+    public @Nullable String versionChangeMessage(String priorVersion) {
+        return null;
     }
 }

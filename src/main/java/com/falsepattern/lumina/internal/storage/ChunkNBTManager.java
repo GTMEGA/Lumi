@@ -11,12 +11,15 @@ import com.falsepattern.chunk.api.ChunkDataManager;
 import com.falsepattern.chunk.api.ChunkDataRegistry;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
+import com.falsepattern.lumina.internal.Tags;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import lombok.var;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.Chunk;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
@@ -183,5 +186,25 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
             val lightingEngineTag = input.getCompoundTag(lightingEngineTagName);
             lightingEngine.readChunkFromNBT(chunk, lightingEngineTag);
         }
+    }
+
+    @Override
+    public @NotNull String version() {
+        return Tags.VERSION;
+    }
+
+    @Override
+    public @Nullable String newInstallDescription() {
+        return "Lumina chunk metadata. Compatible with vanilla saves.";
+    }
+
+    @Override
+    public @NotNull String uninstallMessage() {
+        return "Lumina chunk metadata. Fully compatible with vanilla, corruption very unlikely.";
+    }
+
+    @Override
+    public @Nullable String versionChangeMessage(String priorVersion) {
+        return null;
     }
 }

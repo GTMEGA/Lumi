@@ -13,10 +13,10 @@ def deobfCurse(curseDep) {
 
 dependencies {
     // FalsePattern Lib
-    implementation("com.falsepattern:falsepatternlib-mc1.7.10:0.12.3:dev")
+    implementation("com.falsepattern:falsepatternlib-mc1.7.10:0.12.5:dev")
 
     // Chunk API
-    implementation("com.falsepattern:chunkapi-mc1.7.10:0.3.2:dev")
+    implementation("com.falsepattern:chunkapi-mc1.7.10:0.4.0:dev")
 
     // JetBrains Annotations
     compileOnly("org.jetbrains:annotations:24.0.1")

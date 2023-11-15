@@ -10,6 +10,7 @@ package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 import com.falsepattern.lumina.api.cache.LumiBlockCacheRoot;
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
+import com.falsepattern.lumina.internal.cache.DynamicBlockCacheRoot;
 import com.falsepattern.lumina.internal.cache.MultiHeadBlockCacheRoot;
 import com.falsepattern.lumina.internal.world.DefaultWorldProvider;
 import lombok.val;
@@ -80,7 +81,7 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
     @Dynamic(LUMI_WORLD_INIT_HOOK_INFO)
     private void lumiWorldRootInit(CallbackInfo ci) {
         if (DefaultWorldProvider.isRegistered())
-            this.lumi$blockCacheRoot = new MultiHeadBlockCacheRoot(this);
+            this.lumi$blockCacheRoot = new DynamicBlockCacheRoot(this);
     }
 
     // region World Root
