@@ -24,6 +24,7 @@ import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.val;
 import lombok.var;
 import net.minecraft.block.Block;
@@ -37,6 +38,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 
 
+@RequiredArgsConstructor
 public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
     static final int CHUNK_XZ_SIZE = 16;
     static final int CHUNK_XZ_BITMASK = 15;
@@ -80,10 +82,6 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
 
     @Getter
     private boolean isReady;
-
-    public DynamicBlockCacheRoot(@NotNull LumiWorldRoot worldRoot) {
-        this.worldRoot = worldRoot;
-    }
 
     @Override
     public @NotNull String lumi$blockCacheRootID() {
@@ -293,7 +291,7 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
         // CZ/CX/Z/X/Y 3/3/16/16/256
         private final BitSet checkedBlocks = new BitSet(ELEMENT_COUNT_PER_CACHED_THING);
 
-        public DynamicBlockCache(@NotNull LumiWorld world) {
+        private DynamicBlockCache(@NotNull LumiWorld world) {
             this.world = world;
         }
 

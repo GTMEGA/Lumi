@@ -102,8 +102,6 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
 
         if (cacheCount <= 0 || (Loader.isModLoaded("falsetweaks") && ThreadedChunkUpdates.isEnabled())) {
             this.lumi$blockCacheRoot = new ReadThroughBlockCacheRoot(this);
-        } else if (cacheCount == 1) {
-            this.lumi$blockCacheRoot = new DynamicBlockCacheRoot(this);
         } else {
             this.lumi$blockCacheRoot = new MultiHeadBlockCacheRoot(this, cacheCount);
         }
