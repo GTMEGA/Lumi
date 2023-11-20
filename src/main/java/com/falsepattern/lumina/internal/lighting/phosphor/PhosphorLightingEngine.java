@@ -17,6 +17,8 @@ import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import cpw.mods.fml.relauncher.SideOnly;
+
+import com.falsepattern.lumina.internal.config.LumiConfig;
 import gnu.trove.iterator.TLongIterator;
 import lombok.NoArgsConstructor;
 import lombok.val;
@@ -43,8 +45,6 @@ import static cpw.mods.fml.relauncher.Side.CLIENT;
 
 public final class PhosphorLightingEngine implements LumiLightingEngine {
     private static final Logger LOG = createLogger("Phosphor");
-
-    private static final boolean ENABLE_ILLEGAL_THREAD_ACCESS_WARNINGS = true;
 
     @SuppressWarnings("UnnecessarilyQualifiedStaticallyImportedElement")
     private static final int LIGHT_VALUE_TYPES_COUNT = LightType.values().length;
@@ -273,9 +273,24 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         return getCurrentLightValue(lightType, blockPos.getX(), blockPos.getY(), blockPos.getZ());
     }
 
+    private static final String MARKER = "$LUMI_NO_RELIGHT";
+
+    private static final ThreadLocal<Boolean> THREAD_ALLOWED_TO_RELIGHT = ThreadLocal.withInitial(() -> {
+        val t = Thread.currentThread();
+        val name = t.getName();
+        boolean allow = true;
+        if (name.startsWith(MARKER)) {
+            allow = false;
+            t.setName(name.substring(MARKER.length()));
+        }
+        return allow;
+    });
+
     @Override
     public int getCurrentLightValue(@NotNull LightType lightType, int posX, int posY, int posZ) {
-        processLightingUpdatesForType(lightType);
+        if (THREAD_ALLOWED_TO_RELIGHT.get()) {
+            processLightingUpdatesForType(lightType);
+        }
         return clampLightValue(blockCache.lumi$getLightValue(lightType, posX, posY, posZ));
     }
 
@@ -764,7 +779,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         // Validate that we're on the right thread immediately so we can gather information.
         // It is NEVER valid to call World methods from a thread other than the owning thread of the world instance.
         // Users can safely disable this warning, however it will not resolve the issue.
-        if (ENABLE_ILLEGAL_THREAD_ACCESS_WARNINGS) {
+        if (LumiConfig.ENABLE_ILLEGAL_THREAD_ACCESS_WARNINGS) {
             val currentThread = Thread.currentThread();
 
             if (currentThread != updateThread) {

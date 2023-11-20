@@ -9,14 +9,6 @@ public interface LumiBlockCacheRoot extends LumiBlockStorageRoot {
 
     @NotNull LumiBlockCache lumi$createBlockCache(LumiWorld world);
 
-    int lumi$minChunkPosX();
-
-    int lumi$minChunkPosZ();
-
-    int lumi$maxChunkPosX();
-
-    int lumi$maxChunkPosZ();
-
     /**
      * Should be called at the end of each tick.
      * <p>

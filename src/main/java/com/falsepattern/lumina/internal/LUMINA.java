@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import static com.falsepattern.lumina.internal.Share.LOG;
 import static com.falsepattern.lumina.internal.Tags.*;
 import static com.falsepattern.lumina.internal.lighting.LightingEngineManager.lightingEngineManager;
 import static com.falsepattern.lumina.internal.storage.ChunkNBTManager.chunkNBTManager;
@@ -30,8 +31,6 @@ import static com.falsepattern.lumina.internal.world.WorldProviderManager.worldP
      dependencies = DEPENDENCIES)
 @NoArgsConstructor
 public final class LUMINA {
-    private static final Logger LOG = LogManager.getLogger(MOD_NAME);
-
     public static Logger createLogger(String name) {
         return LogManager.getLogger(MOD_NAME + "|" + name);
     }

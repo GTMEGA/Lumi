@@ -74,7 +74,7 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
     }
 
     @Override
-    public @NotNull LumiBlockCache lumi$createBlockCache(LumiWorld world) {
+    public @NotNull DynamicBlockCacheRoot.DynamicBlockCache lumi$createBlockCache(LumiWorld world) {
         if (blockCache == null)
             blockCache = new DynamicBlockCache(world);
         else if (blockCache.lumi$world() != world)
@@ -83,22 +83,18 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
         return blockCache;
     }
 
-    @Override
     public int lumi$minChunkPosX() {
         return minChunkPosX;
     }
 
-    @Override
     public int lumi$minChunkPosZ() {
         return minChunkPosZ;
     }
 
-    @Override
     public int lumi$maxChunkPosX() {
         return maxChunkPosX;
     }
 
-    @Override
     public int lumi$maxChunkPosZ() {
         return maxChunkPosZ;
     }
@@ -285,7 +281,7 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
         }
 
         @Override
-        public @NotNull LumiBlockCacheRoot lumi$root() {
+        public @NotNull DynamicBlockCacheRoot lumi$root() {
             return DynamicBlockCacheRoot.this;
         }
 

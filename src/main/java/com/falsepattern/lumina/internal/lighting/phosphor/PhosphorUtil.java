@@ -7,7 +7,6 @@
 
 package com.falsepattern.lumina.internal.lighting.phosphor;
 
-import com.falsepattern.lib.internal.Share;
 import com.falsepattern.lib.util.MathUtil;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
@@ -24,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
+import static com.falsepattern.lumina.internal.Share.LOG;
 import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorChunk.LIGHT_CHECK_FLAGS_LENGTH;
 
 @UtilityClass
@@ -145,7 +145,7 @@ final class PhosphorUtil {
 
         val list = input.getTagList(NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME, 2);
         if (list.tagCount() != LIGHT_CHECK_FLAGS_LENGTH) {
-            Share.LOG.warn("Chunk field {} had invalid length, ignoring it (chunk coordinates: {} {})",
+            LOG.warn("Chunk field {} had invalid length, ignoring it (chunk coordinates: {} {})",
                            NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME,
                            lumiChunk.lumi$chunkPosX(),
                            lumiChunk.lumi$chunkPosZ());

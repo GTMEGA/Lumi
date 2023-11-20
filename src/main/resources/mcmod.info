@@ -13,11 +13,6 @@
     ],
     "credits": "Special thanks to: CaffeineMC for Phosphor, embeddedt for the backport inside ArchaicFix.",
     "logoFile": "",
-    "screenshots": [],
-    "requiredMods": [
-      "chunkapi@[0.3.2,)",
-      "falsepatternlib@[0.12.1,)",
-      "gasstation"
-    ]
+    "screenshots": []
   }
 ]
