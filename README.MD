@@ -12,10 +12,9 @@ reference implementation.
 
 ## Dependencies
 
-- [ChunkAPI 0.3.2+](https://github.com/FalsePattern/ChunkAPI)
-- [FalsePatternLib 0.12.1+](https://github.com/FalsePattern/FalsePatternLib)
-- [GasStation 0.5.1+](https://github.com/FalsePattern/GasStation)
-  or [UniMixins 0.1.11+](https://github.com/LegacyModdingMC/UniMixins)
+- [ChunkAPI 0.4.0+](https://github.com/FalsePattern/ChunkAPI)
+- [FalsePatternLib 1.0.0+](https://github.com/FalsePattern/FalsePatternLib)
+- [UniMixins 0.1.11+](https://github.com/LegacyModdingMC/UniMixins)
 
 ## Incompatibilities
 
