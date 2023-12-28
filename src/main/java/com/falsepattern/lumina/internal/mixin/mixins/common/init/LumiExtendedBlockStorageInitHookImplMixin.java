@@ -28,11 +28,26 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Unique
 @Mixin(ExtendedBlockStorage.class)
 public abstract class LumiExtendedBlockStorageInitHookImplMixin implements LumiExtendedBlockStorageInitHook {
+    @Unique
+    private boolean lumi$initHookExecuted;
     @Inject(method = "<init>*",
             at = @At("RETURN"),
             require = 1)
     private void lumiExtendedBlockStorageHook(CallbackInfo ci) {
+        lumi$doExtendedBlockStorageInit();
+    }
+
+    @Override
+    public void lumi$doExtendedBlockStorageInit() {
+        if (lumi$initHookExecuted)
+            return;
         lumi$onExtendedBlockStorageInit();
+        lumi$initHookExecuted = true;
+    }
+
+    @Override
+    public boolean lumi$initHookExecuted() {
+        return lumi$initHookExecuted;
     }
 
     @Override

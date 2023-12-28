@@ -21,6 +21,7 @@ import com.falsepattern.chunk.api.DataManager;
 import com.falsepattern.chunk.api.DataRegistry;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
+import com.falsepattern.lumina.api.init.LumiExtendedBlockStorageInitHook;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.internal.Tags;
 import lombok.NoArgsConstructor;
@@ -135,6 +136,7 @@ public final class SubChunkNBTManager implements DataManager.SubChunkDataManager
 
     @Override
     public void cloneSubChunk(Chunk fromChunk, ExtendedBlockStorage fromVanilla, ExtendedBlockStorage toVanilla) {
+        ensureInitialized(toVanilla);
         val worldBase = fromChunk.worldObj;
         val worldProviderManager = worldProviderManager();
         val worldProviderCount = worldProviderManager.worldProviderCount();
@@ -153,6 +155,13 @@ public final class SubChunkNBTManager implements DataManager.SubChunkDataManager
             cloneSubChunkData(from, to);
             cloneLightingEngineData(chunk, from, to, lightingEngine);
         }
+    }
+
+    private void ensureInitialized(ExtendedBlockStorage toVanilla) {
+        val toInit = (LumiExtendedBlockStorageInitHook) toVanilla;
+        if (toInit.lumi$initHookExecuted())
+            return;
+        toInit.lumi$doExtendedBlockStorageInit();
     }
 
     public void readSubChunkFromNBTImpl(Chunk chunkBase, ExtendedBlockStorage subChunkBase, NBTTagCompound input, boolean legacy) {

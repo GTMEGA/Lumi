@@ -26,4 +26,8 @@ public interface LumiChunkInitHook {
     String LUMI_CHUNK_INIT_HOOK_METHOD = "lumi$onChunkInit()V";
 
     void lumi$onChunkInit();
+
+    void lumi$doChunkInit();
+
+    boolean lumi$initHookExecuted();
 }

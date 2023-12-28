@@ -25,5 +25,9 @@ public interface LumiExtendedBlockStorageInitHook {
                                                         "[com.falsepattern.lumina.api.init.LumiExtendedBlockStorageInitHook]";
     String LUMI_EXTENDED_BLOCK_STORAGE_INIT_HOOK_METHOD = "lumi$onExtendedBlockStorageInit()V";
 
+    void lumi$doExtendedBlockStorageInit();
+
     void lumi$onExtendedBlockStorageInit();
+
+    boolean lumi$initHookExecuted();
 }

@@ -28,11 +28,26 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Unique
 @Mixin(Chunk.class)
 public abstract class LumiChunkInitHookImplMixin implements LumiChunkInitHook {
+    @Unique
+    private boolean lumi$initHookExecuted;
     @Inject(method = "<init>(Lnet/minecraft/world/World;II)V",
             at = @At("RETURN"),
             require = 1)
     private void lumiChunkInitHook(CallbackInfo ci) {
         lumi$onChunkInit();
+    }
+
+    @Override
+    public void lumi$doChunkInit() {
+        if (lumi$initHookExecuted)
+            return;
+        lumi$onChunkInit();
+        lumi$initHookExecuted = true;
+    }
+
+    @Override
+    public boolean lumi$initHookExecuted() {
+        return lumi$initHookExecuted;
     }
 
     @Override

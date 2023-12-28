@@ -20,12 +20,14 @@ package com.falsepattern.lumina.internal.storage;
 import com.falsepattern.chunk.api.DataManager;
 import com.falsepattern.chunk.api.DataRegistry;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
+import com.falsepattern.lumina.api.init.LumiChunkInitHook;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.internal.Tags;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import lombok.var;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -132,6 +134,7 @@ public final class ChunkNBTManager implements DataManager.ChunkDataManager {
     @Override
     public void cloneChunk(Chunk fromVanilla, Chunk toVanilla) {
         val worldBase = fromVanilla.worldObj;
+        ensureInitialized(toVanilla, worldBase);
         val worldProviderManager = worldProviderManager();
         val worldProviderCount = worldProviderManager.worldProviderCount();
         for (var providerInternalID = 0; providerInternalID < worldProviderCount; providerInternalID++) {
@@ -147,6 +150,21 @@ public final class ChunkNBTManager implements DataManager.ChunkDataManager {
 
             cloneChunkData(from, to);
             cloneLightingEngineData(from, to, lightingEngine);
+        }
+    }
+
+    private void ensureInitialized(Chunk toVanilla, World worldObj) {
+        val toInit = (LumiChunkInitHook) toVanilla;
+        if (toInit.lumi$initHookExecuted())
+            return;
+        boolean temporaryWorld = false;
+        if (toVanilla.worldObj == null) {
+            temporaryWorld = true;
+            toVanilla.worldObj = worldObj;
+        }
+        toInit.lumi$doChunkInit();
+        if (temporaryWorld) {
+            toVanilla.worldObj = null;
         }
     }
 
