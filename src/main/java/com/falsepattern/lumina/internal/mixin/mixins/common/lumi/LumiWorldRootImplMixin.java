@@ -21,7 +21,6 @@ import com.falsepattern.falsetweaks.api.ThreadedChunkUpdates;
 import com.falsepattern.lumina.api.cache.LumiBlockCacheRoot;
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
-import com.falsepattern.lumina.internal.cache.DynamicBlockCacheRoot;
 import com.falsepattern.lumina.internal.cache.MultiHeadBlockCacheRoot;
 import com.falsepattern.lumina.internal.cache.ReadThroughBlockCacheRoot;
 import com.falsepattern.lumina.internal.config.LumiConfig;
