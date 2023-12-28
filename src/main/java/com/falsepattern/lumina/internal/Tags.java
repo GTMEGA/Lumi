@@ -28,6 +28,5 @@ public final class Tags {
     public static final String MINECRAFT_VERSION = "[1.7.10]";
     public static final String DEPENDENCIES = "required-after:chunkapi@[0.4.0,0.5.0);" +
                                               "required-after:falsepatternlib@[1.0.0,);" +
-                                              "after:falsetweaks;" +
-                                              "required-after:gasstation";
+                                              "after:falsetweaks;";
 }
