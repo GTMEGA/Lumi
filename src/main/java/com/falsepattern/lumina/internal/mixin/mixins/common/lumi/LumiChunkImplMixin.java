@@ -17,6 +17,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
+import com.falsepattern.chunk.api.ArrayUtil;
 import com.falsepattern.lumina.api.LumiChunkAPI;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
@@ -126,6 +127,12 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
         }
         if (!lumi$isLightingInitialized)
             LumiChunkAPI.scheduleChunkLightingEngineInit(this);
+    }
+
+    @Override
+    public void lumi$cloneFrom(@NotNull LumiChunk from) {
+        heightMap = ArrayUtil.copyArray(from.lumi$skyLightHeightMap(), lumi$skyLightHeightMap());
+        lumi$isLightingInitialized = from.lumi$isLightingInitialized();
     }
 
     @Override

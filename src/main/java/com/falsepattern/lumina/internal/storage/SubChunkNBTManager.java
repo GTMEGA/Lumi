@@ -17,8 +17,8 @@
 
 package com.falsepattern.lumina.internal.storage;
 
-import com.falsepattern.chunk.api.ChunkDataManager;
-import com.falsepattern.chunk.api.ChunkDataRegistry;
+import com.falsepattern.chunk.api.DataManager;
+import com.falsepattern.chunk.api.DataRegistry;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
@@ -36,13 +36,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
-import static com.falsepattern.lumina.api.world.LumiWorldProvider.WORLD_PROVIDER_VERSION_NBT_TAG_NAME;
 import static com.falsepattern.lumina.internal.LUMINA.createLogger;
 import static com.falsepattern.lumina.internal.world.WorldProviderManager.worldProviderManager;
 import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor(access = PRIVATE)
-public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTDataManager {
+public final class SubChunkNBTManager implements DataManager.SubChunkDataManager {
     private static final Logger LOG = createLogger("Sub Chunk NBT Manager");
 
     private static final SubChunkNBTManager INSTANCE = new SubChunkNBTManager();
@@ -57,13 +56,13 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
         if (isRegistered)
             return;
 
-        ChunkDataRegistry.registerDataManager(this);
+        DataRegistry.registerDataManager(this);
         isRegistered = true;
         LOG.info("Registered data manager");
     }
 
     @Override
-    public boolean sectionPrivilegedAccess() {
+    public boolean subChunkPrivilegedAccess() {
         return true;
     }
 
@@ -80,7 +79,7 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
     private static final byte[] EMPTY = new byte[2048];
 
     @Override
-    public void writeSectionToNBT(Chunk chunkBase, ExtendedBlockStorage subChunkBase, NBTTagCompound output) {
+    public void writeSubChunkToNBT(Chunk chunkBase, ExtendedBlockStorage subChunkBase, NBTTagCompound output) {
         val worldBase = chunkBase.worldObj;
         val worldProviderManager = worldProviderManager();
         val worldProviderCount = worldProviderManager.worldProviderCount();
@@ -123,18 +122,40 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
     }
 
     @Override
-    public void readSectionFromNBT(Chunk chunkBase, ExtendedBlockStorage subChunkBase, NBTTagCompound input) {
+    public void readSubChunkFromNBT(Chunk chunkBase, ExtendedBlockStorage subChunkBase, NBTTagCompound input) {
         if (input.hasKey(domain())) {
             var domain = input.getCompoundTag(domain());
             if (domain.hasKey(id())) {
-                readSectionFromNBTImpl(chunkBase, subChunkBase, domain.getCompoundTag(id()), true);
+                readSubChunkFromNBTImpl(chunkBase, subChunkBase, domain.getCompoundTag(id()), true);
                 return;
             }
         }
-        readSectionFromNBTImpl(chunkBase, subChunkBase, input, false);
+        readSubChunkFromNBTImpl(chunkBase, subChunkBase, input, false);
     }
 
-    public void readSectionFromNBTImpl(Chunk chunkBase, ExtendedBlockStorage subChunkBase, NBTTagCompound input, boolean legacy) {
+    @Override
+    public void cloneSubChunk(Chunk fromChunk, ExtendedBlockStorage fromVanilla, ExtendedBlockStorage toVanilla) {
+        val worldBase = fromChunk.worldObj;
+        val worldProviderManager = worldProviderManager();
+        val worldProviderCount = worldProviderManager.worldProviderCount();
+        for (var providerInternalID = 0; providerInternalID < worldProviderCount; providerInternalID++) {
+            val worldProvider = worldProviderManager.getWorldProviderByInternalID(providerInternalID);
+            if (worldProvider == null)
+                continue;
+            val world = worldProvider.provideWorld(worldBase);
+            if (world == null)
+                continue;
+            val chunk = world.lumi$wrap(fromChunk);
+            val from = world.lumi$wrap(fromVanilla);
+            val to = world.lumi$wrap(toVanilla);
+            val lightingEngine = world.lumi$lightingEngine();
+
+            cloneSubChunkData(from, to);
+            cloneLightingEngineData(chunk, from, to, lightingEngine);
+        }
+    }
+
+    public void readSubChunkFromNBTImpl(Chunk chunkBase, ExtendedBlockStorage subChunkBase, NBTTagCompound input, boolean legacy) {
         val worldBase = chunkBase.worldObj;
         val worldProviderManager = worldProviderManager();
         val worldProviderCount = worldProviderManager.worldProviderCount();
@@ -206,6 +227,17 @@ public final class SubChunkNBTManager implements ChunkDataManager.SectionNBTData
             val lightingEngineTag = input.getCompoundTag(lightingEngineTagName);
             lightingEngine.readSubChunkFromNBT(chunk, subChunk, lightingEngineTag);
         }
+    }
+
+    private static void cloneSubChunkData(LumiSubChunk from, LumiSubChunk to) {
+        to.lumi$cloneFrom(from);
+    }
+
+    private static void cloneLightingEngineData(LumiChunk fromChunk,
+                                                LumiSubChunk from,
+                                                LumiSubChunk to,
+                                                LumiLightingEngine lightingEngine) {
+        lightingEngine.cloneSubChunk(fromChunk, from, to);
     }
 
     @Override

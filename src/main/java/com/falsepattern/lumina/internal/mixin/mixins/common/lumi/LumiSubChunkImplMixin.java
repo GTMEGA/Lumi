@@ -17,6 +17,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
+import com.falsepattern.chunk.api.ArrayUtil;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunkRoot;
 import com.falsepattern.lumina.api.lighting.LightType;
@@ -91,6 +92,12 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
             if (skyLightBytes.length == 2048)
                 System.arraycopy(skyLightBytes, 0, skylightArray.data, 0, 2048);
         }
+    }
+
+    @Override
+    public void lumi$cloneFrom(LumiSubChunk from) {
+        blocklightArray = ArrayUtil.copyArray(from.lumi$getBlockLightArray(), lumi$getBlockLightArray());
+        skylightArray = ArrayUtil.copyArray(from.lumi$getSkyLightArray(), lumi$getSkyLightArray());
     }
 
     @Override

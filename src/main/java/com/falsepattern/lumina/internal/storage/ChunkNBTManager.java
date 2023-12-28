@@ -17,8 +17,8 @@
 
 package com.falsepattern.lumina.internal.storage;
 
-import com.falsepattern.chunk.api.ChunkDataManager;
-import com.falsepattern.chunk.api.ChunkDataRegistry;
+import com.falsepattern.chunk.api.DataManager;
+import com.falsepattern.chunk.api.DataRegistry;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.internal.Tags;
@@ -40,7 +40,7 @@ import static com.falsepattern.lumina.internal.world.WorldProviderManager.worldP
 import static lombok.AccessLevel.PRIVATE;
 
 @NoArgsConstructor(access = PRIVATE)
-public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManager {
+public final class ChunkNBTManager implements DataManager.ChunkDataManager {
     private static final Logger LOG = createLogger("Chunk NBT Manager");
 
     private static final ChunkNBTManager INSTANCE = new ChunkNBTManager();
@@ -55,7 +55,7 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
         if (isRegistered)
             return;
 
-        ChunkDataRegistry.registerDataManager(this);
+        DataRegistry.registerDataManager(this);
         isRegistered = true;
         LOG.info("Registered data manager");
     }
@@ -129,6 +129,27 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
         readChunkFromNBTImpl(chunkBase, input, false);
     }
 
+    @Override
+    public void cloneChunk(Chunk fromVanilla, Chunk toVanilla) {
+        val worldBase = fromVanilla.worldObj;
+        val worldProviderManager = worldProviderManager();
+        val worldProviderCount = worldProviderManager.worldProviderCount();
+        for (var providerInternalID = 0; providerInternalID < worldProviderCount; providerInternalID++) {
+            val worldProvider = worldProviderManager.getWorldProviderByInternalID(providerInternalID);
+            if (worldProvider == null)
+                continue;
+            val world = worldProvider.provideWorld(worldBase);
+            if (world == null)
+                continue;
+            val from = world.lumi$wrap(fromVanilla);
+            val to = world.lumi$wrap(toVanilla);
+            val lightingEngine = world.lumi$lightingEngine();
+
+            cloneChunkData(from, to);
+            cloneLightingEngineData(from, to, lightingEngine);
+        }
+    }
+
     public void readChunkFromNBTImpl(Chunk chunkBase, NBTTagCompound input, boolean legacy) {
         val worldBase = chunkBase.worldObj;
         val worldProviderManager = worldProviderManager();
@@ -196,6 +217,17 @@ public final class ChunkNBTManager implements ChunkDataManager.ChunkNBTDataManag
             val lightingEngineTag = input.getCompoundTag(lightingEngineTagName);
             lightingEngine.readChunkFromNBT(chunk, lightingEngineTag);
         }
+    }
+
+    private static void cloneChunkData(LumiChunk from,
+                                       LumiChunk to) {
+        to.lumi$cloneFrom(from);
+    }
+
+    private static void cloneLightingEngineData(LumiChunk from,
+                                                LumiChunk to,
+                                                LumiLightingEngine lightingEngine) {
+        lightingEngine.cloneChunk(from, to);
     }
 
     @Override

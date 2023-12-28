@@ -244,6 +244,11 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
+    public void cloneChunk(@NotNull LumiChunk from, @NotNull LumiChunk to) {
+        cloneNeighborLightChecks(from, to);
+    }
+
+    @Override
     public void writeSubChunkToNBT(@NotNull LumiChunk chunk,
                                    @NotNull LumiSubChunk subChunk,
                                    @NotNull NBTTagCompound output) {
@@ -253,6 +258,10 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     public void readSubChunkFromNBT(@NotNull LumiChunk chunk,
                                     @NotNull LumiSubChunk subChunk,
                                     @NotNull NBTTagCompound input) {
+    }
+
+    @Override
+    public void cloneSubChunk(@NotNull LumiChunk fromChunk, @NotNull LumiSubChunk from, @NotNull LumiSubChunk to) {
     }
 
     @Override

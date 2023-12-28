@@ -50,6 +50,9 @@ public final class NullLightingEngine implements LumiLightingEngine {
     public void readChunkFromNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound input) {}
 
     @Override
+    public void cloneChunk(@NotNull LumiChunk from, @NotNull LumiChunk to) {}
+
+    @Override
     public void writeSubChunkToNBT(@NotNull LumiChunk chunk,
                                    @NotNull LumiSubChunk subChunk,
                                    @NotNull NBTTagCompound output) {}
@@ -58,6 +61,9 @@ public final class NullLightingEngine implements LumiLightingEngine {
     public void readSubChunkFromNBT(@NotNull LumiChunk chunk,
                                     @NotNull LumiSubChunk subChunk,
                                     @NotNull NBTTagCompound input) {}
+
+    @Override
+    public void cloneSubChunk(@NotNull LumiChunk fromChunk, @NotNull LumiSubChunk from, @NotNull LumiSubChunk to) {}
 
     @Override
     public void writeChunkToPacket(@NotNull LumiChunk chunk, @NotNull ByteBuffer output) {}

@@ -17,8 +17,8 @@ dependencies {
     runtimeOnly("com.falsepattern:falsepatternlib-mc1.7.10:1.0.0-pre02:dev")
 
     // Chunk API
-    compileOnly("com.falsepattern:chunkapi-mc1.7.10:0.4.0-hotfix1:api")
-    runtimeOnly("com.falsepattern:chunkapi-mc1.7.10:0.4.0-hotfix1:dev")
+    compileOnlyApi("com.falsepattern:chunkapi-mc1.7.10:0.5.0:api")
+    runtimeOnly("com.falsepattern:chunkapi-mc1.7.10:0.5.0:dev")
 
     // FT
     compileOnly("com.falsepattern:falsetweaks-mc1.7.10:2.7.0-pre01:api")

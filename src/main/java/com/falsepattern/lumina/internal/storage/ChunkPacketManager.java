@@ -17,8 +17,8 @@
 
 package com.falsepattern.lumina.internal.storage;
 
-import com.falsepattern.chunk.api.ChunkDataManager;
-import com.falsepattern.chunk.api.ChunkDataRegistry;
+import com.falsepattern.chunk.api.DataManager;
+import com.falsepattern.chunk.api.DataRegistry;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.internal.event.EventPoster;
@@ -40,7 +40,7 @@ import static lombok.AccessLevel.PRIVATE;
 
 @Accessors(fluent = true, chain = false)
 @NoArgsConstructor(access = PRIVATE)
-public final class ChunkPacketManager implements ChunkDataManager.PacketDataManager {
+public final class ChunkPacketManager implements DataManager.PacketDataManager {
     private static final Logger LOG = createLogger("Chunk Packet Manager");
 
     private static final ChunkPacketManager INSTANCE = new ChunkPacketManager();
@@ -74,7 +74,7 @@ public final class ChunkPacketManager implements ChunkDataManager.PacketDataMana
         val maxHeaderSize = worldProviderCount * HEADER_SIZE_BYTES;
         maxPacketSize += maxHeaderSize;
 
-        ChunkDataRegistry.registerDataManager(this);
+        DataRegistry.registerDataManager(this);
         isRegistered = true;
         LOG.info("Registered data manager");
     }

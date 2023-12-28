@@ -17,11 +17,12 @@
 
 package com.falsepattern.lumina.internal;
 
-import com.falsepattern.chunk.api.ChunkDataRegistry;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+
+import com.falsepattern.chunk.api.DataRegistry;
 import lombok.NoArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,11 +62,11 @@ public final class LUMINA {
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent evt) {
-        ChunkDataRegistry.disableDataManager("minecraft", "lighting");
+        DataRegistry.disableDataManager("minecraft", "lighting");
         LOG.info("Disabled [minecraft:lighting] data manager");
-        ChunkDataRegistry.disableDataManager("minecraft", "blocklight");
+        DataRegistry.disableDataManager("minecraft", "blocklight");
         LOG.info("Disabled [minecraft:blocklight] data manager");
-        ChunkDataRegistry.disableDataManager("minecraft", "skylight");
+        DataRegistry.disableDataManager("minecraft", "skylight");
         LOG.info("Disabled [minecraft:skylight] data manager");
     }
 }

@@ -48,6 +48,8 @@ public interface LumiChunk {
 
     void lumi$readFromNBT(@NotNull NBTTagCompound input);
 
+    void lumi$cloneFrom(@NotNull LumiChunk from);
+
     void lumi$writeToPacket(@NotNull ByteBuffer output);
 
     void lumi$readFromPacket(@NotNull ByteBuffer input);

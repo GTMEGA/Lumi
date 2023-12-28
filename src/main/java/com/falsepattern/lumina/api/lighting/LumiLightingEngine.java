@@ -36,6 +36,8 @@ public interface LumiLightingEngine {
 
     void readChunkFromNBT(@NotNull LumiChunk chunk, @NotNull NBTTagCompound input);
 
+    void cloneChunk(@NotNull LumiChunk from, @NotNull LumiChunk to);
+
     void writeSubChunkToNBT(@NotNull LumiChunk chunk,
                             @NotNull LumiSubChunk subChunk,
                             @NotNull NBTTagCompound output);
@@ -43,6 +45,10 @@ public interface LumiLightingEngine {
     void readSubChunkFromNBT(@NotNull LumiChunk chunk,
                              @NotNull LumiSubChunk subChunk,
                              @NotNull NBTTagCompound input);
+
+    void cloneSubChunk(@NotNull LumiChunk fromChunk,
+                       @NotNull LumiSubChunk from,
+                       @NotNull LumiSubChunk to);
 
     void writeChunkToPacket(@NotNull LumiChunk chunk, @NotNull ByteBuffer output);
 

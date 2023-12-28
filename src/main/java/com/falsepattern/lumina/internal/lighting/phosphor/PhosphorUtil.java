@@ -17,6 +17,7 @@
 
 package com.falsepattern.lumina.internal.lighting.phosphor;
 
+import com.falsepattern.chunk.api.ArrayUtil;
 import com.falsepattern.lib.util.MathUtil;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
@@ -168,6 +169,15 @@ final class PhosphorUtil {
             val flag = flagTag.func_150289_e();
             flags[flagIndex] = flag;
         }
+    }
+
+    static void cloneNeighborLightChecks(LumiChunk lumiFrom, LumiChunk lumiTo) {
+        if (!(lumiFrom instanceof PhosphorChunk) || !(lumiTo instanceof PhosphorChunk))
+            return;
+        val from = (PhosphorChunk) lumiFrom;
+        val to = (PhosphorChunk) lumiTo;
+
+        ArrayUtil.copyArray(from.phosphor$lightCheckFlags(), to.phosphor$lightCheckFlags());
     }
 
     static @Nullable LumiChunk getLoadedChunk(LumiWorld world, int chunkPosX, int chunkPosZ) {
