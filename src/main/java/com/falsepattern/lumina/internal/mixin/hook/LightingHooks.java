@@ -19,11 +19,14 @@ package com.falsepattern.lumina.internal.mixin.hook;
 
 import com.falsepattern.lumina.api.LumiChunkAPI;
 import com.falsepattern.lumina.api.lighting.LightType;
+import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import cpw.mods.fml.relauncher.SideOnly;
 import lombok.experimental.UtilityClass;
 import lombok.val;
 import lombok.var;
+import org.jetbrains.annotations.NotNull;
+
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
@@ -56,7 +59,9 @@ public final class LightingHooks {
         val posZ = (chunkBase.zPosition << 4) + subChunkPosZ;
 
         var maxLightValue = 0;
-        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+        @NotNull LumiWorld[] lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
+        for (int i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
+            var world = lumiWorldsFromBaseWorld[i];
             val lightingEngine = world.lumi$lightingEngine();
             val lightValue = lightingEngine.getCurrentLightValue(lightType, posX, posY, posZ);
             maxLightValue = Math.max(maxLightValue, lightValue);
@@ -75,7 +80,9 @@ public final class LightingHooks {
         val posZ = (chunkBase.zPosition << 4) + subChunkPosZ;
 
         var maxLightValue = 0;
-        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+        @NotNull LumiWorld[] lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
+        for (int i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
+            var world = lumiWorldsFromBaseWorld[i];
             val lightingEngine = world.lumi$lightingEngine();
             val lightValue = lightingEngine.getCurrentLightValueUncached(lightType, posX, posY, posZ);
             maxLightValue = Math.max(maxLightValue, lightValue);
@@ -94,7 +101,9 @@ public final class LightingHooks {
         val posZ = (chunkBase.zPosition << 4) + subChunkPosZ;
 
         var maxLightValue = 0;
-        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+        @NotNull LumiWorld[] lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
+        for (int i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
+            var world = lumiWorldsFromBaseWorld[i];
             val lightValue = world.lumi$getBrightness(lightType, posX, posY, posZ);
             maxLightValue = Math.max(maxLightValue, lightValue);
         }
@@ -105,7 +114,9 @@ public final class LightingHooks {
         val worldBase = chunkBase.worldObj;
 
         var chunkHasLighting = true;
-        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+        @NotNull LumiWorld[] lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
+        for (int i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
+            var world = lumiWorldsFromBaseWorld[i];
             val lightingEngine = world.lumi$lightingEngine();
             val chunk = world.lumi$wrap(chunkBase);
             chunkHasLighting &= lightingEngine.isChunkFullyLit(chunk);
@@ -117,7 +128,9 @@ public final class LightingHooks {
         val worldBase = chunkBase.worldObj;
 
         resetPrecipitationHeightMap(chunkBase);
-        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+        @NotNull LumiWorld[] lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
+        for (int i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
+            var world = lumiWorldsFromBaseWorld[i];
             val chunk = world.lumi$wrap(chunkBase);
             LumiChunkAPI.scheduleChunkLightingEngineInit(chunk);
         }
@@ -128,7 +141,9 @@ public final class LightingHooks {
         val worldBase = chunkBase.worldObj;
 
         resetPrecipitationHeightMap(chunkBase);
-        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+        @NotNull LumiWorld[] lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
+        for (int i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
+            var world = lumiWorldsFromBaseWorld[i];
             val lightingEngine = world.lumi$lightingEngine();
             val chunk = world.lumi$wrap(chunkBase);
             lightingEngine.handleClientChunkInit(chunk);
@@ -138,7 +153,9 @@ public final class LightingHooks {
     public static void handleSubChunkInit(Chunk chunkBase, ExtendedBlockStorage subChunkBase) {
         val worldBase = chunkBase.worldObj;
 
-        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+        @NotNull LumiWorld[] lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
+        for (int i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
+            var world = lumiWorldsFromBaseWorld[i];
             val lightingEngine = world.lumi$lightingEngine();
             val chunk = world.lumi$wrap(chunkBase);
             val subChunk = world.lumi$wrap(subChunkBase);
@@ -149,7 +166,9 @@ public final class LightingHooks {
     public static void handleSubChunkInit(Chunk chunkBase, int chunkPosY) {
         val worldBase = chunkBase.worldObj;
 
-        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+        @NotNull LumiWorld[] lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
+        for (int i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
+            var world = lumiWorldsFromBaseWorld[i];
             val lightingEngine = world.lumi$lightingEngine();
             val chunk = world.lumi$wrap(chunkBase);
             val subChunk = chunk.lumi$getSubChunk(chunkPosY);
@@ -160,7 +179,9 @@ public final class LightingHooks {
     public static void handleChunkLoad(Chunk chunkBase) {
         val worldBase = chunkBase.worldObj;
 
-        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+        @NotNull LumiWorld[] lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
+        for (int i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
+            var world = lumiWorldsFromBaseWorld[i];
             val lightingEngine = world.lumi$lightingEngine();
             val chunk = world.lumi$wrap(chunkBase);
             lightingEngine.handleChunkLoad(chunk);
@@ -172,7 +193,9 @@ public final class LightingHooks {
 //            return;
 //
 //        val worldBase = chunkBase.worldObj;
-//        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+//        @NotNull LumiWorld[] lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
+//        for (int i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
+//            var world = lumiWorldsFromBaseWorld[i];
 //            val chunk = world.lumi$wrap(chunkBase);
 //            val lightingEngine = world.lumi$lightingEngine();
 //            lightingEngine.doRandomChunkLightingUpdates(chunk);
@@ -182,7 +205,9 @@ public final class LightingHooks {
     public static void resetQueuedRandomLightUpdates(Chunk chunkBase) {
         val worldBase = chunkBase.worldObj;
 
-        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+        @NotNull LumiWorld[] lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
+        for (int i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
+            var world = lumiWorldsFromBaseWorld[i];
             val chunk = world.lumi$wrap(chunkBase);
             chunk.lumi$resetQueuedRandomLightUpdates();
         }
@@ -196,7 +221,9 @@ public final class LightingHooks {
         val posX = (chunkBase.xPosition << 4) + subChunkPosX;
         val posZ = (chunkBase.zPosition << 4) + subChunkPosZ;
 
-        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+        @NotNull LumiWorld[] lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
+        for (int i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
+            var world = lumiWorldsFromBaseWorld[i];
             val lightingEngine = world.lumi$lightingEngine();
             lightingEngine.updateLightingForBlock(posX, posY, posZ);
         }
@@ -208,7 +235,9 @@ public final class LightingHooks {
                                               int posY,
                                               int posZ) {
         val lightType = LightType.of(baseLightType);
-        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+        @NotNull LumiWorld[] lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
+        for (int i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
+            var world = lumiWorldsFromBaseWorld[i];
             val lightingEngine = world.lumi$lightingEngine();
             lightingEngine.scheduleLightingUpdate(lightType, posX, posY, posZ);
         }
@@ -220,7 +249,9 @@ public final class LightingHooks {
     }
 
     public static void processLightUpdates(World worldBase) {
-        for (val world : lumiWorldsFromBaseWorld(worldBase)) {
+        @NotNull LumiWorld[] lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
+        for (int i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
+            var world = lumiWorldsFromBaseWorld[i];
             val lightingEngine = world.lumi$lightingEngine();
             lightingEngine.processLightingUpdatesForAllTypes();
         }

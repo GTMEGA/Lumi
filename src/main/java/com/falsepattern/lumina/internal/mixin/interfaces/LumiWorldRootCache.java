@@ -15,14 +15,13 @@
  * along with LUMINA. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.falsepattern.lumina.api.world;
+package com.falsepattern.lumina.internal.mixin.interfaces;
 
-import net.minecraft.world.World;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
+import com.falsepattern.lumina.api.world.LumiWorld;
 
-@SuppressWarnings("unused")
-public interface LumiWorldWrapper {
-    @NotNull @Unmodifiable LumiWorld[] lumiWorldsFromBaseWorld(@Nullable World worldBase);
+import java.util.Iterator;
+
+public interface LumiWorldRootCache {
+    LumiWorld[] lumi$getLumiWorlds();
+    void lumi$setLumiWorlds(LumiWorld[] lumiWorlds);
 }

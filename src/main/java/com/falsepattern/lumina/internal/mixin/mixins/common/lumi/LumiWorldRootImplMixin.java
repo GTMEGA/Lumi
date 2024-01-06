@@ -20,10 +20,13 @@ package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 import com.falsepattern.falsetweaks.api.ThreadedChunkUpdates;
 import com.falsepattern.lumina.api.cache.LumiBlockCacheRoot;
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
+import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
+import com.falsepattern.lumina.internal.LUMINA;
 import com.falsepattern.lumina.internal.cache.MultiHeadBlockCacheRoot;
 import com.falsepattern.lumina.internal.cache.ReadThroughBlockCacheRoot;
 import com.falsepattern.lumina.internal.config.LumiConfig;
+import com.falsepattern.lumina.internal.mixin.interfaces.LumiWorldRootCache;
 import com.falsepattern.lumina.internal.world.DefaultWorldProvider;
 import lombok.val;
 import net.minecraft.block.Block;
@@ -50,11 +53,12 @@ import static com.falsepattern.lumina.internal.mixin.plugin.MixinPlugin.LUMI_ROO
 
 @Unique
 @Mixin(value = World.class, priority = LUMI_ROOT_IMPL_MIXIN_PRIORITY)
-public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldRoot {
+public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldRoot, LumiWorldRootCache {
     // region Shadow
     @Final
     @Shadow
     public WorldProvider provider;
+
 
     @Shadow
     protected IChunkProvider chunkProvider;
@@ -88,6 +92,18 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
 
     private LumiBlockCacheRoot lumi$blockCacheRoot = null;
 
+    private LumiWorld[] lumi$lumiWorlds;
+
+    @Override
+    public LumiWorld[] lumi$getLumiWorlds() {
+        return lumi$lumiWorlds;
+    }
+
+    @Override
+    public void lumi$setLumiWorlds(LumiWorld[] lumiWorlds) {
+        lumi$lumiWorlds = lumiWorlds;
+    }
+
     @Inject(method = LUMI_WORLD_INIT_HOOK_METHOD,
             at = @At("RETURN"),
             remap = false,
@@ -99,7 +115,7 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
         }
         int cacheCount = LumiConfig.CACHE_COUNT;
 
-        if (cacheCount <= 0 || (Loader.isModLoaded("falsetweaks") && ThreadedChunkUpdates.isEnabled() && lumi$isClientSide())) {
+        if (cacheCount <= 0 || (LUMINA.lumi$isThreadedUpdates() && lumi$isClientSide())) {
             this.lumi$blockCacheRoot = new ReadThroughBlockCacheRoot(this);
         } else {
             this.lumi$blockCacheRoot = new MultiHeadBlockCacheRoot(this, cacheCount);

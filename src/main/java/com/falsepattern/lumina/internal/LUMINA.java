@@ -17,12 +17,14 @@
 
 package com.falsepattern.lumina.internal;
 
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 import com.falsepattern.chunk.api.DataRegistry;
+import com.falsepattern.falsetweaks.api.ThreadedChunkUpdates;
 import lombok.NoArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,8 +48,15 @@ public final class LUMINA {
         return LogManager.getLogger(MOD_NAME + "|" + name);
     }
 
+    private static boolean falseTweaks;
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent evt) {
+        falseTweaks = Loader.isModLoaded("falsetweaks");
+    }
+
+
+    public static boolean lumi$isThreadedUpdates() {
+        return falseTweaks && ThreadedChunkUpdates.isEnabled();
     }
 
     @Mod.EventHandler

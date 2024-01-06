@@ -42,7 +42,7 @@ public final class LumiAPI {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
 
-    public static @NotNull Iterable<LumiWorld> lumiWorldsFromBaseWorld(@NotNull World worldBase) {
+    public static @NotNull LumiWorld[] lumiWorldsFromBaseWorld(@NotNull World worldBase) {
         return WORLD_WRAPPER.lumiWorldsFromBaseWorld(worldBase);
     }
 

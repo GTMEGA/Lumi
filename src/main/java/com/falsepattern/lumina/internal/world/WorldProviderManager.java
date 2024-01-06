@@ -24,10 +24,13 @@ import com.falsepattern.lumina.api.world.LumiWorldWrapper;
 import com.falsepattern.lumina.internal.LumiDefaultValues;
 import com.falsepattern.lumina.internal.collection.WeakIdentityHashMap;
 import com.falsepattern.lumina.internal.event.EventPoster;
+import com.falsepattern.lumina.internal.mixin.interfaces.LumiWorldRootCache;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.val;
 import net.minecraft.world.World;
+
+import lombok.var;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,7 +50,6 @@ public final class WorldProviderManager implements LumiWorldProviderRegistry, Lu
     private static final WorldProviderManager INSTANCE = new WorldProviderManager();
 
     private final List<LumiWorldProvider> worldProviders = new ArrayList<>();
-    private final Map<World, Iterable<LumiWorld>> providedWorlds = new WeakIdentityHashMap<>();
 
     private boolean isRegistered = false;
     private boolean isHijacked = false;
@@ -138,16 +140,22 @@ public final class WorldProviderManager implements LumiWorldProviderRegistry, Lu
         worldProviders.add(worldProvider);
     }
 
+    private static final LumiWorld[] NULL_ARR = new LumiWorld[0];
+
     @Override
-    public @NotNull @Unmodifiable Iterable<LumiWorld> lumiWorldsFromBaseWorld(@Nullable World worldBase) {
+    public @NotNull @Unmodifiable LumiWorld[] lumiWorldsFromBaseWorld(@Nullable World worldBase) {
         if (!isRegistered) {
             LOG.error(new IllegalStateException("No world providers exist during registration, " +
                                                 "an empty iterable will be returned."));
-            return Collections.emptyList();
+            return NULL_ARR;
         }
         if (worldBase == null)
-            return Collections.emptyList();
-        return providedWorlds.computeIfAbsent(worldBase, this::collectProvidedWorlds);
+            return NULL_ARR;
+        var worlds = ((LumiWorldRootCache)worldBase).lumi$getLumiWorlds();
+        if (worlds == null) {
+            ((LumiWorldRootCache)worldBase).lumi$setLumiWorlds(worlds = collectProvidedWorlds(worldBase));
+        }
+        return worlds;
     }
 
     public @Nullable LumiWorldProvider getWorldProviderByInternalID(int internalWorldProviderID) {
@@ -160,11 +168,15 @@ public final class WorldProviderManager implements LumiWorldProviderRegistry, Lu
         return worldProviders.size();
     }
 
-    private Iterable<LumiWorld> collectProvidedWorlds(World worldBase) {
-        val worldList = worldProviders.stream()
-                                      .map(worldProvider -> worldProvider.provideWorld(worldBase))
-                                      .filter(Objects::nonNull)
-                                      .collect(Collectors.toCollection(ArrayList::new));
-        return Collections.unmodifiableList(worldList);
+    private LumiWorld[] collectProvidedWorlds(World worldBase) {
+        val worldList = new ArrayList<LumiWorld>();
+        for (int i = 0, worldProvidersSize = worldProviders.size(); i < worldProvidersSize; i++) {
+            LumiWorldProvider worldProvider = worldProviders.get(i);
+            LumiWorld lumiWorld = worldProvider.provideWorld(worldBase);
+            if (lumiWorld != null) {
+                worldList.add(lumiWorld);
+            }
+        }
+        return worldList.toArray(new LumiWorld[0]);
     }
 }
