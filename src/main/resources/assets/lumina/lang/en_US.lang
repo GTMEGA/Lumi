@@ -1,0 +1,2 @@
+config.lumina.enableIllegalThreadAccessWarnings=Enable illegal thread access warnings
+config.lumina.cacheCount=Cache count

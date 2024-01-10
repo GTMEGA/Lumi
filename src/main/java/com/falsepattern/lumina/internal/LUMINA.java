@@ -17,14 +17,13 @@
 
 package com.falsepattern.lumina.internal;
 
+import com.falsepattern.chunk.api.DataRegistry;
+import com.falsepattern.falsetweaks.api.ThreadedChunkUpdates;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-
-import com.falsepattern.chunk.api.DataRegistry;
-import com.falsepattern.falsetweaks.api.ThreadedChunkUpdates;
 import lombok.NoArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,7 +40,8 @@ import static com.falsepattern.lumina.internal.world.WorldProviderManager.worldP
      version = VERSION,
      name = MOD_NAME,
      acceptedMinecraftVersions = MINECRAFT_VERSION,
-     dependencies = DEPENDENCIES)
+     dependencies = DEPENDENCIES,
+     guiFactory = GUI_FACTORY_PATH)
 @NoArgsConstructor
 public final class LUMINA {
     public static Logger createLogger(String name) {
@@ -53,7 +53,6 @@ public final class LUMINA {
     public void preInit(FMLPreInitializationEvent evt) {
         falseTweaks = Loader.isModLoaded("falsetweaks");
     }
-
 
     public static boolean lumi$isThreadedUpdates() {
         return falseTweaks && ThreadedChunkUpdates.isEnabled();

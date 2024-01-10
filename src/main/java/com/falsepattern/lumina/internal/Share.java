@@ -17,11 +17,13 @@
 
 package com.falsepattern.lumina.internal;
 
+import lombok.experimental.UtilityClass;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import static com.falsepattern.lumina.internal.Tags.MOD_NAME;
 
-public class Share {
+@UtilityClass
+public final class Share {
     public static final Logger LOG = LogManager.getLogger(MOD_NAME);
 }
