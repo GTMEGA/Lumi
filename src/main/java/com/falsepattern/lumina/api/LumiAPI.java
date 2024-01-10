@@ -21,6 +21,7 @@ import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngineProvider;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldWrapper;
+import com.falsepattern.lumina.internal.config.LumiConfig;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +41,10 @@ public final class LumiAPI {
 
     private LumiAPI() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
+
+    public static int configuredCacheCount() {
+        return LumiConfig.CACHE_COUNT;
     }
 
     public static @NotNull LumiWorld[] lumiWorldsFromBaseWorld(@NotNull World worldBase) {
