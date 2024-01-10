@@ -26,9 +26,8 @@ import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
-import cpw.mods.fml.relauncher.SideOnly;
-
 import com.falsepattern.lumina.internal.config.LumiConfig;
+import cpw.mods.fml.relauncher.SideOnly;
 import gnu.trove.iterator.TLongIterator;
 import lombok.NoArgsConstructor;
 import lombok.val;
@@ -44,11 +43,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static com.falsepattern.lumina.api.chunk.LumiChunk.MAX_QUEUED_RANDOM_LIGHT_UPDATES;
 import static com.falsepattern.lumina.api.lighting.LightType.*;
 import static com.falsepattern.lumina.internal.LUMINA.createLogger;
+import static com.falsepattern.lumina.internal.lighting.phosphor.DummyLock.getDummyLock;
 import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorUtil.*;
 import static cpw.mods.fml.relauncher.Side.CLIENT;
 
@@ -150,7 +151,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     private final Thread updateThread = Thread.currentThread();
-    private final ReentrantLock lock = new ReentrantLock();
+    private final Lock lock;
 
     private final LumiWorld world;
     private final LumiWorldRoot worldRoot;
@@ -195,6 +196,8 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     private boolean isUpdating;
 
     PhosphorLightingEngine(LumiWorld world, Profiler profiler) {
+        this.lock = LumiConfig.ENABLE_LOCKS ? new ReentrantLock() : getDummyLock();
+
         this.world = world;
         this.worldRoot = world.lumi$root();
         this.isClientSide = worldRoot.lumi$isClientSide();

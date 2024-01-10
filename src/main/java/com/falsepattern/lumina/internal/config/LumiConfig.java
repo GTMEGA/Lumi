@@ -26,6 +26,13 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 @Config(modid = Tags.MOD_ID)
 public final class LumiConfig {
+    @Config.Comment("Use locks when accessing the lighting engine state." +
+                    "This option may improve performance but will allow illegal access to the lighting engine from other threads.")
+    @Config.LangKey("config.lumina.enableLocks")
+    @Config.DefaultBoolean(true)
+    @Config.RequiresWorldRestart
+    public static boolean ENABLE_LOCKS;
+
     @Config.Comment("Print a warning when the lighting engine is accessed by the wrong thread.")
     @Config.LangKey("config.lumina.enableIllegalThreadAccessWarnings")
     @Config.DefaultBoolean(true)

@@ -30,6 +30,7 @@ import java.nio.ByteBuffer;
 public interface LumiChunk {
     int SUB_CHUNK_ARRAY_SIZE = 16;
     int HEIGHT_MAP_ARRAY_SIZE = 16 * 16;
+    int UPDATE_SKYLIGHT_COLUMNS_ARRAY_SIZE = 16 * 16;
     int MAX_QUEUED_RANDOM_LIGHT_UPDATES = 16 * 16 * 16;
 
     String IS_LIGHT_INITIALIZED_NBT_TAG_NAME = "lighting_initialized";

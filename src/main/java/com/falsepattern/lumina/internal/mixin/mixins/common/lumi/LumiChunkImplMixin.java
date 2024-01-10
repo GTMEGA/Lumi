@@ -38,7 +38,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 import static com.falsepattern.lumina.api.init.LumiChunkInitHook.LUMI_CHUNK_INIT_HOOK_INFO;
 import static com.falsepattern.lumina.api.init.LumiChunkInitHook.LUMI_CHUNK_INIT_HOOK_METHOD;
@@ -389,7 +388,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
 
     @Override
     public void lumi$resetSkyLightHeightMap() {
-        Arrays.fill(heightMap, Integer.MAX_VALUE);
+        LumiChunkAPI.resetHeightMapArray(heightMap);
         heightMapMinimum = Integer.MAX_VALUE;
     }
 
@@ -411,7 +410,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
 
     @Override
     public void lumi$resetOutdatedHeightFlags() {
-        Arrays.fill(updateSkylightColumns, true);
+        LumiChunkAPI.resetUpdateSkylightColumns(updateSkylightColumns);
     }
 
     @Override

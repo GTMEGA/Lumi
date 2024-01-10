@@ -21,8 +21,22 @@ import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.init.LumiChunkInitTaskQueue;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import lombok.val;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Arrays;
+
+import static com.falsepattern.lumina.api.chunk.LumiChunk.HEIGHT_MAP_ARRAY_SIZE;
+import static com.falsepattern.lumina.api.chunk.LumiChunk.UPDATE_SKYLIGHT_COLUMNS_ARRAY_SIZE;
 
 public final class LumiChunkAPI {
+    private static final int[] INITIAL_HEIGHT_MAP_ARRAY = new int[HEIGHT_MAP_ARRAY_SIZE];
+    private static final boolean[] INITIAL_UPDATE_SKYLIGHT_COLUMNS_ARRAY = new boolean[UPDATE_SKYLIGHT_COLUMNS_ARRAY_SIZE];
+
+    static {
+        Arrays.fill(INITIAL_HEIGHT_MAP_ARRAY, Integer.MAX_VALUE);
+        Arrays.fill(INITIAL_UPDATE_SKYLIGHT_COLUMNS_ARRAY, true);
+    }
+
     /**
      * Use this in places where you would need to call {@link LumiLightingEngine#handleChunkInit} otherwise.
      * NOTE: <b>ONLY USE WHEN LOADING CHUNK FROM NBT!</b>
@@ -34,5 +48,17 @@ public final class LumiChunkAPI {
     public static void scheduleChunkInitTask(LumiChunk chunk, Runnable task) {
         val chunkInitTaskQueue = (LumiChunkInitTaskQueue) chunk.lumi$root();
         chunkInitTaskQueue.lumi$addInitTask(task);
+    }
+
+    public static void resetHeightMapArray(int @NotNull [] heightMap) {
+        System.arraycopy(INITIAL_HEIGHT_MAP_ARRAY, 0, heightMap, 0, HEIGHT_MAP_ARRAY_SIZE);
+    }
+
+    public static void resetUpdateSkylightColumns(boolean @NotNull [] updateSkylightColumns) {
+        System.arraycopy(INITIAL_UPDATE_SKYLIGHT_COLUMNS_ARRAY,
+                         0,
+                         updateSkylightColumns,
+                         0,
+                         UPDATE_SKYLIGHT_COLUMNS_ARRAY_SIZE);
     }
 }
