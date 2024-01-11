@@ -17,10 +17,23 @@
 
 package com.falsepattern.lumina.internal.collection;
 
+import gnu.trove.impl.Constants;
 import gnu.trove.set.hash.TLongHashSet;
 import lombok.val;
 
+import java.util.Arrays;
+
 public class PosHashSet extends TLongHashSet {
+    private static final int MAX_FAST_CLEAR_LENGTH = 1_000_000;
+
+    private static final long[] EMPTY_SET = new long[MAX_FAST_CLEAR_LENGTH];
+    private static final byte[] EMPTY_STATES = new byte[MAX_FAST_CLEAR_LENGTH];
+
+    static {
+        Arrays.fill(EMPTY_SET, Constants.DEFAULT_LONG_NO_ENTRY_VALUE);
+        Arrays.fill(EMPTY_STATES, FREE);
+    }
+
     private static final int HASH_PRIME = 92821;
 
     public PosHashSet() {
@@ -34,6 +47,21 @@ public class PosHashSet extends TLongHashSet {
         val a = (int) key;
         val b = (int) (key >>> 32);
         return a + (b * HASH_PRIME);
+    }
+
+    public void resetQuick() {
+        val length = _set.length;
+        if (length > MAX_FAST_CLEAR_LENGTH) {
+            System.out.println("Failed quick reset!" + length);
+            clear();
+            return;
+        }
+
+        _size = 0;
+        _free = _states.length;
+
+        System.arraycopy(EMPTY_SET, 0, _set, 0, length);
+        System.arraycopy(EMPTY_STATES, 0, _states, 0, length);
     }
 
     protected int index(long val) {

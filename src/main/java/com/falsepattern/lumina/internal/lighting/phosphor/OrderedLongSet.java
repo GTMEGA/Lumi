@@ -40,7 +40,7 @@ public class OrderedLongSet {
     }
 
     public void clear() {
-        theSet.clear();
+        theSet.resetQuick();
         theList.resetQuick();
     }
 
