@@ -19,6 +19,7 @@ package com.falsepattern.lumina.internal.cache;
 
 import com.falsepattern.lumina.api.cache.LumiBlockCache;
 import com.falsepattern.lumina.api.cache.LumiBlockCacheRoot;
+import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.world.LumiWorld;
@@ -97,6 +98,9 @@ public final class DynamicBlockCacheRoot implements LumiBlockCacheRoot {
 
         return blockCache;
     }
+
+    @Override
+    public void lumi$prefetchChunk(@Nullable LumiChunk chunk) {}
 
     public int lumi$minChunkPosX() {
         return minChunkPosX;

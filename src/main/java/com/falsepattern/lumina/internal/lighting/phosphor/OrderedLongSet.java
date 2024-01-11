@@ -26,7 +26,7 @@ public class OrderedLongSet {
     private final TLongArrayList theList;
 
     public OrderedLongSet(int initialSize) {
-        theSet = new PosHashSet(initialSize, 0.7F);
+        theSet = new PosHashSet(initialSize, 0.1F);
         theList = new TLongArrayList(initialSize);
     }
 

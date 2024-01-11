@@ -18,6 +18,7 @@
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
 import com.falsepattern.lumina.api.cache.LumiBlockCacheRoot;
+import com.falsepattern.lumina.api.chunk.LumiChunk;
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.ChunkCache;
@@ -56,6 +57,10 @@ public abstract class LumiBlockCacheRootImplMixin implements IBlockAccess, LumiB
     public @NotNull String lumi$blockCacheRootID() {
         return "lumi_block_cache_root";
     }
+
+    @Override
+    public void lumi$prefetchChunk(@Nullable LumiChunk chunk) {}
+
     // endregion
 
     // region Block Storage Root

@@ -19,20 +19,20 @@ package com.falsepattern.lumina.internal.cache;
 
 import com.falsepattern.lumina.api.cache.LumiBlockCache;
 import com.falsepattern.lumina.api.cache.LumiBlockCacheRoot;
+import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import net.minecraft.block.Block;
+import net.minecraft.tileentity.TileEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.block.Block;
-import net.minecraft.tileentity.TileEntity;
-
 @RequiredArgsConstructor
 public class ReadThroughBlockCacheRoot implements LumiBlockCacheRoot {
-    private final LumiWorldRoot worldRoot;
+    protected final LumiWorldRoot worldRoot;
 
     @Override
     public @NotNull String lumi$blockCacheRootID() {
@@ -45,9 +45,10 @@ public class ReadThroughBlockCacheRoot implements LumiBlockCacheRoot {
     }
 
     @Override
-    public void lumi$clearCache() {
+    public void lumi$prefetchChunk(@Nullable LumiChunk chunk) {}
 
-    }
+    @Override
+    public void lumi$clearCache() {}
 
     @Override
     public @NotNull String lumi$blockStorageRootID() {
@@ -84,9 +85,10 @@ public class ReadThroughBlockCacheRoot implements LumiBlockCacheRoot {
         return worldRoot.lumi$getTileEntity(posX, posY, posZ);
     }
 
-    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-    public final class ReadThroughBlockCache implements LumiBlockCache {
-        private final LumiWorld world;
+
+    @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
+    public class ReadThroughBlockCache implements LumiBlockCache {
+        protected final LumiWorld world;
 
         @Override
         public @NotNull ReadThroughBlockCacheRoot lumi$root() {
@@ -99,9 +101,7 @@ public class ReadThroughBlockCacheRoot implements LumiBlockCacheRoot {
         }
 
         @Override
-        public void lumi$clearCache() {
-
-        }
+        public void lumi$clearCache() {}
 
         @Override
         public @NotNull String lumi$blockStorageID() {

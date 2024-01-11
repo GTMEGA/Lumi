@@ -19,6 +19,7 @@ package com.falsepattern.lumina.internal.cache;
 
 import com.falsepattern.lumina.api.cache.LumiBlockCache;
 import com.falsepattern.lumina.api.cache.LumiBlockCacheRoot;
+import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
@@ -31,11 +32,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
+import static com.falsepattern.lumina.internal.cache.BlockCaches.createFallbackBlockCacheRoot;
+
 public final class MultiHeadBlockCacheRoot implements LumiBlockCacheRoot {
     public static final int MAX_MULTI_HEAD_CACHE_COUNT = 8;
     private final int multiHeadCacheCount;
 
-    private final ReadThroughBlockCacheRoot fallback;
+    private final LumiBlockCacheRoot fallback;
     private final DynamicBlockCacheRoot[] cacheRoots;
     private final Thread ownerThread;
     private final LRU lru = new LRU();
@@ -47,7 +50,7 @@ public final class MultiHeadBlockCacheRoot implements LumiBlockCacheRoot {
         ownerThread = Thread.currentThread();
         for (int i = 0; i < multiHeadCacheCount; i++)
             cacheRoots[i] = new DynamicBlockCacheRoot(worldRoot);
-        fallback = new ReadThroughBlockCacheRoot(worldRoot);
+        fallback = createFallbackBlockCacheRoot(worldRoot);
     }
 
     @Override
@@ -59,6 +62,9 @@ public final class MultiHeadBlockCacheRoot implements LumiBlockCacheRoot {
     public @NotNull MultiHeadBlockCacheRoot.MultiHeadBlockCache lumi$createBlockCache(LumiWorld world) {
         return new MultiHeadBlockCache(world);
     }
+
+    @Override
+    public void lumi$prefetchChunk(@Nullable LumiChunk chunk) {}
 
     @Override
     public void lumi$clearCache() {
@@ -125,7 +131,7 @@ public final class MultiHeadBlockCacheRoot implements LumiBlockCacheRoot {
     }
 
     public final class MultiHeadBlockCache implements LumiBlockCache {
-        private final ReadThroughBlockCacheRoot.ReadThroughBlockCache fallback;
+        private final LumiBlockCache fallback;
         private final DynamicBlockCacheRoot.DynamicBlockCache[] caches = new DynamicBlockCacheRoot.DynamicBlockCache[multiHeadCacheCount];
 
         public MultiHeadBlockCache(@NotNull LumiWorld world) {

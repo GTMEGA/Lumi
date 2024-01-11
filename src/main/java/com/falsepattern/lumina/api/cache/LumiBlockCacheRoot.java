@@ -17,14 +17,18 @@
 
 package com.falsepattern.lumina.api.cache;
 
+import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.storage.LumiBlockStorageRoot;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface LumiBlockCacheRoot extends LumiBlockStorageRoot {
     @NotNull String lumi$blockCacheRootID();
 
     @NotNull LumiBlockCache lumi$createBlockCache(LumiWorld world);
+
+    void lumi$prefetchChunk(@Nullable LumiChunk chunk);
 
     /**
      * Should be called at the end of each tick.

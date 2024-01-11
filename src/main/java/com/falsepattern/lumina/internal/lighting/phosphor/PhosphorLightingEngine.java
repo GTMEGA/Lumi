@@ -1132,6 +1132,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         if (cursorChunkPosLong != chunkPosLong) {
             cursorChunk = getChunk(cursorBlockPos);
             cursorChunkPosLong = chunkPosLong;
+            blockCacheRoot.lumi$prefetchChunk(cursorChunk);
         }
 
         return true;

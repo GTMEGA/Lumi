@@ -17,14 +17,12 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
-import com.falsepattern.falsetweaks.api.ThreadedChunkUpdates;
 import com.falsepattern.lumina.api.cache.LumiBlockCacheRoot;
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldRoot;
 import com.falsepattern.lumina.internal.LUMINA;
 import com.falsepattern.lumina.internal.cache.MultiHeadBlockCacheRoot;
-import com.falsepattern.lumina.internal.cache.ReadThroughBlockCacheRoot;
 import com.falsepattern.lumina.internal.config.LumiConfig;
 import com.falsepattern.lumina.internal.mixin.interfaces.LumiWorldRootCache;
 import com.falsepattern.lumina.internal.world.DefaultWorldProvider;
@@ -45,10 +43,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import cpw.mods.fml.common.Loader;
-
 import static com.falsepattern.lumina.api.init.LumiWorldInitHook.LUMI_WORLD_INIT_HOOK_INFO;
 import static com.falsepattern.lumina.api.init.LumiWorldInitHook.LUMI_WORLD_INIT_HOOK_METHOD;
+import static com.falsepattern.lumina.internal.cache.BlockCaches.createFallbackBlockCacheRoot;
 import static com.falsepattern.lumina.internal.mixin.plugin.MixinPlugin.LUMI_ROOT_IMPL_MIXIN_PRIORITY;
 
 @Unique
@@ -110,13 +107,12 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
             require = 1)
     @Dynamic(LUMI_WORLD_INIT_HOOK_INFO)
     private void lumiWorldRootInit(CallbackInfo ci) {
-        if (!DefaultWorldProvider.isRegistered()) {
+        if (!DefaultWorldProvider.isRegistered())
             return;
-        }
-        int cacheCount = LumiConfig.CACHE_COUNT;
 
+        val cacheCount = LumiConfig.CACHE_COUNT;
         if (cacheCount <= 0 || (LUMINA.lumi$isThreadedUpdates() && lumi$isClientSide())) {
-            this.lumi$blockCacheRoot = new ReadThroughBlockCacheRoot(this);
+            this.lumi$blockCacheRoot = createFallbackBlockCacheRoot(this);
         } else {
             this.lumi$blockCacheRoot = new MultiHeadBlockCacheRoot(this, cacheCount);
         }
