@@ -37,14 +37,24 @@ public abstract class MinecraftMixin {
     @Shadow
     public WorldClient theWorld;
 
-    @Inject(method = "runTick",
+    //TODO: Benchmark
+
+//    @Inject(method = "runTick",
+//            at = @At(value = "CONSTANT",
+//                     args = "stringValue=levelRenderer",
+//                     shift = At.Shift.BY,
+//                     by = -3),
+//            require = 1)
+//    private void updateClientLighting(CallbackInfo ci) {
+//        LightingHooks.processLightUpdates(theWorld);
+//    }
+
+    @Inject(method = "runGameLoop",
             at = @At(value = "CONSTANT",
-                     args = "stringValue=levelRenderer",
-                     shift = At.Shift.BY,
-                     by = -3),
+                     args = "stringValue=tick",
+                     shift = At.Shift.AFTER),
             require = 1)
     private void updateClientLighting(CallbackInfo ci) {
-        mcProfiler.endStartSection("lighting");
         LightingHooks.processLightUpdates(theWorld);
     }
 }
