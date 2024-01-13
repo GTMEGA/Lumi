@@ -738,9 +738,6 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     @Override
     public void processLightingUpdatesForAllTypes() {
-        for (val lightType : values())
-            processLightingUpdatesForType(lightType);
-
         // We only want to perform updates if we're being called from a tick event on the client
         // There are many locations in the client code which will end up making calls to this method, usually from
         // other threads.
