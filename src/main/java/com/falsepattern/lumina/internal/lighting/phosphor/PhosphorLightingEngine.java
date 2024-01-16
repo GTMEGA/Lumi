@@ -187,6 +187,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     private final BlockPos.MutableBlockPos cursorBlockPos;
     private @Nullable LumiChunk cursorChunk;
+    private @Nullable LumiSubChunk cursorSubChunk;
     private long cursorChunkPosLong;
     private long cursorData;
 
@@ -225,6 +226,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
         this.cursorBlockPos = new BlockPos.MutableBlockPos();
         this.cursorChunk = null;
+        this.cursorSubChunk = null;
         this.cursorChunkPosLong = 0L;
         this.cursorData = 0L;
 
@@ -929,6 +931,8 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                     if (neighbor.lightValue == 0)
                         continue;
 
+                    blockCacheRoot.lumi$prefetchChunk(neighbor.chunk);
+
                     // FIXME: BLOCK CACHE [TEST]
                     val neighborBlockOpacity = getCachedBlockLightOpacity(neighbor.blockPos);
 //                    val neighborBlock = getBlockFromSubChunk(neighbor.subChunk, neighbor.blockPos);
@@ -944,6 +948,8 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                         newLightValue = Math.max(newLightValue, neighbor.lightValue - cursorBlockOpacity);
                     }
                 }
+
+                blockCacheRoot.lumi$prefetchChunk(cursorChunk);
 
                 // Schedule brightening since light level was set to 0
                 enqueueBrighteningFromCursor(newLightValue, lightType);
@@ -997,12 +1003,16 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             if (neighbor.chunk == null)
                 continue;
 
+            blockCacheRoot.lumi$prefetchChunk(neighbor.chunk);
+
             // FIXME: BLOCK CACHE [TEST]
 //            val chunkPosY = neighbor.blockPos.getY() / 16;
 //            neighbor.subChunk = neighbor.chunk.lumi$getSubChunkIfPrepared(chunkPosY);
 //            neighbor.lightValue = getCachedLightFor(neighbor.chunk, neighbor.subChunk, lightType, neighbor.blockPos);
             neighbor.lightValue = getCachedLightValue(lightType, neighbor.blockPos);
         }
+
+        blockCacheRoot.lumi$prefetchChunk(cursorChunk);
     }
 
     private int getCursorUpdatedLightValue(LightType lightType) {
@@ -1049,6 +1059,8 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             if (neighbor.chunk == null)
                 continue;
 
+            blockCacheRoot.lumi$prefetchChunk(neighbor.chunk);
+
             // FIXME: BLOCK CACHE [TEST]
             val blockOpacity = getCachedBlockLightOpacity(neighbor.blockPos);
 //            val block = getBlockFromSubChunk(neighbor.subChunk, neighbor.blockPos);
@@ -1059,6 +1071,8 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             if (newLightValue > neighbor.lightValue)
                 enqueueBrightening(neighbor.blockPos, neighbor.posLong, newLightValue, neighbor.chunk, lightType);
         }
+
+        blockCacheRoot.lumi$prefetchChunk(cursorChunk);
     }
 
     private void enqueueBrighteningFromCursor(int lightValue, LightType lightType) {
@@ -1100,11 +1114,11 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
     private void setQueue(@Nullable OrderedLongSet queue) {
         if (currentQueue != null)
-            currentQueue.clear();
+            currentQueue.reset();
 
         if (queue != null) {
             currentQueue = queue;
-            queueIterator = queue.iterator();
+            queueIterator = queue.persistentIterator();
         } else {
             currentQueue = null;
             queueIterator = null;
@@ -1114,25 +1128,41 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     private boolean nextItem() {
         if (queueIterator == null)
             return false;
+        if (isQueueEmpty())
+            return true;
+        updateCursor();
+        return true;
+    }
 
-        if (!queueIterator.hasNext()) {
-            setQueue(null);
+    private boolean isQueueEmpty() {
+        if (queueIterator.hasNext())
             return false;
-        }
+        currentQueue.reset();
+        currentQueue = null;
+        queueIterator = null;
+        return true;
+    }
 
+    private void updateCursor() {
         cursorData = queueIterator.next();
         areNeighboursBlocksValid = false;
-
         blockPosFromPosLong(cursorBlockPos, cursorData);
-
         val chunkPosLong = cursorData & BLOCK_POS_CHUNK_BIT_MASK;
         if (cursorChunkPosLong != chunkPosLong) {
             cursorChunk = getChunk(cursorBlockPos);
+            if (cursorChunk == null)
+                return;
+
+            val chunkPosY = cursorBlockPos.getY() / 16;
+            cursorSubChunk = cursorChunk.lumi$getSubChunkIfPrepared(chunkPosY);
+            if (cursorSubChunk == null) {
+                cursorChunk = null;
+                return;
+            }
+
             cursorChunkPosLong = chunkPosLong;
             blockCacheRoot.lumi$prefetchChunk(cursorChunk);
         }
-
-        return true;
     }
 
     private @Nullable LumiChunk getChunk(BlockPos blockPos) {
@@ -1206,7 +1236,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
      * Read Through
      */
     private int getCachedLightValue(LightType lightType, BlockPos blockPos) {
-        return clampLightValue(getCachedLightValue(lightType, blockPos.getX(), blockPos.getY(), blockPos.getZ()));
+        return getCachedLightValue(lightType, blockPos.getX(), blockPos.getY(), blockPos.getZ());
     }
 
     /**

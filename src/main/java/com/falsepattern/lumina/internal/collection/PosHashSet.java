@@ -17,22 +17,21 @@
 
 package com.falsepattern.lumina.internal.collection;
 
-import gnu.trove.impl.Constants;
+import com.falsepattern.lumina.internal.util.UnsafeUtil;
 import gnu.trove.set.hash.TLongHashSet;
 import lombok.val;
 
-import java.util.Arrays;
 
-public class PosHashSet extends TLongHashSet {
-    private static final int MAX_FAST_CLEAR_LENGTH = 1_000_000;
-
-    private static final long[] EMPTY_SET = new long[MAX_FAST_CLEAR_LENGTH];
-    private static final byte[] EMPTY_STATES = new byte[MAX_FAST_CLEAR_LENGTH];
-
-    static {
-        Arrays.fill(EMPTY_SET, Constants.DEFAULT_LONG_NO_ENTRY_VALUE);
-        Arrays.fill(EMPTY_STATES, FREE);
-    }
+public final class PosHashSet extends TLongHashSet {
+//    private static final int MAX_FAST_CLEAR_LENGTH = 1_500_000;
+//
+//    private static final long[] EMPTY_SET = new long[MAX_FAST_CLEAR_LENGTH];
+//    private static final byte[] EMPTY_STATES = new byte[MAX_FAST_CLEAR_LENGTH];
+//
+//    static {
+//        Arrays.fill(EMPTY_SET, Constants.DEFAULT_LONG_NO_ENTRY_VALUE);
+//        Arrays.fill(EMPTY_STATES, FREE);
+//    }
 
     private static final int HASH_PRIME = 92821;
 
@@ -50,18 +49,24 @@ public class PosHashSet extends TLongHashSet {
     }
 
     public void resetQuick() {
-        val length = _set.length;
-        if (length > MAX_FAST_CLEAR_LENGTH) {
-            System.out.println("Failed quick reset!" + length);
-            clear();
-            return;
-        }
+//        val length = _set.length;
+//        if (length > MAX_FAST_CLEAR_LENGTH) {
+//            System.out.println("Failed quick reset!: " + length);
+//            clear();
+//            return;
+//        }
 
         _size = 0;
         _free = _states.length;
 
-        System.arraycopy(EMPTY_SET, 0, _set, 0, length);
-        System.arraycopy(EMPTY_STATES, 0, _states, 0, length);
+        UnsafeUtil.clearArray(_set);
+        UnsafeUtil.clearArray(_states);
+
+//        _set = new long[_set.length];
+//        _states = new byte[_states.length];
+
+//        System.arraycopy(EMPTY_SET, 0, _set, 0, length);
+//        System.arraycopy(EMPTY_STATES, 0, _states, 0, length);
     }
 
     protected int index(long val) {
