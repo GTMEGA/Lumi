@@ -789,11 +789,8 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             queue = skyLightUpdateQueue;
         }
 
-        if (queue.size() >= maxLightUpdates) {
-            if (!isClientSide)
-                LOG.warn("Force flushing queue for: {}", lightType);
+        if (queue.size() >= maxLightUpdates)
             processLightingUpdatesForType(lightType);
-        }
 
         queue.add(posLong);
     }

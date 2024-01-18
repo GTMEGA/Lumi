@@ -17,7 +17,6 @@
 
 package com.falsepattern.lumina.api.world;
 
-import com.falsepattern.lumina.api.cache.LumiBlockCacheRoot;
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import com.falsepattern.lumina.api.storage.LumiBlockStorageRoot;
 import net.minecraft.world.chunk.IChunkProvider;
@@ -41,6 +40,4 @@ public interface LumiWorldRoot extends LumiBlockStorageRoot {
     @Nullable LumiChunkRoot lumi$getChunkRootFromBlockPosIfExists(int posX, int posZ);
 
     @Nullable LumiChunkRoot lumi$getChunkRootFromChunkPosIfExists(int chunkPosX, int chunkPosZ);
-
-    @NotNull LumiBlockCacheRoot lumi$blockCacheRoot();
 }

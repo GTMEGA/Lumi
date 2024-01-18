@@ -17,8 +17,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
-import com.falsepattern.lumina.api.cache.LumiBlockCacheRoot;
-import com.falsepattern.lumina.api.chunk.LumiChunk;
+import com.falsepattern.lumina.api.storage.LumiBlockStorageRoot;
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.ChunkCache;
@@ -34,7 +33,7 @@ import static com.falsepattern.lumina.internal.mixin.plugin.MixinPlugin.LUMI_ROO
 
 @Unique
 @Mixin(value = ChunkCache.class, priority = LUMI_ROOT_IMPL_MIXIN_PRIORITY)
-public abstract class LumiBlockCacheRootImplMixin implements IBlockAccess, LumiBlockCacheRoot {
+public abstract class LumiBlockCacheRootImplMixin implements IBlockAccess, LumiBlockStorageRoot {
     // region Shadow
     @Shadow
     private World worldObj;
@@ -50,17 +49,6 @@ public abstract class LumiBlockCacheRootImplMixin implements IBlockAccess, LumiB
 
     @Shadow
     public abstract TileEntity getTileEntity(int posX, int posY, int posZ);
-    // endregion
-
-    // region Block Cache Root
-    @Override
-    public @NotNull String lumi$blockCacheRootID() {
-        return "lumi_block_cache_root";
-    }
-
-    @Override
-    public void lumi$prefetchChunk(@Nullable LumiChunk chunk) {}
-
     // endregion
 
     // region Block Storage Root

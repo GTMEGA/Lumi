@@ -173,17 +173,8 @@ public abstract class ChunkMixin {
      */
     @Overwrite
     public void enqueueRelightChecks() {
-//        LightingHooks.doRandomChunkLightingUpdates(thiz());
+        LightingHooks.doRandomChunkLightingUpdates(thiz());
     }
-
-//    @Inject(method = "populateChunk",
-//            at = @At(value = "INVOKE",
-//                     target = "Lnet/minecraft/world/chunk/IChunkProvider;populate(Lnet/minecraft/world/chunk/IChunkProvider;II)V",
-//                     shift = At.Shift.AFTER),
-//            require = 4)
-//    private void processBlockLightUpdatesPostGen(CallbackInfo cir) {
-//        LightingHooks.processLightingUpdatesForAllTypes(thiz());
-//    }
 
     private Chunk thiz() {
         return (Chunk) (Object) this;

@@ -17,10 +17,10 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
-import com.falsepattern.lumina.api.cache.LumiBlockCache;
-import com.falsepattern.lumina.api.cache.LumiBlockCacheRoot;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
+import com.falsepattern.lumina.api.storage.LumiBlockStorage;
+import com.falsepattern.lumina.api.storage.LumiBlockStorageRoot;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import lombok.val;
 import net.minecraft.block.Block;
@@ -45,7 +45,7 @@ import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 
 @Unique
 @Mixin(ChunkCache.class)
-public abstract class LumiBlockCacheImplMixin implements IBlockAccess, LumiBlockCache {
+public abstract class LumiBlockCacheImplMixin implements IBlockAccess, LumiBlockStorage {
     // region Shadow
     @Shadow
     private int chunkX;
@@ -59,7 +59,7 @@ public abstract class LumiBlockCacheImplMixin implements IBlockAccess, LumiBlock
     private World worldObj;
     // endregion
 
-    private LumiBlockCacheRoot lumi$root = null;
+    private LumiBlockStorageRoot lumi$root = null;
     private LumiWorld lumi$world = null;
 
     @Inject(method = LUMI_CHUNK_CACHE_INIT_HOOK_METHOD,
@@ -69,21 +69,9 @@ public abstract class LumiBlockCacheImplMixin implements IBlockAccess, LumiBlock
     @SuppressWarnings("CastToIncompatibleInterface")
     @Dynamic(LUMI_CHUNK_CACHE_INIT_HOOK_INFO)
     private void lumiBlockChunkCacheInit(CallbackInfo ci) {
-        this.lumi$root = (LumiBlockCacheRoot) this;
+        this.lumi$root = (LumiBlockStorageRoot) this;
         this.lumi$world = (LumiWorld) worldObj;
     }
-
-    // region Block Cache
-    @Override
-    public @NotNull LumiBlockCacheRoot lumi$root() {
-        return lumi$root;
-    }
-
-    @Override
-    public @NotNull String lumi$BlockCacheID() {
-        return "lumi_block_cache";
-    }
-    // endregion
 
     // region Block Storage
     @Override

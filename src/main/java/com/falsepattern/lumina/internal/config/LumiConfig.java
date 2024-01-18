@@ -20,7 +20,6 @@ package com.falsepattern.lumina.internal.config;
 import com.falsepattern.lib.config.Config;
 import com.falsepattern.lib.config.ConfigurationManager;
 import com.falsepattern.lumina.internal.Tags;
-import com.falsepattern.lumina.internal.cache.MultiHeadBlockCacheRoot;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
@@ -38,14 +37,10 @@ public final class LumiConfig {
     @Config.DefaultBoolean(true)
     public static boolean ENABLE_ILLEGAL_THREAD_ACCESS_WARNINGS;
 
-    @Config.Comment("Add extra caching to the lighting engine.\n" +
-                    "0 to disable\n" +
-                    "Causes a memory leak with threaded chunk rendering in FalseTweaks, so it's force-disabled if that feature is enabled.")
-    @Config.LangKey("config.lumina.cacheCount")
-    @Config.DefaultInt(0)
-    @Config.RangeInt(min = 0, max = MultiHeadBlockCacheRoot.MAX_MULTI_HEAD_CACHE_COUNT)
-    @Config.RequiresMcRestart
-    public static int CACHE_COUNT;
+    @Config.Comment("Random light updates are disabled by default, as the reference Phosphor implementation provided is more robust compared to vanilla.")
+    @Config.LangKey("config.lumina.doRandomLightUpdates")
+    @Config.DefaultBoolean(false)
+    public static boolean DO_RANDOM_LIGHT_UPDATES;
 
     static {
         ConfigurationManager.selfInit();

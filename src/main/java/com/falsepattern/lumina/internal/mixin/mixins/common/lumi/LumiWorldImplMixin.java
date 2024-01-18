@@ -18,7 +18,6 @@
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
 import com.falsepattern.lumina.api.LumiAPI;
-import com.falsepattern.lumina.api.cache.LumiBlockCache;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
@@ -57,7 +56,6 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
 
     private LumiWorldRoot lumi$root = null;
     private LumiLightingEngine lumi$lightingEngine = null;
-    private LumiBlockCache lumi$blockCache = null;
 
     @Inject(method = LUMI_WORLD_INIT_HOOK_METHOD,
             at = @At("RETURN"),
@@ -68,11 +66,8 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     private void lumiWorldInit(CallbackInfo ci) {
         this.lumi$root = (LumiWorldRoot) this;
 
-        if (DefaultWorldProvider.isRegistered()) {
-            val blockCacheRoot = lumi$root.lumi$blockCacheRoot();
-            this.lumi$blockCache = blockCacheRoot.lumi$createBlockCache(this);
+        if (DefaultWorldProvider.isRegistered())
             this.lumi$lightingEngine = LumiAPI.provideLightingEngine(this, theProfiler);
-        }
     }
 
     // region World
@@ -150,11 +145,6 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
             val subChunkPosZ = posZ & 15;
             chunk.lumi$setSkyLightValue(subChunkPosX, posY, subChunkPosZ, lightValue);
         }
-    }
-
-    @Override
-    public @NotNull LumiBlockCache lumi$blockCache() {
-        return lumi$blockCache;
     }
     // endregion
 

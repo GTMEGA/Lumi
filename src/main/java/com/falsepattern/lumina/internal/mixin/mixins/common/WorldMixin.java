@@ -21,43 +21,11 @@ import com.falsepattern.lumina.internal.mixin.hook.LightingHooks;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldProvider;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(World.class)
 public abstract class WorldMixin implements IBlockAccess {
-    @Final
-    @Shadow
-    public WorldProvider provider;
-
-    @Shadow
-    public abstract boolean canBlockSeeTheSky(int posX, int posY, int posZ);
-
-    @Inject(method = "tick",
-            at = @At("HEAD"),
-            require = 1)
-    private void clearWorldBlockCacheRoot(CallbackInfo ci) {
-        LightingHooks.clearWorldBlockCacheRoot(thiz());
-    }
-
-//    /**
-//     * @author Ven
-//     * @reason Optimise
-//     */
-//    @Overwrite(remap = false)
-//    public boolean func_147451_t(int posX, int posY, int posZ) {
-//        if (!this.provider.hasNoSky && canBlockSeeTheSky(posX, posY+1, posZ))
-//            LightingHooks.scheduleLightingUpdate(thiz(), SKY_LIGHT_TYPE, posX, posY, posZ);
-//        LightingHooks.scheduleLightingUpdate(thiz(), BLOCK_LIGHT_TYPE, posX, posY, posZ);
-//        return true;
-//    }
-
     /**
      * @author Ven
      * @reason Redirect into LUMINA

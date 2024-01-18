@@ -17,7 +17,6 @@
 
 package com.falsepattern.lumina.api.world;
 
-import com.falsepattern.lumina.api.cache.LumiBlockCache;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
@@ -49,6 +48,4 @@ public interface LumiWorld extends LumiBlockStorage {
     void lumi$setBlockLightValue(int posX, int posY, int posZ, int lightValue);
 
     void lumi$setSkyLightValue(int posX, int posY, int posZ, int lightValue);
-
-    @NotNull LumiBlockCache lumi$blockCache();
 }
