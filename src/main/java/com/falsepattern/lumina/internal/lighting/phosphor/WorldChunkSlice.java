@@ -19,38 +19,34 @@ package com.falsepattern.lumina.internal.lighting.phosphor;
 
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.world.LumiWorld;
+import lombok.val;
 
-import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorUtil.getLoadedChunk;
+import java.util.BitSet;
 
 final class WorldChunkSlice {
     private static final int DIAMETER = 5;
+    private static final int RADIUS = DIAMETER / 2;
 
+    private final LumiWorld world;
+
+    private final int minChunkPosX;
+    private final int minChunkPosZ;
+
+    private final BitSet checkedChunks;
     private final LumiChunk[] chunks;
 
-    private final int x, z;
+    WorldChunkSlice(LumiWorld world, int chunkPosX, int chunkPosZ) {
+        this.world = world;
 
-    WorldChunkSlice(LumiWorld world, int x, int z) {
+        this.minChunkPosX = chunkPosX - RADIUS;
+        this.minChunkPosZ = chunkPosZ - RADIUS;
+
+        this.checkedChunks = new BitSet(DIAMETER * DIAMETER);
         this.chunks = new LumiChunk[DIAMETER * DIAMETER];
-
-        int radius = DIAMETER / 2;
-
-        for (int xDiff = -radius; xDiff <= radius; xDiff++) {
-            for (int zDiff = -radius; zDiff <= radius; zDiff++) {
-                LumiChunk chunk = getLoadedChunk(world, x + xDiff, z + zDiff);
-                this.chunks[((xDiff + radius) * DIAMETER) + (zDiff + radius)] = chunk;
-            }
-        }
-
-        this.x = x - radius;
-        this.z = z - radius;
-    }
-
-    LumiChunk getChunk(int x, int z) {
-        return this.chunks[(x * DIAMETER) + z];
     }
 
     LumiChunk getChunkFromWorldCoords(int x, int z) {
-        return this.getChunk((x >> 4) - this.x, (z >> 4) - this.z);
+        return this.getChunk((x >> 4) - this.minChunkPosX, (z >> 4) - this.minChunkPosZ);
     }
 
     boolean isLoaded(int x, int z, int radius) {
@@ -58,10 +54,10 @@ final class WorldChunkSlice {
     }
 
     boolean isLoaded(int xStart, int zStart, int xEnd, int zEnd) {
-        xStart = (xStart >> 4) - this.x;
-        zStart = (zStart >> 4) - this.z;
-        xEnd = (xEnd >> 4) - this.x;
-        zEnd = (zEnd >> 4) - this.z;
+        xStart = (xStart >> 4) - this.minChunkPosX;
+        zStart = (zStart >> 4) - this.minChunkPosZ;
+        xEnd = (xEnd >> 4) - this.minChunkPosX;
+        zEnd = (zEnd >> 4) - this.minChunkPosZ;
 
         for (int i = xStart; i <= xEnd; ++i) {
             for (int j = zStart; j <= zEnd; ++j) {
@@ -72,5 +68,16 @@ final class WorldChunkSlice {
         }
 
         return true;
+    }
+
+    private LumiChunk getChunk(int x, int z) {
+        val index = (x * DIAMETER) + z;
+        if (checkedChunks.get(index))
+            return chunks[index];
+
+        val chunk = world.lumi$getChunkFromChunkPosIfExists(minChunkPosX + x, minChunkPosZ + z);
+        this.chunks[index] = chunk;
+        checkedChunks.set(index);
+        return chunk;
     }
 }

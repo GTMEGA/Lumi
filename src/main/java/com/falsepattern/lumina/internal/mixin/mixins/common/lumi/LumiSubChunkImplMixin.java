@@ -37,8 +37,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.nio.ByteBuffer;
 
-import static com.falsepattern.lumina.api.init.LumiExtendedBlockStorageInitHook.LUMI_EXTENDED_BLOCK_STORAGE_INIT_HOOK_METHOD;
 import static com.falsepattern.lumina.api.init.LumiExtendedBlockStorageInitHook.LUMI_EXTENDED_BLOCK_STORAGE_INIT_HOOK_INFO;
+import static com.falsepattern.lumina.api.init.LumiExtendedBlockStorageInitHook.LUMI_EXTENDED_BLOCK_STORAGE_INIT_HOOK_METHOD;
 
 @Unique
 @Mixin(ExtendedBlockStorage.class)

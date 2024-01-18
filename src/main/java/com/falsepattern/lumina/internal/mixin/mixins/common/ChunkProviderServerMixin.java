@@ -41,7 +41,7 @@ public abstract class ChunkProviderServerMixin {
             at = @At("HEAD"),
             require = 1)
     private void processLightUpdatesOnSave(boolean saveAll, IProgressUpdate progressUpdate, CallbackInfoReturnable<Boolean> cir) {
-        LightingHooks.processLightUpdates(worldObj);
+        LightingHooks.processLightingUpdatesForAllTypes(worldObj);
     }
 
     @Inject(method = "unloadQueuedChunks",
@@ -53,6 +53,6 @@ public abstract class ChunkProviderServerMixin {
         if (chunksToUnload.isEmpty())
             return;
 
-        LightingHooks.processLightUpdates(worldObj);
+        LightingHooks.processLightingUpdatesForAllTypes(worldObj);
     }
 }

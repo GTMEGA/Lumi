@@ -36,6 +36,6 @@ public abstract class S21PacketChunkDataMixin {
                                                      boolean hasSky,
                                                      int subChunkMask,
                                                      CallbackInfoReturnable<S21PacketChunkData.Extracted> cir) {
-        LightingHooks.processLightUpdates(chunkBase);
+        LightingHooks.processLightingUpdatesForAllTypes(chunkBase);
     }
 }

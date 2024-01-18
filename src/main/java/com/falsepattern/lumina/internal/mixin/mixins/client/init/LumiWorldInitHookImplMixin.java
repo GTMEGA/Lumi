@@ -18,6 +18,7 @@
 package com.falsepattern.lumina.internal.mixin.mixins.client.init;
 
 import com.falsepattern.lumina.api.init.LumiWorldInitHook;
+import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.world.World;
 import org.spongepowered.asm.lib.Opcodes;
@@ -35,6 +36,9 @@ public abstract class LumiWorldInitHookImplMixin implements LumiWorldInitHook {
     @Shadow
     public Profiler theProfiler;
 
+    @Shadow
+    public boolean isRemote;
+
     @Redirect(method = "<init>(" +
                        "Lnet/minecraft/world/storage/ISaveHandler;" +
                        "Ljava/lang/String;" +
@@ -49,6 +53,7 @@ public abstract class LumiWorldInitHookImplMixin implements LumiWorldInitHook {
               require = 1)
     private void lumiClientWorldBaseInit(World thiz, Profiler profiler) {
         this.theProfiler = profiler;
+        this.isRemote = thiz instanceof WorldClient;
         lumi$onWorldInit();
     }
 }

@@ -25,18 +25,18 @@ import cpw.mods.fml.relauncher.SideOnly;
 import lombok.experimental.UtilityClass;
 import lombok.val;
 import lombok.var;
-import org.jetbrains.annotations.NotNull;
-
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
 import static com.falsepattern.lumina.api.LumiAPI.lumiWorldsFromBaseWorld;
 import static cpw.mods.fml.relauncher.Side.CLIENT;
 
+@SuppressWarnings("ForLoopReplaceableByForEach")
 @UtilityClass
 public final class LightingHooks {
     private static final int DEFAULT_PRECIPITATION_HEIGHT = -999;
@@ -235,6 +235,14 @@ public final class LightingHooks {
                                               int posY,
                                               int posZ) {
         val lightType = LightType.of(baseLightType);
+        scheduleLightingUpdate(worldBase, lightType, posX, posY, posZ);
+    }
+
+    public static void scheduleLightingUpdate(World worldBase,
+                                              LightType lightType,
+                                              int posX,
+                                              int posY,
+                                              int posZ) {
         @NotNull LumiWorld[] lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
         for (int i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
             var world = lumiWorldsFromBaseWorld[i];
@@ -243,12 +251,12 @@ public final class LightingHooks {
         }
     }
 
-    public static void processLightUpdates(Chunk chunkBase) {
+    public static void processLightingUpdatesForAllTypes(Chunk chunkBase) {
         val worldBase = chunkBase.worldObj;
-        processLightUpdates(worldBase);
+        processLightingUpdatesForAllTypes(worldBase);
     }
 
-    public static void processLightUpdates(World worldBase) {
+    public static void processLightingUpdatesForAllTypes(World worldBase) {
         @NotNull LumiWorld[] lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
         for (int i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
             var world = lumiWorldsFromBaseWorld[i];

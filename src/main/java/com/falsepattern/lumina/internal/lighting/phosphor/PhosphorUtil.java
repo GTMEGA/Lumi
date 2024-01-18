@@ -35,6 +35,8 @@ import org.jetbrains.annotations.Nullable;
 import static com.falsepattern.lumina.api.lighting.LightType.BLOCK_LIGHT_TYPE;
 import static com.falsepattern.lumina.api.lighting.LightType.SKY_LIGHT_TYPE;
 import static com.falsepattern.lumina.internal.Share.LOG;
+import static com.falsepattern.lumina.internal.lighting.phosphor.Direction.HORIZONTAL_DIRECTIONS;
+import static com.falsepattern.lumina.internal.lighting.phosphor.Direction.HORIZONTAL_DIRECTIONS_SIZE;
 import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorChunk.LIGHT_CHECK_FLAGS_LENGTH;
 
 @UtilityClass
@@ -64,13 +66,15 @@ final class PhosphorUtil {
         return MathUtil.clamp(opacityValue, MIN_SKY_LIGHT_OPACITY, MAX_SKY_LIGHT_OPACITY);
     }
 
-    static void scheduleRelightChecksForChunkBoundaries(LumiWorld world, LumiChunk chunk) {
+    static boolean scheduleRelightChecksForChunkBoundaries(LumiWorld world, LumiChunk chunk) {
         val chunkBasePosX = chunk.lumi$chunkPosX();
         val chunkBasePosZ = chunk.lumi$chunkPosZ();
 
-        for (val direction : Direction.horizontalDirections()) {
-            val xOffset = direction.xOffset(); // -1, 0, +1
-            val zOffset = direction.zOffset(); // -1, 0, +1
+        var scheduledSkyLightUpdates = false;
+        for (int i = 0; i < HORIZONTAL_DIRECTIONS_SIZE; i++) {
+            val direction = HORIZONTAL_DIRECTIONS[i];
+            val xOffset = direction.xOffset; // -1, 0, +1
+            val zOffset = direction.zOffset; // -1, 0, +1
 
             val neighbourChunkPosX = chunkBasePosX + xOffset;
             val neighbourChunkPosZ = chunkBasePosZ + zOffset;
@@ -88,30 +92,31 @@ final class PhosphorUtil {
                     // Check everything that might have been canceled due to this chunk not being loaded.
                     // Also, pass in chunks if already known
                     // The boundary to the neighbor chunk (both ways)
-                    scheduleRelightChecksForBoundary(world, chunk, neighbourChunk, null, lightType, xOffset, zOffset, directionSign);
-                    scheduleRelightChecksForBoundary(world, neighbourChunk, chunk, null, lightType, -xOffset, -zOffset, directionSign);
-                    // The boundary to the diagonal neighbor (since the checks in that chunk were aborted if this chunk wasn't loaded, see scheduleRelightChecksForBoundary)
-                    scheduleRelightChecksForBoundary(world,
-                                                     neighbourChunk,
-                                                     null,
-                                                     chunk,
-                                                     lightType,
-                                                     zOffset != 0 ? directionSign.sign() : 0,
-                                                     xOffset != 0 ? directionSign.sign() : 0,
-                                                     DirectionSign.of(direction.opposite()));
+                    scheduledSkyLightUpdates =
+                            scheduleRelightChecksForBoundary(world, chunk, neighbourChunk, null, lightType, xOffset, zOffset, directionSign) ||
+                            scheduleRelightChecksForBoundary(world, neighbourChunk, chunk, null, lightType, -xOffset, -zOffset, directionSign) ||
+                            // The boundary to the diagonal neighbor (since the checks in that chunk were aborted if this chunk wasn't loaded, see scheduleRelightChecksForBoundary)
+                            scheduleRelightChecksForBoundary(world,
+                                                             neighbourChunk,
+                                                             null,
+                                                             chunk,
+                                                             lightType,
+                                                             zOffset != 0 ? directionSign.sign() : 0,
+                                                             xOffset != 0 ? directionSign.sign() : 0,
+                                                             DirectionSign.of(direction.opposite()));
                 }
             }
         }
+        return scheduledSkyLightUpdates;
     }
 
     static boolean isChunkFullyLit(LumiWorld world, LumiChunk chunk, Profiler profiler) {
-        if (!chunk.lumi$isLightingInitialized()) {
+        if (!chunk.lumi$isLightingInitialized())
             if (!initChunkLighting(world, chunk, profiler))
                 return false;
-        }
 
-        for (int zOffset = -1; zOffset <= 1; ++zOffset) {
-            for (int xOffset = -1; xOffset <= 1; ++xOffset) {
+        for (var zOffset = -1; zOffset <= 1; ++zOffset) {
+            for (var xOffset = -1; xOffset <= 1; ++xOffset) {
                 if (xOffset == 0 && zOffset == 0)
                     continue;
 
@@ -135,7 +140,8 @@ final class PhosphorUtil {
 
         val flagList = new NBTTagList();
         var flagsSet = false;
-        for (val flag : flags) {
+        for (var i = 0; i < LIGHT_CHECK_FLAGS_LENGTH; i++) {
+            val flag = flags[i];
             val flagTag = new NBTTagShort(flag);
             flagList.appendTag(flagTag);
             if (flag != 0)
@@ -157,9 +163,9 @@ final class PhosphorUtil {
         val list = input.getTagList(NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME, 2);
         if (list.tagCount() != LIGHT_CHECK_FLAGS_LENGTH) {
             LOG.warn("Chunk field {} had invalid length, ignoring it (chunk coordinates: {} {})",
-                           NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME,
-                           lumiChunk.lumi$chunkPosX(),
-                           lumiChunk.lumi$chunkPosZ());
+                     NEIGHBOR_LIGHT_CHECKS_NBT_TAG_NAME,
+                     lumiChunk.lumi$chunkPosX(),
+                     lumiChunk.lumi$chunkPosZ());
             return;
         }
 
@@ -225,9 +231,10 @@ final class PhosphorUtil {
         if (flags == 0)
             return;
 
-        for (val direction : Direction.horizontalDirections()) {
-            val xOffset = direction.xOffset();
-            val zOffset = direction.zOffset();
+        for (int i = 0; i < HORIZONTAL_DIRECTIONS_SIZE; i++) {
+            val direction = HORIZONTAL_DIRECTIONS[i];
+            val xOffset = direction.xOffset;
+            val zOffset = direction.zOffset;
             val chunkPosX = chunk.lumi$chunkPosX() + xOffset;
             val chunkPosZ = chunk.lumi$chunkPosZ() + zOffset;
 
@@ -259,29 +266,11 @@ final class PhosphorUtil {
         }
     }
 
-    private static void doRecheckGaps(LumiChunk chunk, Profiler profiler) {
-        val world = chunk.lumi$world();
-        val worldRoot = world.lumi$root();
-
+    private static void doRecheckGaps(LumiChunk chunk, WorldChunkSlice slice, Profiler profiler) {
         profiler.startSection("recheckGaps");
-        profilerSection:
-        {
-            val chunkPosX = chunk.lumi$chunkPosX();
-            val chunkPosZ = chunk.lumi$chunkPosZ();
-
-            val centerPosX = (chunkPosX * 16) + 8;
-            val centerPosY = 0;
-            val centerPosZ = (chunkPosZ * 16) + 8;
-            val blockRange = 16;
-
-            val slice = new WorldChunkSlice(world, chunkPosX, chunkPosZ);
-            if (!worldRoot.lumi$doChunksExistInRange(centerPosX, centerPosY, centerPosZ, blockRange))
-                break profilerSection;
-
-            for (int subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++)
-                for (int subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++)
-                    recheckGapsForColumn(chunk, slice, subChunkPosX, subChunkPosZ);
-        }
+        for (int subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++)
+            for (int subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++)
+                recheckGapsForColumn(chunk, slice, subChunkPosX, subChunkPosZ);
         profiler.endSection();
     }
 
@@ -303,9 +292,10 @@ final class PhosphorUtil {
 
     private static int recheckGapsGetLowestHeight(WorldChunkSlice slice, int posX, int posZ) {
         var minPosY = Integer.MAX_VALUE;
-        for (val direction : Direction.horizontalDirections()) {
-            val neighbourPosX = posX + direction.xOffset();
-            val neighbourPosZ = posZ + direction.zOffset();
+        for (var i = 0; i < HORIZONTAL_DIRECTIONS_SIZE; i++) {
+            val direction = HORIZONTAL_DIRECTIONS[i];
+            val neighbourPosX = posX + direction.xOffset;
+            val neighbourPosZ = posZ + direction.zOffset;
             val chunk = slice.getChunkFromWorldCoords(neighbourPosX, neighbourPosZ);
 
             minPosY = Math.min(minPosY, chunk.lumi$minSkyLightHeight());
@@ -320,9 +310,10 @@ final class PhosphorUtil {
                                                           int height,
                                                           int max) {
         checkSkylightNeighborHeight(chunk, slice, posX, posZ, max);
-        for (val direction : Direction.horizontalDirections()) {
-            val neighbourPosX = posX + direction.xOffset();
-            val neighbourPosZ = posZ + direction.zOffset();
+        for (var i = 0; i < HORIZONTAL_DIRECTIONS_SIZE; i++) {
+            val direction = HORIZONTAL_DIRECTIONS[i];
+            val neighbourPosX = posX + direction.xOffset;
+            val neighbourPosZ = posZ + direction.zOffset;
             checkSkylightNeighborHeight(chunk, slice, neighbourPosX, neighbourPosZ, height);
         }
     }
@@ -394,16 +385,16 @@ final class PhosphorUtil {
         // no need to call Chunk.setModified() since checks are not deleted from outChunk
     }
 
-    private static void scheduleRelightChecksForBoundary(LumiWorld world,
-                                                         LumiChunk lumiChunk,
-                                                         LumiChunk lumiNChunk,
-                                                         LumiChunk lumiSChunk,
-                                                         LightType lightType,
-                                                         int xOffset,
-                                                         int zOffset,
-                                                         DirectionSign directionSign) {
+    private static boolean scheduleRelightChecksForBoundary(LumiWorld world,
+                                                            LumiChunk lumiChunk,
+                                                            LumiChunk lumiNChunk,
+                                                            LumiChunk lumiSChunk,
+                                                            LightType lightType,
+                                                            int xOffset,
+                                                            int zOffset,
+                                                            DirectionSign directionSign) {
         if (!(lumiChunk instanceof PhosphorChunk))
-            return;
+            return false;
         val chunk = (PhosphorChunk) lumiChunk;
         val flags = chunk.phosphor$lightCheckFlags();
 
@@ -412,7 +403,7 @@ final class PhosphorUtil {
         val flag = flags[inFlagIndex];
 
         if (flag == 0)
-            return;
+            return false;
 
         val chunkBasePosX = lumiChunk.lumi$chunkPosX();
         val chunkBasePosZ = lumiChunk.lumi$chunkPosZ();
@@ -422,7 +413,7 @@ final class PhosphorUtil {
             val chunkPosZ = chunkBasePosZ + zOffset;
             lumiNChunk = getLoadedChunk(world, chunkPosX, chunkPosZ);
             if (lumiNChunk == null)
-                return;
+                return false;
         }
 
         if (lumiSChunk == null) {
@@ -431,11 +422,11 @@ final class PhosphorUtil {
 
             lumiSChunk = getLoadedChunk(world, chunkPosX, chunkPosZ);
             if (lumiSChunk == null)
-                return;
+                return false;
         }
 
         if (!(lumiNChunk instanceof PhosphorChunk))
-            return;
+            return false;
         val nChunk = (PhosphorChunk) lumiNChunk;
         val nFlags = nChunk.phosphor$lightCheckFlags();
 
@@ -471,6 +462,7 @@ final class PhosphorUtil {
         val maxPosX = (7 * (zOffset & 1)) + minPosX;
         val maxPosZ = (7 * (xOffset & 1)) + minPosZ;
 
+        var scheduledSkyLightUpdates = false;
         for (var chunkPosY = 0; chunkPosY < 16; chunkPosY++) {
             if ((flag & (1 << chunkPosY)) != 0) {
                 val minPosY = chunkPosY * 16;
@@ -482,16 +474,18 @@ final class PhosphorUtil {
                                                               maxPosX,
                                                               maxPosY,
                                                               maxPosZ);
+                scheduledSkyLightUpdates = true;
             }
         }
+        return scheduledSkyLightUpdates;
     }
 
     private static int getFlagIndex(LightType lightType,
                                     Direction direction,
                                     DirectionSign directionSign,
                                     FacingDirection facingDirection) {
-        val xOffset = direction.xOffset();
-        val zOffset = direction.zOffset();
+        val xOffset = direction.xOffset;
+        val zOffset = direction.zOffset;
         return getFlagIndex(lightType, xOffset, zOffset, directionSign, facingDirection);
     }
 
@@ -524,22 +518,21 @@ final class PhosphorUtil {
     }
 
     private static boolean initChunkLighting(LumiWorld world, LumiChunk chunk, Profiler profiler) {
-        val basePosX = chunk.lumi$chunkPosX() << 4;
-        val basePosZ = chunk.lumi$chunkPosZ() << 4;
+        val chunkPosX = chunk.lumi$chunkPosX();
+        val chunkPosZ = chunk.lumi$chunkPosZ();
 
-        val minPosX = basePosX - 16;
-        val minPosY = 0;
-        val minPosZ = basePosZ - 16;
+        val basePosX = chunkPosX << 4;
+        val basePosZ = chunkPosZ << 4;
 
-        val maxPosX = basePosX + 31;
-        val maxPosY = 255;
-        val maxPosZ = basePosZ + 31;
+        val centerPosX = basePosX + 8;
+        val centerPosZ = basePosZ + 8;
 
-        if (!world.lumi$root().lumi$doChunksExistInRange(minPosX, minPosY, minPosZ, maxPosX, maxPosY, maxPosZ))
+        val slice = new WorldChunkSlice(world, chunkPosX, chunkPosZ);
+        if (!slice.isLoaded(centerPosX, centerPosZ, 16))
             return false;
 
         val lightingEngine = world.lumi$lightingEngine();
-        val blockCache = world.lumi$blockCache();
+        var scheduledBlockUpdate = false;
         for (var chunkPosY = 0; chunkPosY < 16; chunkPosY++) {
             val subChunk = chunk.lumi$getSubChunkIfPrepared(chunkPosY);
             if (subChunk == null)
@@ -552,26 +545,27 @@ final class PhosphorUtil {
                 for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
                     for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
                         val block = subChunkRoot.lumi$getBlock(subChunkPosX, subChunkPosY, subChunkPosZ);
-                        val blockMeta = subChunkRoot.lumi$getBlockMeta(subChunkPosX, subChunkPosY, subChunkPosZ);
-
-                        val posX = basePosX + subChunkPosX;
-                        val posY = basePosY + subChunkPosY;
-                        val posZ = basePosZ + subChunkPosZ;
-                        val brightness = world.lumi$getBlockBrightness(block, blockMeta, posX, posY, posZ);
-                        if (brightness > 0)
+                        val brightness = block.getLightValue();
+                        if (brightness > 0) {
+                            val posX = basePosX + subChunkPosX;
+                            val posY = basePosY + subChunkPosY;
+                            val posZ = basePosZ + subChunkPosZ;
                             lightingEngine.scheduleLightingUpdate(BLOCK_LIGHT_TYPE, posX, posY, posZ);
+                            scheduledBlockUpdate = true;
+                        }
                     }
                 }
             }
         }
+        if (scheduledBlockUpdate)
+            lightingEngine.processLightingUpdatesForType(BLOCK_LIGHT_TYPE);
 
         if (world.lumi$root().lumi$hasSky()) {
             chunk.lumi$resetOutdatedHeightFlags();
-            doRecheckGaps(chunk, profiler);
+            doRecheckGaps(chunk, slice, profiler);
         }
 
         chunk.lumi$isLightingInitialized(true);
-        lightingEngine.processLightingUpdatesForType(BLOCK_LIGHT_TYPE);
         return true;
     }
 }

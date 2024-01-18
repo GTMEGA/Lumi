@@ -17,20 +17,9 @@
 
 package com.falsepattern.lumina.internal.lighting.phosphor;
 
-import lombok.Getter;
-import lombok.experimental.Accessors;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.common.util.ForgeDirection;
-import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static lombok.AccessLevel.PACKAGE;
-
-@Getter(PACKAGE)
-@Accessors(fluent = true, chain = false)
 enum Direction {
     // @formatter:off
     DOWN(   ForgeDirection.DOWN,    EnumFacing.DOWN),
@@ -43,22 +32,23 @@ enum Direction {
     // @formatter:on
     ;
 
-    private static final List<Direction> VALID_DIRECTIONS;
-    private static final List<Direction> HORIZONTAL_DIRECTIONS;
-    private static final List<Direction> VERTICAL_DIRECTIONS;
+    static final Direction[] VALID_DIRECTIONS;
+    static final Direction[] HORIZONTAL_DIRECTIONS;
+
+    static final int VALID_DIRECTIONS_SIZE = 6;
+    static final int HORIZONTAL_DIRECTIONS_SIZE = 4;
 
     static {
-        VALID_DIRECTIONS = Collections.unmodifiableList(Arrays.asList(DOWN, UP, NORTH, SOUTH, EAST, WEST));
-        HORIZONTAL_DIRECTIONS = Collections.unmodifiableList(Arrays.asList(NORTH, SOUTH, EAST, WEST));
-        VERTICAL_DIRECTIONS = Collections.unmodifiableList(Arrays.asList(DOWN, UP));
+        VALID_DIRECTIONS = new Direction[]{DOWN, UP, NORTH, SOUTH, EAST, WEST};
+        HORIZONTAL_DIRECTIONS = new Direction[]{NORTH, SOUTH, EAST, WEST};
     }
 
-    private final ForgeDirection forgeDirection;
-    private final EnumFacing baseFacing;
+    final ForgeDirection forgeDirection;
+    final EnumFacing baseFacing;
 
-    private final int xOffset;
-    private final int yOffset;
-    private final int zOffset;
+    final int xOffset;
+    final int yOffset;
+    final int zOffset;
 
     Direction(ForgeDirection forgeDirection, EnumFacing baseFacing) {
         this.forgeDirection = forgeDirection;
@@ -110,18 +100,6 @@ enum Direction {
             default:
                 return UNKNOWN;
         }
-    }
-
-    public static @Unmodifiable List<Direction> validDirections() {
-        return VALID_DIRECTIONS;
-    }
-
-    public static @Unmodifiable List<Direction> horizontalDirections() {
-        return HORIZONTAL_DIRECTIONS;
-    }
-
-    public static @Unmodifiable List<Direction> verticalDirections() {
-        return VERTICAL_DIRECTIONS;
     }
 
     private static Direction opposite(Direction direction) {

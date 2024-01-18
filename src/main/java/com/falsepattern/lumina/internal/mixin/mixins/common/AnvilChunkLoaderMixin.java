@@ -32,6 +32,6 @@ public abstract class AnvilChunkLoaderMixin {
             at = @At("HEAD"),
             require = 1)
     private void processLightUpdatesOnSave(World worldBase, Chunk chunkBase, CallbackInfo callbackInfo) {
-        LightingHooks.processLightUpdates(worldBase);
+        LightingHooks.processLightingUpdatesForAllTypes(worldBase);
     }
 }

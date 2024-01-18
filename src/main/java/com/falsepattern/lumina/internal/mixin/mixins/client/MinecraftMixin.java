@@ -55,6 +55,6 @@ public abstract class MinecraftMixin {
                      shift = At.Shift.AFTER),
             require = 1)
     private void updateClientLighting(CallbackInfo ci) {
-        LightingHooks.processLightUpdates(theWorld);
+        LightingHooks.processLightingUpdatesForAllTypes(theWorld);
     }
 }
