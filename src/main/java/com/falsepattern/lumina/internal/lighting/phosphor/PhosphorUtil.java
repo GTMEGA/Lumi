@@ -538,17 +538,15 @@ final class PhosphorUtil {
             if (subChunk == null)
                 continue;
 
-            val subChunkRoot = subChunk.lumi$root();
-
             val basePosY = chunkPosY * 16;
             for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
                 for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {
                     for (var subChunkPosX = 0; subChunkPosX < 16; subChunkPosX++) {
-                        val block = subChunkRoot.lumi$getBlock(subChunkPosX, subChunkPosY, subChunkPosZ);
-                        val brightness = block.getLightValue();
-                        if (brightness > 0) {
+                        val posY = basePosY + subChunkPosY;
+
+                        val brightness = chunk.lumi$getBlockBrightness(subChunkPosX, posY, subChunkPosZ);
+                        if (brightness > MIN_LIGHT_VALUE) {
                             val posX = basePosX + subChunkPosX;
-                            val posY = basePosY + subChunkPosY;
                             val posZ = basePosZ + subChunkPosZ;
                             lightingEngine.scheduleLightingUpdate(BLOCK_LIGHT_TYPE, posX, posY, posZ);
                             scheduledBlockUpdate = true;

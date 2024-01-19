@@ -108,7 +108,8 @@ public abstract class LumiWorldRootImplMixin implements IBlockAccess, LumiWorldR
 
     @Override
     public void lumi$markBlockForRenderUpdate(int posX, int posY, int posZ) {
-        func_147479_m(posX, posY, posZ);
+        if (isRemote)
+            func_147479_m(posX, posY, posZ);
     }
 
     @Override

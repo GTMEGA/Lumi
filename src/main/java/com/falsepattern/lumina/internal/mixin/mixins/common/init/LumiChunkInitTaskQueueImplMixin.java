@@ -18,6 +18,8 @@
 package com.falsepattern.lumina.internal.mixin.mixins.common.init;
 
 import com.falsepattern.lumina.api.init.LumiChunkInitTaskQueue;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectList;
 import net.minecraft.world.chunk.Chunk;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -25,13 +27,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Unique
 @Mixin(Chunk.class)
 public abstract class LumiChunkInitTaskQueueImplMixin implements LumiChunkInitTaskQueue {
-    private List<Runnable> lumina$taskQueue;
+    private ObjectList<Runnable> lumina$taskQueue;
 
     @Inject(method = "onChunkLoad",
             at = @At(value = "INVOKE",
@@ -45,7 +44,7 @@ public abstract class LumiChunkInitTaskQueueImplMixin implements LumiChunkInitTa
     @Override
     public void lumi$addInitTask(Runnable task) {
         if (lumina$taskQueue == null)
-            lumina$taskQueue = new ArrayList<>();
+            lumina$taskQueue = new ObjectArrayList<>();
         lumina$taskQueue.add(task);
     }
 
