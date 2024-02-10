@@ -21,6 +21,7 @@ import com.falsepattern.chunk.api.ArrayUtil;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunkRoot;
 import com.falsepattern.lumina.api.lighting.LightType;
+import com.falsepattern.lumina.internal.ArrayHelper;
 import lombok.val;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.NibbleArray;
@@ -35,6 +36,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import net.minecraftforge.common.util.Constants;
+
 import java.nio.ByteBuffer;
 
 import static com.falsepattern.lumina.api.init.LumiExtendedBlockStorageInitHook.LUMI_EXTENDED_BLOCK_STORAGE_INIT_HOOK_INFO;
@@ -43,6 +46,7 @@ import static com.falsepattern.lumina.api.init.LumiExtendedBlockStorageInitHook.
 @Unique
 @Mixin(ExtendedBlockStorage.class)
 public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
+    @Nullable
     @Shadow
     private NibbleArray blocklightArray;
     @Shadow
@@ -74,23 +78,38 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
 
     @Override
     public void lumi$writeToNBT(@NotNull NBTTagCompound output) {
-        output.setByteArray(BLOCK_LIGHT_NBT_TAG_NAME, blocklightArray.data);
+        if (blocklightArray != null)
+            output.setByteArray(BLOCK_LIGHT_NBT_TAG_NAME, blocklightArray.data);
         if (skylightArray != null)
             output.setByteArray(SKY_LIGHT_NBT_TAG_NAME, skylightArray.data);
     }
 
     @Override
     public void lumi$readFromNBT(@NotNull NBTTagCompound input) {
-        if (input.hasKey(BLOCK_LIGHT_NBT_TAG_NAME, 7)) {
+        if (input.hasKey(BLOCK_LIGHT_NBT_TAG_NAME, Constants.NBT.TAG_BYTE_ARRAY)) {
             val blockLightBytes = input.getByteArray(BLOCK_LIGHT_NBT_TAG_NAME);
-            if (blockLightBytes.length == 2048)
+            if (ArrayHelper.isZero(blockLightBytes)) {
+                blocklightArray = null;
+            } else if (blocklightArray == null) {
+                blocklightArray = new NibbleArray(blockLightBytes, 4);
+            } else {
                 System.arraycopy(blockLightBytes, 0, blocklightArray.data, 0, 2048);
+            }
+        } else {
+            blocklightArray = null;
         }
 
-        if (skylightArray != null && input.hasKey(SKY_LIGHT_NBT_TAG_NAME, 7)) {
+        if (input.hasKey(SKY_LIGHT_NBT_TAG_NAME, Constants.NBT.TAG_BYTE_ARRAY)) {
             val skyLightBytes = input.getByteArray(SKY_LIGHT_NBT_TAG_NAME);
-            if (skyLightBytes.length == 2048)
+            if (ArrayHelper.isZero(skyLightBytes)) {
+                skylightArray = null;
+            } else if (skylightArray == null) {
+                skylightArray = new NibbleArray(skyLightBytes, 4);
+            } else {
                 System.arraycopy(skyLightBytes, 0, skylightArray.data, 0, 2048);
+            }
+        } else {
+            skylightArray = null;
         }
     }
 
@@ -102,16 +121,41 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
 
     @Override
     public void lumi$writeToPacket(@NotNull ByteBuffer output) {
-        output.put(blocklightArray.data);
+        if (blocklightArray != null && ArrayHelper.isZero(blocklightArray.data))
+            blocklightArray = null;
+        if (skylightArray != null && ArrayHelper.isZero(skylightArray.data))
+            skylightArray = null;
+
+        byte flag = (byte) ((blocklightArray != null ? 1 : 0) | (skylightArray != null ? 2 : 0));
+        output.put(flag);
+        if (blocklightArray != null)
+            output.put(blocklightArray.data);
         if (skylightArray != null)
             output.put(skylightArray.data);
     }
 
     @Override
     public void lumi$readFromPacket(@NotNull ByteBuffer input) {
-        input.get(blocklightArray.data);
-        if (skylightArray != null)
+        byte flag = input.get();
+        boolean doBlock = (flag & 1) != 0;
+        boolean doSky = (flag & 2) != 0;
+
+        if (doBlock) {
+            if (blocklightArray == null) {
+                blocklightArray = new NibbleArray(4096, 4);
+            }
+            input.get(blocklightArray.data);
+        } else {
+            blocklightArray = null;
+        }
+        if (doSky) {
+            if (skylightArray == null) {
+                skylightArray = new NibbleArray(4096, 4);
+            }
             input.get(skylightArray.data);
+        } else {
+            skylightArray = null;
+        }
     }
 
     @Override
@@ -149,25 +193,41 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
 
     @Override
     public void lumi$setBlockLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue) {
+        if (blocklightArray == null) {
+            if (lightValue == 0)
+                return;
+
+            blocklightArray = new NibbleArray(4096, 4);
+        }
+
         blocklightArray.set(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
     }
 
     @Override
     public int lumi$getBlockLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ) {
+        if (blocklightArray == null)
+            return 0;
+
         return blocklightArray.get(subChunkPosX, subChunkPosY, subChunkPosZ);
     }
 
     @Override
     public void lumi$setSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue) {
-        if (skylightArray != null)
-            skylightArray.set(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+        if (skylightArray == null) {
+            if (lightValue == 0)
+                return;
+            skylightArray = new NibbleArray(4096, 4);
+        }
+
+        skylightArray.set(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
     }
 
     @Override
     public int lumi$getSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ) {
-        if (skylightArray != null)
-            return skylightArray.get(subChunkPosX, subChunkPosY, subChunkPosZ);
-        return 0;
+        if (skylightArray == null)
+            return 0;
+
+        return skylightArray.get(subChunkPosX, subChunkPosY, subChunkPosZ);
     }
 
     @Override
