@@ -17,6 +17,8 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import lombok.val;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.chunk.NibbleArray;
@@ -28,6 +30,10 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import static com.falsepattern.lumina.internal.util.LazyUtil.ensurePresent;
+import static com.falsepattern.lumina.internal.util.LazyUtil.lazyGet;
+import static com.falsepattern.lumina.internal.util.LazyUtil.lazySet;
 
 @Mixin(ExtendedBlockStorage.class)
 public abstract class ExtendedBlockStorageMixin {
@@ -42,6 +48,61 @@ public abstract class ExtendedBlockStorageMixin {
     private boolean lumi$isDirty;
     @Unique
     private boolean lumi$isTrivial;
+
+    @WrapOperation(method = "<init>",
+                   at = @At(value = "NEW",
+                            target = "(II)Lnet/minecraft/world/chunk/NibbleArray;",
+                            ordinal = 1),
+                   require = 1)
+    private NibbleArray noBlocklightArray(int p_i1992_1_, int p_i1992_2_, Operation<NibbleArray> original) {
+        return null;
+    }
+
+    @WrapOperation(method = "<init>",
+                   at = @At(value = "NEW",
+                            target = "(II)Lnet/minecraft/world/chunk/NibbleArray;",
+                            ordinal = 2),
+                   require = 1)
+    private NibbleArray noSkylightArray(int p_i1992_1_, int p_i1992_2_, Operation<NibbleArray> original) {
+        return null;
+    }
+
+
+    /**
+     * @author FalsePattern
+     * @reason Lazy init compat
+     */
+    @Overwrite
+    public NibbleArray getBlocklightArray() {
+        return blocklightArray = ensurePresent(blocklightArray);
+    }
+
+    /**
+     * @author FalsePattern
+     * @reason Lazy init compat
+     */
+    @Overwrite
+    public int getExtBlocklightValue(int x, int y, int z) {
+        return lazyGet(blocklightArray, x, y, z);
+    }
+
+    /**
+     * @author FalsePattern
+     * @reason Lazy init compat
+     */
+    @Overwrite
+    public NibbleArray getSkylightArray() {
+        return skylightArray = ensurePresent(skylightArray);
+    }
+
+    /**
+     * @author FalsePattern
+     * @reason Lazy init compat
+     */
+    @Overwrite
+    public int getExtSkylightValue(int x, int y, int z) {
+        return lazyGet(skylightArray, x, y, z);
+    }
 
     @Inject(method = "<init>*",
             at = @At(value = "RETURN",
@@ -58,8 +119,9 @@ public abstract class ExtendedBlockStorageMixin {
      */
     @Overwrite
     public void setExtSkylightValue(int posX, int posY, int posZ, int lightValue) {
-        skylightArray.set(posX, posY, posZ, lightValue);
-        lumi$isDirty = true;
+        skylightArray = lazySet(skylightArray, posX, posY, posZ, lightValue);
+        if (skylightArray != null)
+            lumi$isDirty = true;
     }
 
     /**
@@ -68,8 +130,9 @@ public abstract class ExtendedBlockStorageMixin {
      */
     @Overwrite
     public void setExtBlocklightValue(int posX, int posY, int posZ, int lightValue) {
-        blocklightArray.set(posX, posY, posZ, lightValue);
-        lumi$isDirty = true;
+        blocklightArray = lazySet(blocklightArray, posX, posY, posZ, lightValue);
+        if (skylightArray != null)
+            lumi$isDirty = true;
     }
 
     /**
