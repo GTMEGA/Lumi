@@ -29,6 +29,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static com.falsepattern.lumina.internal.util.LazyUtil.ensurePresent;
@@ -49,22 +50,40 @@ public abstract class ExtendedBlockStorageMixin {
     @Unique
     private boolean lumi$isTrivial;
 
-    @WrapOperation(method = "<init>",
+    private static final NibbleArray DUMMY = new NibbleArray(new byte[0], 4);
+
+    @Redirect(method = "<init>",
                    at = @At(value = "NEW",
                             target = "(II)Lnet/minecraft/world/chunk/NibbleArray;",
                             ordinal = 1),
                    require = 1)
-    private NibbleArray noBlocklightArray(int p_i1992_1_, int p_i1992_2_, Operation<NibbleArray> original) {
-        return null;
+    private NibbleArray noBlocklightArray(int p_i1992_1_, int p_i1992_2_) {
+        return DUMMY;
     }
 
-    @WrapOperation(method = "<init>",
+    @Redirect(method = "<init>",
+              at = @At(value = "FIELD",
+                       target = "Lnet/minecraft/world/chunk/storage/ExtendedBlockStorage;blocklightArray:Lnet/minecraft/world/chunk/NibbleArray;"),
+              require = 1)
+    private void noPutBlockLight(ExtendedBlockStorage instance, NibbleArray value) {
+
+    }
+
+    @Redirect(method = "<init>",
                    at = @At(value = "NEW",
                             target = "(II)Lnet/minecraft/world/chunk/NibbleArray;",
                             ordinal = 2),
                    require = 1)
-    private NibbleArray noSkylightArray(int p_i1992_1_, int p_i1992_2_, Operation<NibbleArray> original) {
-        return null;
+    private NibbleArray noSkylightArray(int p_i1992_1_, int p_i1992_2_) {
+        return DUMMY;
+    }
+
+    @Redirect(method = "<init>",
+              at = @At(value = "FIELD",
+                       target = "Lnet/minecraft/world/chunk/storage/ExtendedBlockStorage;skylightArray:Lnet/minecraft/world/chunk/NibbleArray;"),
+              require = 1)
+    private void noPutSkyLight(ExtendedBlockStorage instance, NibbleArray value) {
+
     }
 
 
