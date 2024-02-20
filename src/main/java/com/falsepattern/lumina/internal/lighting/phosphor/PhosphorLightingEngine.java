@@ -37,6 +37,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.profiler.Profiler;
+import net.minecraft.world.chunk.Chunk;
+
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -314,8 +316,11 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     }
 
     @Override
-    public int getCurrentLightValueUncached(@NotNull LightType lightType, int posX, int posY, int posZ) {
-        return clampLightValue(world.lumi$getLightValue(lightType, posX, posY, posZ));
+    public int getCurrentLightValueChunk(@NotNull Chunk chunk, @NotNull LightType lightType, int chunkPosX, int posY, int chunkPosZ) {
+        if (THREAD_ALLOWED_TO_RELIGHT.get()) {
+            processLightingUpdatesForType(lightType);
+        }
+        return clampLightValue(world.lumi$getLightValueChunk(world.lumi$wrap(chunk), lightType, chunkPosX, posY, chunkPosZ));
     }
 
     @Override

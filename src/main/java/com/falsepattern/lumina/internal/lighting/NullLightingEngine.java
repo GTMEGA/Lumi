@@ -24,6 +24,8 @@ import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import lombok.NoArgsConstructor;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.chunk.Chunk;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
@@ -88,7 +90,7 @@ public final class NullLightingEngine implements LumiLightingEngine {
     public int getCurrentLightValue(@NotNull LightType lightType, int posX, int posY, int posZ) {return 0;}
 
     @Override
-    public int getCurrentLightValueUncached(@NotNull LightType lightType, int posX, int posY, int posZ) {
+    public int getCurrentLightValueChunk(@NotNull Chunk chunk, @NotNull LightType lightType, int chunkPosX, int posY, int chunkPosZ) {
         return 0;
     }
 

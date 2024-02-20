@@ -17,9 +17,12 @@
 
 package com.falsepattern.lumina.api.storage;
 
+import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import net.minecraft.block.Block;
+import net.minecraft.world.chunk.Chunk;
+
 import org.jetbrains.annotations.NotNull;
 
 public interface LumiBlockStorage {
@@ -36,6 +39,8 @@ public interface LumiBlockStorage {
     int lumi$getLightValue(int posX, int posY, int posZ);
 
     int lumi$getLightValue(@NotNull LightType lightType, int posX, int posY, int posZ);
+
+    int lumi$getLightValueChunk(@NotNull LumiChunk chunk, @NotNull LightType lightType, int subchunkPosX, int posY, int subchunkPosZ);
 
     int lumi$getBlockLightValue(int posX, int posY, int posZ);
 

@@ -22,6 +22,8 @@ import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.chunk.Chunk;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
@@ -66,7 +68,7 @@ public interface LumiLightingEngine {
 
     int getCurrentLightValue(@NotNull LightType lightType, int posX, int posY, int posZ);
 
-    int getCurrentLightValueUncached(@NotNull LightType lightType, int posX, int posY, int posZ);
+    int getCurrentLightValueChunk(@NotNull Chunk chunk, @NotNull LightType lightType, int chunkPosX, int posY, int chunkPosZ);
 
     boolean isChunkFullyLit(@NotNull LumiChunk chunk);
 

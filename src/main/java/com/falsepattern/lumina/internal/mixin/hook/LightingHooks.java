@@ -46,15 +46,13 @@ public final class LightingHooks {
                                            int subChunkPosZ) {
         val worldBase = chunkBase.worldObj;
         val lightType = LightType.of(baseLightType);
-        val posX = (chunkBase.xPosition << 4) + subChunkPosX;
-        val posZ = (chunkBase.zPosition << 4) + subChunkPosZ;
 
         var maxLightValue = 0;
         val lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
         for (int i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
             val world = lumiWorldsFromBaseWorld[i];
             val lightingEngine = world.lumi$lightingEngine();
-            val lightValue = lightingEngine.getCurrentLightValue(lightType, posX, posY, posZ);
+            val lightValue = lightingEngine.getCurrentLightValueChunk(chunkBase, lightType, subChunkPosX, posY, subChunkPosZ);
             maxLightValue = Math.max(maxLightValue, lightValue);
         }
         return maxLightValue;
@@ -67,15 +65,13 @@ public final class LightingHooks {
                                                    int subChunkPosZ) {
         val worldBase = chunkBase.worldObj;
         val lightType = LightType.of(baseLightType);
-        val posX = (chunkBase.xPosition << 4) + subChunkPosX;
-        val posZ = (chunkBase.zPosition << 4) + subChunkPosZ;
 
         var maxLightValue = 0;
         val lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
         for (int i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
             val world = lumiWorldsFromBaseWorld[i];
             val lightingEngine = world.lumi$lightingEngine();
-            val lightValue = lightingEngine.getCurrentLightValueUncached(lightType, posX, posY, posZ);
+            val lightValue = lightingEngine.getCurrentLightValueChunk(chunkBase, lightType, subChunkPosX, posY, subChunkPosZ);
             maxLightValue = Math.max(maxLightValue, lightValue);
         }
         return maxLightValue;

@@ -19,6 +19,7 @@ package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
 import com.falsepattern.lumina.api.LumiAPI;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
+import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
@@ -197,9 +198,14 @@ public abstract class LumiWorldImplMixin implements IBlockAccess, LumiWorld {
     @Override
     public int lumi$getLightValue(@NotNull LightType lightType, int posX, int posY, int posZ) {
         val chunk = lumi$getChunkFromBlockPosIfExists(posX, posZ);
+        return lumi$getLightValueChunk(chunk, lightType, posX, posY, posZ);
+    }
+
+    @Override
+    public int lumi$getLightValueChunk(@Nullable LumiChunk chunk, @NotNull LightType lightType, int subchunkPosX, int posY, int subchunkPosZ) {
         if (chunk != null) {
-            val subChunkPosX = posX & 15;
-            val subChunkPosZ = posZ & 15;
+            val subChunkPosX = subchunkPosX & 15;
+            val subChunkPosZ = subchunkPosZ & 15;
             return chunk.lumi$getLightValue(lightType, subChunkPosX, posY, subChunkPosZ);
         }
 
