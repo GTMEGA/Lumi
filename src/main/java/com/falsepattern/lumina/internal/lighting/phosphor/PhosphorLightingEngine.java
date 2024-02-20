@@ -320,7 +320,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         if (THREAD_ALLOWED_TO_RELIGHT.get()) {
             processLightingUpdatesForType(lightType);
         }
-        return clampLightValue(world.lumi$getLightValueChunk(world.lumi$wrap(chunk), lightType, chunkPosX, posY, chunkPosZ));
+        return clampLightValue(world.lumi$getLightValue(world.lumi$wrap(chunk), lightType, chunkPosX, posY, chunkPosZ));
     }
 
     @Override

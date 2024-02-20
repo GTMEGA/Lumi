@@ -17,6 +17,7 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
+import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import com.falsepattern.lumina.api.storage.LumiBlockStorageRoot;
 import net.minecraft.block.Block;
@@ -61,6 +62,8 @@ public abstract class LumiBlockCacheRootImplMixin implements IBlockAccess, LumiB
     @Shadow private int chunkZ;
 
     @Shadow private Chunk[][] chunkArray;
+
+    @Shadow private boolean isEmpty;
 
     // region Block Storage Root
     @Override
@@ -107,16 +110,27 @@ public abstract class LumiBlockCacheRootImplMixin implements IBlockAccess, LumiB
 
     @Override
     public @Nullable LumiChunkRoot lumi$getChunkRootFromChunkPosIfExists(int chunkPosX, int chunkPosZ) {
-        int posX = chunkPosX - this.chunkX;
-        int posZ = chunkPosX - this.chunkZ;
-        if (posX < 0 || posZ < 0 || posX >= chunkArray.length)
-            return null;
-        val row = chunkArray[posX];
-        if (posZ >= row.length)
-            return null;
-        val chunk = row[posZ];
-        if (chunk instanceof LumiChunkRoot && !(chunk instanceof EmptyChunk))
-            return (LumiChunkRoot) chunk;
+        checks:
+        {
+            if (isEmpty)
+                break checks;
+
+            val xChunkIndex = chunkPosX - chunkX;
+            val zChunkIndex = chunkPosZ - chunkZ;
+
+            if (xChunkIndex < 0 || xChunkIndex >= chunkArray.length)
+                break checks;
+
+            val zChunkArray = chunkArray[xChunkIndex];
+            if (zChunkArray == null)
+                break checks;
+            if (zChunkIndex < 0 || zChunkIndex >= zChunkArray.length)
+                break checks;
+
+            val chunkBase = zChunkArray[zChunkIndex];
+            if (chunkBase instanceof LumiChunkRoot && !(chunkBase instanceof EmptyChunk))
+                return (LumiChunkRoot) chunkBase;
+        }
         return null;
     }
 

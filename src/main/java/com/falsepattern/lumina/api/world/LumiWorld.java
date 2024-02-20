@@ -37,15 +37,23 @@ public interface LumiWorld extends LumiBlockStorage {
 
     @NotNull LumiSubChunk lumi$wrap(@NotNull ExtendedBlockStorage subChunkBase);
 
-    @Nullable LumiChunk lumi$getChunkFromBlockPosIfExists(int posX, int posZ);
-
-    @Nullable LumiChunk lumi$getChunkFromChunkPosIfExists(int chunkPosX, int chunkPosZ);
-
     @NotNull LumiLightingEngine lumi$lightingEngine();
 
-    void lumi$setLightValue(@NotNull LightType lightType, int posX, int posY, int posZ, int lightValue);
+    default void lumi$setLightValue(@NotNull LightType lightType, int posX, int posY, int posZ, int lightValue) {
+        lumi$setLightValue(lumi$getChunkFromBlockPosIfExists(posX, posZ), lightType, posX, posY, posZ, lightValue);
+    }
 
-    void lumi$setBlockLightValue(int posX, int posY, int posZ, int lightValue);
+    void lumi$setLightValue(@Nullable LumiChunk chunk, @NotNull LightType lightType, int posX, int posY, int posZ, int lightValue);
 
-    void lumi$setSkyLightValue(int posX, int posY, int posZ, int lightValue);
+    default void lumi$setBlockLightValue(int posX, int posY, int posZ, int lightValue) {
+        lumi$setBlockLightValue(lumi$getChunkFromBlockPosIfExists(posX, posZ), posX, posY, posZ, lightValue);
+    }
+
+    void lumi$setBlockLightValue(@Nullable LumiChunk chunk, int posX, int posY, int posZ, int lightValue);
+
+    default void lumi$setSkyLightValue(int posX, int posY, int posZ, int lightValue) {
+        lumi$setSkyLightValue(lumi$getChunkFromBlockPosIfExists(posX, posZ), posX, posY, posZ, lightValue);
+    }
+
+    void lumi$setSkyLightValue(@Nullable LumiChunk chunk, int posX, int posY, int posZ, int lightValue);
 }
