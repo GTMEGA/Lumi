@@ -17,12 +17,17 @@
 
 package com.falsepattern.lumina.internal.mixin.mixins.common.lumi;
 
+import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import com.falsepattern.lumina.api.storage.LumiBlockStorageRoot;
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.EmptyChunk;
+
+import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -50,6 +55,12 @@ public abstract class LumiBlockCacheRootImplMixin implements IBlockAccess, LumiB
     @Shadow
     public abstract TileEntity getTileEntity(int posX, int posY, int posZ);
     // endregion
+
+    @Shadow private int chunkX;
+
+    @Shadow private int chunkZ;
+
+    @Shadow private Chunk[][] chunkArray;
 
     // region Block Storage Root
     @Override
@@ -86,5 +97,28 @@ public abstract class LumiBlockCacheRootImplMixin implements IBlockAccess, LumiB
     public @Nullable TileEntity lumi$getTileEntity(int posX, int posY, int posZ) {
         return getTileEntity(posX, posY, posZ);
     }
+
+    @Override
+    public @Nullable LumiChunkRoot lumi$getChunkRootFromBlockPosIfExists(int posX, int posZ) {
+        val chunkPosX = posX >> 4;
+        val chunkPosZ = posZ >> 4;
+        return lumi$getChunkRootFromChunkPosIfExists(chunkPosX, chunkPosZ);
+    }
+
+    @Override
+    public @Nullable LumiChunkRoot lumi$getChunkRootFromChunkPosIfExists(int chunkPosX, int chunkPosZ) {
+        int posX = chunkPosX - this.chunkX;
+        int posZ = chunkPosX - this.chunkZ;
+        if (posX < 0 || posZ < 0 || posX >= chunkArray.length)
+            return null;
+        val row = chunkArray[posX];
+        if (posZ >= row.length)
+            return null;
+        val chunk = row[posZ];
+        if (chunk instanceof LumiChunkRoot && !(chunk instanceof EmptyChunk))
+            return (LumiChunkRoot) chunk;
+        return null;
+    }
+
     // endregion
 }

@@ -19,6 +19,8 @@ package com.falsepattern.lumina.api.storage;
 
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
+
+import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,4 +38,8 @@ public interface LumiBlockStorageRoot {
     boolean lumi$isAirBlock(int posX, int posY, int posZ);
 
     @Nullable TileEntity lumi$getTileEntity(int posX, int posY, int posZ);
+
+    @Nullable LumiChunkRoot lumi$getChunkRootFromBlockPosIfExists(int posX, int posZ);
+
+    @Nullable LumiChunkRoot lumi$getChunkRootFromChunkPosIfExists(int chunkPosX, int chunkPosZ);
 }
