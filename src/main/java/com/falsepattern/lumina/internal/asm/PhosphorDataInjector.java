@@ -24,6 +24,8 @@ import net.minecraft.launchwrapper.IClassTransformer;
 import net.minecraft.launchwrapper.Launch;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.GeneratorAdapter;
@@ -31,6 +33,8 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.function.Supplier;
 
 import static com.falsepattern.lumina.internal.LUMINA.createLogger;
 import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorChunk.LIGHT_CHECK_FLAGS_LENGTH;
@@ -40,15 +44,20 @@ import static org.objectweb.asm.Type.*;
 public final class PhosphorDataInjector implements IClassTransformer {
     private static final Logger LOG = createLogger("Phosphor Data Injector");
 
+    private static final HashMap<String, TriState> MEMOIZED_CLASSES = new HashMap<>(1024, 0.2f);
+
     @Override
     public byte @Nullable [] transform(String name, String transformedName, byte @Nullable [] classBytes) {
         if (name.startsWith("com.falsepattern.lumina"))
             return classBytes;
+        if (classBytes == null)
+            return null;
         try {
-            if (!isValidTarget(classBytes))
+            val cr = new ClassReader(classBytes);
+            if (isValidTarget(cr, transformedName.replace('.', '/')) != TriState.VALID)
                 return classBytes;
 
-            val transformedBytes = implementInterface(classBytes);
+            val transformedBytes = implementInterface(cr);
             LOG.info("Injected Phosphor Data into: {}", name);
             return transformedBytes;
         } catch (Throwable ignored) {
@@ -57,59 +66,95 @@ public final class PhosphorDataInjector implements IClassTransformer {
         return classBytes;
     }
 
-    private static boolean isValidTarget(byte @Nullable [] classBytes) {
-        if (classBytes == null)
-            return false;
+    @Contract("_,_->param2")
+    private static TriState memoize(String className, TriState state) {
+        MEMOIZED_CLASSES.put(className, state);
+        return state;
+    }
 
+    private static TriState isValidTarget(ClassReader cr, String className) {
         {
-            val cr = new ClassReader(classBytes);
             val access = cr.getAccess();
             if ((access & Opcodes.ACC_INTERFACE) != 0 ||
                 (access & Opcodes.ACC_ABSTRACT) != 0)
-                return false;
+                return TriState.INVALID;
         }
 
-        val classStack = new ArrayDeque<byte[]>();
-        classStack.push(classBytes);
+        return isTarget(() -> cr, className);
+    }
 
-        var isTarget = false;
-        while (!classStack.isEmpty()) {
-            val currentClassBytes = classStack.pop();
-            val cr = new ClassReader(currentClassBytes);
+    private enum TriState {
+        VALID,
+        INVALID,
+        ALREADY_IMPLEMENTED
+    }
 
-            val interfaces = cr.getInterfaces();
-            for (val interfaceName : interfaces) {
-                if (!isTarget && "com/falsepattern/lumina/api/chunk/LumiChunk".equals(interfaceName)) {
-                    isTarget = true;
-                    continue;
-                }
+    private static @NotNull TriState isTarget(Supplier<ClassReader> scr, String className) {
+        if (MEMOIZED_CLASSES.containsKey(className)) {
+            return MEMOIZED_CLASSES.get(className);
+        }
+        TriState myState = TriState.INVALID;
+        val cr = scr.get();
+        if (cr == null)
+            return TriState.INVALID;
+        val interfaces = cr.getInterfaces();
+        loop:
+        for (val interfaceName : interfaces) {
+            if (myState != TriState.VALID && "com/falsepattern/lumina/api/chunk/LumiChunk".equals(interfaceName)) {
+                myState = TriState.VALID;
+                continue;
+            }
 
-                if ("com/falsepattern/lumina/internal/lighting/phosphor/PhosphorChunk".equals(interfaceName))
-                    return false;
+            if ("com/falsepattern/lumina/internal/lighting/phosphor/PhosphorChunk".equals(interfaceName)) {
+                myState = TriState.ALREADY_IMPLEMENTED;
+                break;
+            }
 
+
+            val interfaceState = isTarget(() -> {
                 try {
                     val in = Launch.classLoader.getResourceAsStream(interfaceName + ".class");
                     if (in != null)
-                        classStack.push(IOUtils.toByteArray(in));
+                        return new ClassReader(IOUtils.toByteArray(in));
                 } catch (IOException ignored) {
                 }
-            }
-
-            val superName = cr.getSuperName();
-            if (superName != null && !"java/lang/Object".equals(superName)) {
-                try {
-                    val in = Launch.classLoader.getResourceAsStream(superName + ".class");
-                    if (in != null)
-                        classStack.push(IOUtils.toByteArray(in));
-                } catch (IOException ignored) {
+                return null;
+            }, interfaceName);
+            switch (interfaceState) {
+                case ALREADY_IMPLEMENTED: {
+                    myState = TriState.ALREADY_IMPLEMENTED;
+                    break loop;
+                }
+                case VALID: {
+                    myState = TriState.VALID;
+                    break;
                 }
             }
         }
+        if (myState == TriState.ALREADY_IMPLEMENTED)
+            return memoize(className, myState);
 
-        return isTarget;
+
+        val superName = cr.getSuperName();
+        if (superName != null && !"java/lang/Object".equals(superName)) {
+            val superState = isTarget(() -> {
+                try {
+                    val in = Launch.classLoader.getResourceAsStream(superName + ".class");
+                    if (in != null)
+                        return new ClassReader(IOUtils.toByteArray(in));
+                } catch (IOException ignored) {
+                }
+                return null;
+            }, superName);
+            if (superState != TriState.INVALID) {
+                myState = superState;
+            }
+        }
+
+        return memoize(className, myState);
     }
 
-    private static byte[] implementInterface(byte[] classBytes) {
+    private static byte[] implementInterface(ClassReader cr) {
         val fieldType = getType(short[].class);
         val fieldDesc = fieldType.getDescriptor();
         val getterDesc = getMethodDescriptor(fieldType);
@@ -122,7 +167,6 @@ public final class PhosphorDataInjector implements IClassTransformer {
 
         val fieldInitSize = LIGHT_CHECK_FLAGS_LENGTH;
 
-        val cr = new ClassReader(classBytes);
         val cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 
         val injectedInterface = "com/falsepattern/lumina/internal/lighting/phosphor/PhosphorChunk";
