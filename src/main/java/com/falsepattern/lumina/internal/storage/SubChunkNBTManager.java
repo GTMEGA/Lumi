@@ -115,9 +115,12 @@ public final class SubChunkNBTManager implements DataManager.SubChunkDataManager
         if (accumulator == null)
             return Arrays.copyOf(data, data.length);
 
-        for (int i = 0; i < accumulator.length; i++) {
-            accumulator[i] = (byte) ((Math.max((accumulator[i] >>> 4) & 0xF, (data[i] >>> 4) & 0xF) << 4) |
-                                     (Math.max( accumulator[i]        & 0xF,  data[i]        & 0xF)     ));
+        int length = accumulator.length;
+        for (int i = 0; i < length; i++) {
+            int aI = accumulator[i];
+            int dI = data[i];
+            accumulator[i] = (byte) ((Math.max((aI >>> 4) & 0xF, (dI >>> 4) & 0xF) << 4) |
+                                     (Math.max( aI        & 0xF,  dI        & 0xF)     ));
         }
         return accumulator;
     }
