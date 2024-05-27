@@ -17,10 +17,13 @@
 
 package com.falsepattern.lumina.internal.asm;
 
+import com.falsepattern.lib.turboasm.ClassNodeHandle;
+import com.falsepattern.lib.turboasm.TurboClassTransformer;
+import com.falsepattern.lumina.internal.Tags;
+import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.val;
-import lombok.var;
-import net.minecraft.launchwrapper.IClassTransformer;
+
 import net.minecraft.launchwrapper.Launch;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;
@@ -29,9 +32,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.*;
 import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.tree.AnnotationNode;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldInsnNode;
+import org.objectweb.asm.tree.FieldNode;
+import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.IntInsnNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.VarInsnNode;
 
 import java.io.IOException;
-import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.function.Supplier;
@@ -41,29 +53,44 @@ import static com.falsepattern.lumina.internal.lighting.phosphor.PhosphorChunk.L
 import static org.objectweb.asm.Type.*;
 
 @NoArgsConstructor
-public final class PhosphorDataInjector implements IClassTransformer {
+public final class PhosphorDataInjector implements TurboClassTransformer {
     private static final Logger LOG = createLogger("Phosphor Data Injector");
 
     private static final HashMap<String, TriState> MEMOIZED_CLASSES = new HashMap<>(1024, 0.2f);
 
     @Override
-    public byte @Nullable [] transform(String name, String transformedName, byte @Nullable [] classBytes) {
-        if (name.startsWith("com.falsepattern.lumina"))
-            return classBytes;
-        if (classBytes == null)
-            return null;
-        try {
-            val cr = new ClassReader(classBytes);
-            if (isValidTarget(cr, transformedName.replace('.', '/')) != TriState.VALID)
-                return classBytes;
+    public String owner() {
+        return Tags.MOD_NAME;
+    }
 
-            val transformedBytes = implementInterface(cr);
-            LOG.info("Injected Phosphor Data into: {}", name);
-            return transformedBytes;
+    @Override
+    public String name() {
+        return "PhosphorDataInjector";
+    }
+
+    @Override
+    public boolean shouldTransformClass(@NotNull String className, @NotNull ClassNodeHandle classNode) {
+        return !className.startsWith("com.falsepattern.lumina");
+    }
+
+    @Override
+    public boolean transformClass(@NotNull String className, @NotNull ClassNodeHandle classNode) {
+        val cn = classNode.getNode();
+        if (cn == null)
+            return false;
+
+        try {
+
+            if (isValidTarget(cn, className.replace('.', '/')) != TriState.VALID)
+                return false;
+
+            implementInterface(cn);
+            LOG.info("Injected Phosphor Data into: {}", className);
+            return true;
         } catch (Throwable ignored) {
             LOG.warn("I'm so sorry");
         }
-        return classBytes;
+        return false;
     }
 
     @Contract("_,_->param2")
@@ -72,15 +99,15 @@ public final class PhosphorDataInjector implements IClassTransformer {
         return state;
     }
 
-    private static TriState isValidTarget(ClassReader cr, String className) {
+    private static TriState isValidTarget(ClassNode cn, String className) {
         {
-            val access = cr.getAccess();
+            val access = cn.access;
             if ((access & Opcodes.ACC_INTERFACE) != 0 ||
                 (access & Opcodes.ACC_ABSTRACT) != 0)
                 return TriState.INVALID;
         }
 
-        return isTarget(() -> cr, className);
+        return isTarget(() -> new MiniMeta(cn.interfaces.toArray(new String[0]), cn.superName), className);
     }
 
     private enum TriState {
@@ -89,15 +116,19 @@ public final class PhosphorDataInjector implements IClassTransformer {
         ALREADY_IMPLEMENTED
     }
 
-    private static @NotNull TriState isTarget(Supplier<ClassReader> scr, String className) {
+    @AllArgsConstructor
+    private static class MiniMeta {
+        String[] interfaces;
+        String superName;
+    }
+
+    private static @NotNull TriState isTarget(Supplier<MiniMeta> miniMeta, String className) {
         if (MEMOIZED_CLASSES.containsKey(className)) {
             return MEMOIZED_CLASSES.get(className);
         }
         TriState myState = TriState.INVALID;
-        val cr = scr.get();
-        if (cr == null)
-            return TriState.INVALID;
-        val interfaces = cr.getInterfaces();
+        val mm = miniMeta.get();
+        val interfaces = mm.interfaces;
         loop:
         for (val interfaceName : interfaces) {
             if (myState != TriState.VALID && "com/falsepattern/lumina/api/chunk/LumiChunk".equals(interfaceName)) {
@@ -114,8 +145,10 @@ public final class PhosphorDataInjector implements IClassTransformer {
             val interfaceState = isTarget(() -> {
                 try {
                     val in = Launch.classLoader.getResourceAsStream(interfaceName + ".class");
-                    if (in != null)
-                        return new ClassReader(IOUtils.toByteArray(in));
+                    if (in != null) {
+                        val cr = new ClassReader(IOUtils.toByteArray(in));
+                        return new MiniMeta(cr.getInterfaces(), cr.getSuperName());
+                    }
                 } catch (IOException ignored) {
                 }
                 return null;
@@ -135,13 +168,15 @@ public final class PhosphorDataInjector implements IClassTransformer {
             return memoize(className, myState);
 
 
-        val superName = cr.getSuperName();
+        val superName = mm.superName;
         if (superName != null && !"java/lang/Object".equals(superName)) {
             val superState = isTarget(() -> {
                 try {
                     val in = Launch.classLoader.getResourceAsStream(superName + ".class");
-                    if (in != null)
-                        return new ClassReader(IOUtils.toByteArray(in));
+                    if (in != null) {
+                        val cr = new ClassReader(IOUtils.toByteArray(in));
+                        return new MiniMeta(cr.getInterfaces(), cr.getSuperName());
+                    }
                 } catch (IOException ignored) {
                 }
                 return null;
@@ -154,7 +189,7 @@ public final class PhosphorDataInjector implements IClassTransformer {
         return memoize(className, myState);
     }
 
-    private static byte[] implementInterface(ClassReader cr) {
+    private static void implementInterface(ClassNode cn) {
         val fieldType = getType(short[].class);
         val fieldDesc = fieldType.getDescriptor();
         val getterDesc = getMethodDescriptor(fieldType);
@@ -167,81 +202,40 @@ public final class PhosphorDataInjector implements IClassTransformer {
 
         val fieldInitSize = LIGHT_CHECK_FLAGS_LENGTH;
 
-        val cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        val targetClass = cn.name;
 
         val injectedInterface = "com/falsepattern/lumina/internal/lighting/phosphor/PhosphorChunk";
-        val targetClass = cr.getClassName();
-        val cv = new ClassVisitor(Opcodes.ASM5, cw) {
-            @Override
-            public void visit(int version,
-                              int access,
-                              String name,
-                              String signature,
-                              String superName,
-                              String[] interfaces) {
-                // Here we add the interface to the existing interfaces.
-                val newInterfaces = Arrays.copyOf(interfaces, interfaces.length + 1);
-                newInterfaces[interfaces.length] = injectedInterface;
-                super.visit(version, access, name, signature, superName, newInterfaces);
-
-                // Add the field to the class
-                val fv = cv.visitField(fieldAcc, fieldName, fieldDesc, null, null);
-                if (fv != null)
-                    fv.visitEnd();
-            }
-
-            @Override
-            public MethodVisitor visitMethod(int access,
-                                             String name,
-                                             String descriptor,
-                                             String signature,
-                                             String[] exceptions) {
-                val mv = super.visitMethod(access, name, descriptor, signature, exceptions);
-                // Look for the constructor
-                if ("<init>".equals(name)) {
-                    return new GeneratorAdapter(Opcodes.ASM5, mv, access, name, descriptor) {
-                        @Override
-                        public void visitInsn(int opcode) {
-                            // Look for the return
-                            if (opcode == Opcodes.RETURN) {
-                                // Init the field before each constructor return
-                                this.visitVarInsn(Opcodes.ALOAD, 0);
-                                this.visitIntInsn(Opcodes.BIPUSH, fieldInitSize);
-                                this.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_SHORT);
-                                this.visitFieldInsn(Opcodes.PUTFIELD, targetClass, fieldName, fieldDesc);
-                            }
-                            super.visitInsn(opcode);
-                        }
-                    };
+        cn.interfaces.add(injectedInterface);
+        cn.fields.add(new FieldNode(fieldAcc, fieldName, fieldDesc, null, null));
+        for (val method: cn.methods) {
+            if ("<init>".equals(method.name)) {
+                val insnIter = method.instructions.iterator();
+                while (insnIter.hasNext()) {
+                    val insn = insnIter.next();
+                    if (insn.getOpcode() == Opcodes.RETURN) {
+                        insnIter.previous();
+                        insnIter.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                        insnIter.add(new IntInsnNode(Opcodes.BIPUSH, fieldInitSize));
+                        insnIter.add(new IntInsnNode(Opcodes.NEWARRAY, Opcodes.T_SHORT));
+                        insnIter.add(new FieldInsnNode(Opcodes.PUTFIELD, targetClass, fieldName, fieldDesc));
+                        insnIter.next();
+                    }
                 }
-                return mv;
             }
+        }
 
-            @Override
-            public void visitEnd() {
-                // Once at the end of the class, add the getter method
-                val mv = cv.visitMethod(getterAcc,
-                                        getterName,
-                                        getterDesc,
-                                        null,
-                                        null);
-                // Add the @Override annotation for clarity.
-                val av = mv.visitAnnotation(getDescriptor(Override.class), true);
-                if (av != null)
-                    av.visitEnd();
+        val getter = new MethodNode(getterAcc, getterName, getterDesc, null, null);
+        cn.methods.add(getter);
 
-                // Make the getter return our field
-                mv.visitCode();
-                mv.visitVarInsn(Opcodes.ALOAD, 0);
-                mv.visitFieldInsn(Opcodes.GETFIELD, targetClass, fieldName, fieldDesc);
-                mv.visitInsn(Opcodes.ARETURN);
-                mv.visitMaxs(0, 0);
-                mv.visitEnd();
-                super.visitEnd();
-            }
-        };
-        cr.accept(cv, 0);
+        if (getter.visibleAnnotations == null) {
+            getter.visibleAnnotations = new ArrayList<>(1);
+        }
+        getter.visibleAnnotations.add(new AnnotationNode(getDescriptor(Override.class)));
 
-        return cw.toByteArray();
+        getter.instructions.add(new VarInsnNode(Opcodes.ALOAD, 0));
+        getter.instructions.add(new FieldInsnNode(Opcodes.GETFIELD, targetClass, fieldName, fieldDesc));
+        getter.instructions.add(new InsnNode(Opcodes.ARETURN));
+        getter.maxLocals = 1;
+        getter.maxStack = 1;
     }
 }

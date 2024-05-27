@@ -13,8 +13,8 @@ def deobfCurse(curseDep) {
 
 dependencies {
     // FalsePattern Lib
-    compileOnlyApi("com.falsepattern:falsepatternlib-mc1.7.10:1.0.0:api")
-    runtimeOnly("com.falsepattern:falsepatternlib-mc1.7.10:1.0.0:dev")
+    compileOnlyApi("com.falsepattern:falsepatternlib-mc1.7.10:1.2.1:api")
+    runtimeOnly("com.falsepattern:falsepatternlib-mc1.7.10:1.2.1:dev")
 
     // fastutil
     compileOnly("it.unimi.dsi:fastutil:8.5.12")

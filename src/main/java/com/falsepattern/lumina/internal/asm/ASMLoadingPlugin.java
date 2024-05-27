@@ -18,6 +18,8 @@
 package com.falsepattern.lumina.internal.asm;
 
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
+
+import com.falsepattern.lumina.internal.Tags;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +36,7 @@ import static cpw.mods.fml.relauncher.IFMLLoadingPlugin.*;
 public final class ASMLoadingPlugin implements IFMLLoadingPlugin {
     @Override
     public String[] getASMTransformerClass() {
-        return new String[]{PhosphorDataInjector.class.getName()};
+        return new String[]{Tags.GROUPNAME + ".internal.asm.LuminaClassTransformer"};
     }
 
     @Override
