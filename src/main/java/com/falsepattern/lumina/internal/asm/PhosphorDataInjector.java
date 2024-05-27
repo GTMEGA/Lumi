@@ -128,6 +128,8 @@ public final class PhosphorDataInjector implements TurboClassTransformer {
         }
         TriState myState = TriState.INVALID;
         val mm = miniMeta.get();
+        if (mm == null)
+            return TriState.INVALID;
         val interfaces = mm.interfaces;
         loop:
         for (val interfaceName : interfaces) {
