@@ -63,8 +63,8 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
     /**
      * Maximum scheduled lighting updates before processing the updates is forced.
      */
-    private static final int MAX_SCHEDULED_BLOCK_LIGHT_UPDATES_SERVER = 1 << 18;
-    private static final int MAX_SCHEDULED_SKY_LIGHT_UPDATES_SERVER = 1 << 18;
+    private static final int MAX_SCHEDULED_BLOCK_LIGHT_UPDATES_SERVER = 1 << 14;
+    private static final int MAX_SCHEDULED_SKY_LIGHT_UPDATES_SERVER = 1 << 14;
     private static final int MAX_SCHEDULED_BLOCK_LIGHT_UPDATES_CLIENT = 1 << 10;
     private static final int MAX_SCHEDULED_SKY_LIGHT_UPDATES_CLIENT = 1 << 10;
 
