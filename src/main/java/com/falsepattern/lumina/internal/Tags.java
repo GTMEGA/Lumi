@@ -28,7 +28,7 @@ public final class Tags {
 
     public static final String MINECRAFT_VERSION = "[1.7.10]";
     public static final String DEPENDENCIES = "required-after:chunkapi@[0.5.0,0.6.0);" +
-                                              "required-after:falsepatternlib@[1.0.0,);" +
+                                              "required-after:falsepatternlib@[1.2.0,);" +
                                               "after:falsetweaks;";
     public static final String GUI_FACTORY_PATH = GROUPNAME + ".internal.config.LumiGuiFactory";
 }
