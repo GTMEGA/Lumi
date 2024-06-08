@@ -1,7 +1,5 @@
 # LUMINA
 
-<a rel="forthebadge" href="https://forthebadge.com"><img alt="YOU DIDN'T | ASK FOR THIS" style="height:40px" src="https://cdn.discordapp.com/attachments/648723216747069441/1140469225190854737/you-didnt-ask-for-this.svg" /></a>
-<a rel="forthebadge" href="https://forthebadge.com"><img alt="POWERED BY | BLACK MAGIC" style="height:40px" src="https://cdn.discordapp.com/attachments/648723216747069441/1140469225497055232/powered-by-black-magic.svg" /></a>
 <a rel="license" href="https://www.gnu.org/licenses/lgpl-3.0.en.html#license-text"><img alt="LGPLv3" style="height:40px" src="https://cdn.discordapp.com/attachments/648723216747069441/1140482016438141028/LGPLv3_Logo.svg" /></a>
 
 A full replacement of the Minecraft lighting engine with an extendable API, shipping
