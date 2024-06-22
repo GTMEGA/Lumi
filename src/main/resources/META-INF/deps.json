@@ -5,14 +5,12 @@
     ],
     "dependencies": {
         "always": {
-            "common": [
-                "it.unimi.dsi:fastutil:8.5.12"
-            ],
+            "common": [],
             "client": [],
             "server": []
         },
         "obf": {
-            "common": [],
+            "common": ["it.unimi.dsi:fastutil:8.5.13"],
             "client": [],
             "server": []
         },

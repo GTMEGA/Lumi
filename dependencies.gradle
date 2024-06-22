@@ -12,27 +12,20 @@ def deobfCurse(curseDep) {
 }
 
 dependencies {
-    // FalsePattern Lib
-    compileOnlyApi("com.falsepattern:falsepatternlib-mc1.7.10:1.2.1:api")
-    runtimeOnly("com.falsepattern:falsepatternlib-mc1.7.10:1.2.1:dev")
+    compileOnly("org.jetbrains:annotations:24.1.0")
+    compileOnly("org.projectlombok:lombok:1.18.32")
+    annotationProcessor("org.projectlombok:lombok:1.18.32")
 
-    // fastutil
-    compileOnly("it.unimi.dsi:fastutil:8.5.12")
+    implementation("it.unimi.dsi:fastutil:8.5.13")
 
-    // Chunk API
-    compileOnlyApi("com.falsepattern:chunkapi-mc1.7.10:0.5.0:api")
-    runtimeOnly("com.falsepattern:chunkapi-mc1.7.10:0.5.0:dev")
+    compileOnlyApi("com.falsepattern:falsepatternlib-mc1.7.10:1.2.5:api")
+    runtimeOnly("com.falsepattern:falsepatternlib-mc1.7.10:1.2.5:dev")
 
-    // FalseTweaks
-    compileOnly("com.falsepattern:falsetweaks-mc1.7.10:2.7.3:api")
+    compileOnlyApi("com.falsepattern:chunkapi-mc1.7.10:0.5.1:api")
+    runtimeOnly("com.falsepattern:chunkapi-mc1.7.10:0.5.1:dev")
 
-    // JetBrains Annotations
-    compileOnly("org.jetbrains:annotations:24.0.1")
+    compileOnly("com.falsepattern:falsetweaks-mc1.7.10:3.0.0-pre2:api")
 
-    // Lombok
-    compileOnly("org.projectlombok:lombok:1.18.28")
-    annotationProcessor("org.projectlombok:lombok:1.18.28")
-
-    // JourneyMap (compat fix)
+    // JourneyMap 1.7.10-5.1.4p6
     compileOnly(deobfCurse("journeymap-32274:4500658"))
 }
