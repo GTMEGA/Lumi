@@ -39,9 +39,11 @@ import static com.falsepattern.lumina.internal.world.WorldProviderManager.worldP
 @Mod(modid = MOD_ID,
      version = VERSION,
      name = MOD_NAME,
-     acceptedMinecraftVersions = MINECRAFT_VERSION,
-     dependencies = DEPENDENCIES,
-     guiFactory = GUI_FACTORY_PATH)
+     acceptedMinecraftVersions = "[1.7.10]",
+     dependencies = "required-after:chunkapi@[0.5.0,0.6.0);" +
+             "required-after:falsepatternlib@[1.2.0,);" +
+             "after:falsetweaks;",
+     guiFactory = GROUPNAME + ".internal.config.LumiGuiFactory")
 @NoArgsConstructor
 public final class LUMINA {
     public static Logger createLogger(String name) {

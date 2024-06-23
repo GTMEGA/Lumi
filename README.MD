@@ -10,8 +10,8 @@ reference implementation.
 
 ## Dependencies
 
-- [ChunkAPI 0.4.0+](https://github.com/FalsePattern/ChunkAPI)
-- [FalsePatternLib 1.0.0+](https://github.com/FalsePattern/FalsePatternLib)
+- [ChunkAPI 0.5.0+](https://github.com/FalsePattern/ChunkAPI)
+- [FalsePatternLib 1.2.0+](https://github.com/FalsePattern/FalsePatternLib)
 - [UniMixins 0.1.11+](https://github.com/LegacyModdingMC/UniMixins)
 
 ## Incompatibilities
