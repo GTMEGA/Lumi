@@ -12,7 +12,6 @@
       "Ven"
     ],
     "credits": "Special thanks to: CaffeineMC for Phosphor, embeddedt for the backport inside ArchaicFix.",
-    "logoFile": "",
-    "screenshots": []
+    "logoFile": "assets/lumina/lumi_logo_small.png"
   }
 ]
