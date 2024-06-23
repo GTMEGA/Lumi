@@ -17,9 +17,13 @@
 
 package com.falsepattern.lumina.api.lighting;
 
+import com.falsepattern.lib.StableAPI;
 import org.jetbrains.annotations.NotNull;
 
-@SuppressWarnings("unused")
+import static com.falsepattern.lib.StableAPI.Expose;
+
+@StableAPI(since = "__EXPERIMENTAL__")
 public interface LumiLightingEngineRegistry {
+    @Expose
     void registerLightingEngineProvider(@NotNull LumiLightingEngineProvider lightingEngineProvider, boolean displace);
 }

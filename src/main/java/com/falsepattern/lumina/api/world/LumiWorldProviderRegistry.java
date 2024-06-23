@@ -17,11 +17,16 @@
 
 package com.falsepattern.lumina.api.world;
 
+import com.falsepattern.lib.StableAPI;
 import org.jetbrains.annotations.NotNull;
 
-@SuppressWarnings("unused")
+import static com.falsepattern.lib.StableAPI.Expose;
+
+@StableAPI(since = "__EXPERIMENTAL__")
 public interface LumiWorldProviderRegistry {
+    @Expose
     void hijackDefaultWorldProviders(@NotNull String modName);
 
+    @Expose
     void registerWorldProvider(@NotNull LumiWorldProvider worldProvider);
 }

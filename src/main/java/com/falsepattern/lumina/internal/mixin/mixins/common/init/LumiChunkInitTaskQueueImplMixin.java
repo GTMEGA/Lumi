@@ -21,6 +21,7 @@ import com.falsepattern.lumina.api.init.LumiChunkInitTaskQueue;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectList;
 import net.minecraft.world.chunk.Chunk;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -42,7 +43,7 @@ public abstract class LumiChunkInitTaskQueueImplMixin implements LumiChunkInitTa
     }
 
     @Override
-    public void lumi$addInitTask(Runnable task) {
+    public void lumi$addInitTask(@NotNull Runnable task) {
         if (lumina$taskQueue == null)
             lumina$taskQueue = new ObjectArrayList<>();
         lumina$taskQueue.add(task);

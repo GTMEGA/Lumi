@@ -17,23 +17,32 @@
 
 package com.falsepattern.lumina.api.world;
 
-import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
+import com.falsepattern.lib.StableAPI;
 import com.falsepattern.lumina.api.storage.LumiBlockStorageRoot;
 import net.minecraft.world.chunk.IChunkProvider;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings("unused")
+import static com.falsepattern.lib.StableAPI.Expose;
+
+@StableAPI(since = "__EXPERIMENTAL__")
 public interface LumiWorldRoot extends LumiBlockStorageRoot {
-    @NotNull String lumi$worldRootID();
+    @Expose
+    @NotNull
+    String lumi$worldRootID();
 
+    @Expose
     void lumi$markBlockForRenderUpdate(int posX, int posY, int posZ);
 
+    @Expose
     void lumi$scheduleLightingUpdate(int posX, int posY, int posZ);
 
-    @NotNull IChunkProvider lumi$chunkProvider();
+    @Expose
+    @NotNull
+    IChunkProvider lumi$chunkProvider();
 
+    @Expose
     boolean lumi$doChunksExistInRange(int minPosX, int minPosY, int minPosZ, int maxPosX, int maxPosY, int maxPosZ);
 
+    @Expose
     boolean lumi$doChunksExistInRange(int centerPosX, int centerPosY, int centerPosZ, int blockRange);
 }

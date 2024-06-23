@@ -17,29 +17,46 @@
 
 package com.falsepattern.lumina.api.storage;
 
+import com.falsepattern.lib.StableAPI;
+import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import net.minecraft.block.Block;
 import net.minecraft.tileentity.TileEntity;
-
-import com.falsepattern.lumina.api.chunk.LumiChunkRoot;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface LumiBlockStorageRoot {
-    @NotNull String lumi$blockStorageRootID();
+import static com.falsepattern.lib.StableAPI.Expose;
 
+@StableAPI(since = "__EXPERIMENTAL__")
+public interface LumiBlockStorageRoot {
+    @Expose
+    @NotNull
+    String lumi$blockStorageRootID();
+
+    @Expose
     boolean lumi$isClientSide();
 
+    @Expose
     boolean lumi$hasSky();
 
-    @NotNull Block lumi$getBlock(int posX, int posY, int posZ);
+    @Expose
+    @NotNull
+    Block lumi$getBlock(int posX, int posY, int posZ);
 
+    @Expose
     int lumi$getBlockMeta(int posX, int posY, int posZ);
 
+    @Expose
     boolean lumi$isAirBlock(int posX, int posY, int posZ);
 
-    @Nullable TileEntity lumi$getTileEntity(int posX, int posY, int posZ);
+    @Expose
+    @Nullable
+    TileEntity lumi$getTileEntity(int posX, int posY, int posZ);
 
-    @Nullable LumiChunkRoot lumi$getChunkRootFromBlockPosIfExists(int posX, int posZ);
+    @Expose
+    @Nullable
+    LumiChunkRoot lumi$getChunkRootFromBlockPosIfExists(int posX, int posZ);
 
-    @Nullable LumiChunkRoot lumi$getChunkRootFromChunkPosIfExists(int chunkPosX, int chunkPosZ);
+    @Expose
+    @Nullable
+    LumiChunkRoot lumi$getChunkRootFromChunkPosIfExists(int chunkPosX, int chunkPosZ);
 }

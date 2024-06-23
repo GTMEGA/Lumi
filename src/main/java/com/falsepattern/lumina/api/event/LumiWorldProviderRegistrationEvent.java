@@ -17,18 +17,21 @@
 
 package com.falsepattern.lumina.api.event;
 
+import com.falsepattern.lib.StableAPI;
 import com.falsepattern.lumina.api.world.LumiWorldProviderRegistry;
 import cpw.mods.fml.common.eventhandler.Event;
 import org.jetbrains.annotations.NotNull;
 
-@SuppressWarnings("unused")
+@StableAPI(since = "__EXPERIMENTAL__")
 public final class LumiWorldProviderRegistrationEvent extends Event {
     private final @NotNull LumiWorldProviderRegistry registry;
 
+    @StableAPI.Internal
     public LumiWorldProviderRegistrationEvent(@NotNull LumiWorldProviderRegistry registry) {
         this.registry = registry;
     }
 
+    @StableAPI.Expose
     public @NotNull LumiWorldProviderRegistry registry() {
         return registry;
     }

@@ -17,16 +17,25 @@
 
 package com.falsepattern.lumina.api.chunk;
 
+import com.falsepattern.lib.StableAPI;
 import net.minecraft.block.Block;
 import org.jetbrains.annotations.NotNull;
 
-@SuppressWarnings("unused")
-public interface LumiSubChunkRoot {
-    @NotNull String lumi$subChunkRootID();
+import static com.falsepattern.lib.StableAPI.Expose;
 
+@StableAPI(since = "__EXPERIMENTAL__")
+public interface LumiSubChunkRoot {
+    @Expose
+    @NotNull
+    String lumi$subChunkRootID();
+
+    @Expose
     int lumi$posY();
 
-    @NotNull Block lumi$getBlock(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
+    @Expose
+    @NotNull
+    Block lumi$getBlock(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 
+    @Expose
     int lumi$getBlockMeta(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 }

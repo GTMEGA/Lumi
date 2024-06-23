@@ -17,17 +17,26 @@
 
 package com.falsepattern.lumina.api.init;
 
+import com.falsepattern.lib.StableAPI;
+import com.falsepattern.lib.StableAPI.Internal;
+
+import static com.falsepattern.lib.StableAPI.Expose;
 import static com.falsepattern.lumina.api.LumiAPI.LUMI_MOD_NAME;
 
-@SuppressWarnings("unused")
+@StableAPI(since = "__EXPERIMENTAL__")
 public interface LumiExtendedBlockStorageInitHook {
+    @Internal
     String LUMI_EXTENDED_BLOCK_STORAGE_INIT_HOOK_INFO = "Implemented by [" + LUMI_MOD_NAME + "] with the interface " +
                                                         "[com.falsepattern.lumina.api.init.LumiExtendedBlockStorageInitHook]";
+    @Expose
     String LUMI_EXTENDED_BLOCK_STORAGE_INIT_HOOK_METHOD = "lumi$onExtendedBlockStorageInit()V";
 
+    @Internal
     void lumi$doExtendedBlockStorageInit();
 
+    @Internal
     void lumi$onExtendedBlockStorageInit();
 
+    @Internal
     boolean lumi$initHookExecuted();
 }

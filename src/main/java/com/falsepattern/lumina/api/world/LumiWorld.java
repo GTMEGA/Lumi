@@ -17,6 +17,7 @@
 
 package com.falsepattern.lumina.api.world;
 
+import com.falsepattern.lib.StableAPI;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.chunk.LumiSubChunk;
 import com.falsepattern.lumina.api.lighting.LightType;
@@ -27,33 +28,56 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings("unused")
+import static com.falsepattern.lib.StableAPI.Expose;
+
+@StableAPI(since = "__EXPERIMENTAL__")
 public interface LumiWorld extends LumiBlockStorage {
-    @NotNull LumiWorldRoot lumi$root();
+    @Expose
+    @NotNull
+    LumiWorldRoot lumi$root();
 
-    @NotNull String lumi$worldID();
+    @Expose
+    @NotNull
+    String lumi$worldID();
 
-    @NotNull LumiChunk lumi$wrap(@NotNull Chunk chunkBase);
+    @Expose
+    @NotNull
+    LumiChunk lumi$wrap(@NotNull Chunk chunkBase);
 
-    @NotNull LumiSubChunk lumi$wrap(@NotNull ExtendedBlockStorage subChunkBase);
+    @Expose
+    @NotNull
+    LumiSubChunk lumi$wrap(@NotNull ExtendedBlockStorage subChunkBase);
 
-    @NotNull LumiLightingEngine lumi$lightingEngine();
+    @Expose
+    @NotNull
+    LumiLightingEngine lumi$lightingEngine();
 
+    @Expose
     default void lumi$setLightValue(@NotNull LightType lightType, int posX, int posY, int posZ, int lightValue) {
         lumi$setLightValue(lumi$getChunkFromBlockPosIfExists(posX, posZ), lightType, posX, posY, posZ, lightValue);
     }
 
-    void lumi$setLightValue(@Nullable LumiChunk chunk, @NotNull LightType lightType, int posX, int posY, int posZ, int lightValue);
+    @Expose
+    void lumi$setLightValue(@Nullable LumiChunk chunk,
+                            @NotNull LightType lightType,
+                            int posX,
+                            int posY,
+                            int posZ,
+                            int lightValue);
 
+    @Expose
     default void lumi$setBlockLightValue(int posX, int posY, int posZ, int lightValue) {
         lumi$setBlockLightValue(lumi$getChunkFromBlockPosIfExists(posX, posZ), posX, posY, posZ, lightValue);
     }
 
+    @Expose
     void lumi$setBlockLightValue(@Nullable LumiChunk chunk, int posX, int posY, int posZ, int lightValue);
 
+    @Expose
     default void lumi$setSkyLightValue(int posX, int posY, int posZ, int lightValue) {
         lumi$setSkyLightValue(lumi$getChunkFromBlockPosIfExists(posX, posZ), posX, posY, posZ, lightValue);
     }
 
+    @Expose
     void lumi$setSkyLightValue(@Nullable LumiChunk chunk, int posX, int posY, int posZ, int lightValue);
 }

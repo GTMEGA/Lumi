@@ -17,28 +17,19 @@
 
 package com.falsepattern.lumina.api.lighting;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.experimental.Accessors;
-import lombok.val;
-import lombok.var;
 import net.minecraft.world.EnumSkyBlock;
 
-@Getter
-@AllArgsConstructor
-@Accessors(fluent = true, chain = false)
 public enum LightType {
     BLOCK_LIGHT_TYPE(EnumSkyBlock.Block.defaultLightValue, true, false),
-    SKY_LIGHT_TYPE(EnumSkyBlock.Sky.defaultLightValue, false, true),
-    ;
+    SKY_LIGHT_TYPE(EnumSkyBlock.Sky.defaultLightValue, false, true);
 
     private static final int MIN_BASE_LIGHT_VALUE;
     private static final int MAX_BASE_LIGHT_VALUE;
 
     static {
-        var minBaseLightValue = Integer.MAX_VALUE;
-        var maxBaseLightValue = Integer.MIN_VALUE;
-        for (val lightType : values()) {
+        int minBaseLightValue = Integer.MAX_VALUE;
+        int maxBaseLightValue = Integer.MIN_VALUE;
+        for (final LightType lightType : values()) {
             final int defaultLightValue = lightType.defaultLightValue;
             minBaseLightValue = Math.min(maxBaseLightValue, defaultLightValue);
             maxBaseLightValue = Math.max(maxBaseLightValue, defaultLightValue);
@@ -50,6 +41,12 @@ public enum LightType {
     private final int defaultLightValue;
     private final boolean isBlock;
     private final boolean isSky;
+
+    LightType(int defaultLightValue, boolean isBlock, boolean isSky) {
+        this.defaultLightValue = defaultLightValue;
+        this.isBlock = isBlock;
+        this.isSky = isSky;
+    }
 
     public static LightType of(EnumSkyBlock baseLightType) {
         switch (baseLightType) {
@@ -68,4 +65,10 @@ public enum LightType {
     public static int maxBaseLightValue() {
         return MAX_BASE_LIGHT_VALUE;
     }
+
+    public int defaultLightValue() {return this.defaultLightValue;}
+
+    public boolean isBlock() {return this.isBlock;}
+
+    public boolean isSky() {return this.isSky;}
 }

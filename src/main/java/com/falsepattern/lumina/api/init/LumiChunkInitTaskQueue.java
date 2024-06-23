@@ -17,9 +17,14 @@
 
 package com.falsepattern.lumina.api.init;
 
+import com.falsepattern.lib.StableAPI;
 import com.falsepattern.lumina.api.LumiChunkAPI;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import net.minecraft.world.chunk.Chunk;
+import org.jetbrains.annotations.NotNull;
+
+import static com.falsepattern.lib.StableAPI.Expose;
+import static com.falsepattern.lib.StableAPI.Internal;
 
 /**
  * DO NOT IMPLEMENT.
@@ -28,8 +33,11 @@ import net.minecraft.world.chunk.Chunk;
  *
  * @see LumiChunkAPI#scheduleChunkLightingEngineInit(LumiChunk)
  */
+@StableAPI(since = "__EXPERIMENTAL__")
 public interface LumiChunkInitTaskQueue {
-    void lumi$addInitTask(Runnable task);
+    @Expose
+    void lumi$addInitTask(@NotNull Runnable task);
 
+    @Internal
     void lumi$executeInitTasks();
 }

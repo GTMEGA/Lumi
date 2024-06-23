@@ -17,17 +17,26 @@
 
 package com.falsepattern.lumina.api.init;
 
+import com.falsepattern.lib.StableAPI;
+
+import static com.falsepattern.lib.StableAPI.Expose;
+import static com.falsepattern.lib.StableAPI.Internal;
 import static com.falsepattern.lumina.api.LumiAPI.LUMI_MOD_NAME;
 
-@SuppressWarnings("unused")
+@StableAPI(since = "__EXPERIMENTAL__")
 public interface LumiChunkInitHook {
+    @Internal
     String LUMI_CHUNK_INIT_HOOK_INFO = "Implemented by [" + LUMI_MOD_NAME + "] with the interface " +
                                        "[com.falsepattern.lumina.api.init.LumiChunkInitHook]";
+    @Expose
     String LUMI_CHUNK_INIT_HOOK_METHOD = "lumi$onChunkInit()V";
 
+    @Internal
     void lumi$onChunkInit();
 
+    @Internal
     void lumi$doChunkInit();
 
+    @Internal
     boolean lumi$initHookExecuted();
 }

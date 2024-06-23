@@ -430,7 +430,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     }
 
     @Override
-    public int[] lumi$skyLightHeightMap() {
+    public int @NotNull [] lumi$skyLightHeightMap() {
         return heightMap;
     }
 }

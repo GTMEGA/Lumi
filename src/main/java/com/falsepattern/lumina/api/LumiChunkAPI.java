@@ -17,10 +17,10 @@
 
 package com.falsepattern.lumina.api;
 
+import com.falsepattern.lib.StableAPI;
 import com.falsepattern.lumina.api.chunk.LumiChunk;
 import com.falsepattern.lumina.api.init.LumiChunkInitTaskQueue;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
-import lombok.val;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -28,6 +28,7 @@ import java.util.Arrays;
 import static com.falsepattern.lumina.api.chunk.LumiChunk.HEIGHT_MAP_ARRAY_SIZE;
 import static com.falsepattern.lumina.api.chunk.LumiChunk.UPDATE_SKYLIGHT_COLUMNS_ARRAY_SIZE;
 
+@StableAPI(since = "__EXPERIMENTAL__")
 public final class LumiChunkAPI {
     private static final int[] INITIAL_HEIGHT_MAP_ARRAY = new int[HEIGHT_MAP_ARRAY_SIZE];
     private static final boolean[] INITIAL_UPDATE_SKYLIGHT_COLUMNS_ARRAY = new boolean[UPDATE_SKYLIGHT_COLUMNS_ARRAY_SIZE];
@@ -37,23 +38,32 @@ public final class LumiChunkAPI {
         Arrays.fill(INITIAL_UPDATE_SKYLIGHT_COLUMNS_ARRAY, true);
     }
 
+    private LumiChunkAPI() {
+        throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
+    }
+
     /**
      * Use this in places where you would need to call {@link LumiLightingEngine#handleChunkInit} otherwise.
      * NOTE: <b>ONLY USE WHEN LOADING CHUNK FROM NBT!</b>
      */
-    public static void scheduleChunkLightingEngineInit(LumiChunk chunk) {
+    @StableAPI.Expose
+    public static void scheduleChunkLightingEngineInit(@NotNull LumiChunk chunk) {
         scheduleChunkInitTask(chunk, () -> chunk.lumi$world().lumi$lightingEngine().handleChunkInit(chunk));
     }
 
-    public static void scheduleChunkInitTask(LumiChunk chunk, Runnable task) {
-        val chunkInitTaskQueue = (LumiChunkInitTaskQueue) chunk.lumi$root();
+    @StableAPI.Expose
+    @SuppressWarnings("CastToIncompatibleInterface")
+    public static void scheduleChunkInitTask(@NotNull LumiChunk chunk, @NotNull Runnable task) {
+        final LumiChunkInitTaskQueue chunkInitTaskQueue = (LumiChunkInitTaskQueue) chunk.lumi$root();
         chunkInitTaskQueue.lumi$addInitTask(task);
     }
 
+    @StableAPI.Expose
     public static void resetHeightMapArray(int @NotNull [] heightMap) {
         System.arraycopy(INITIAL_HEIGHT_MAP_ARRAY, 0, heightMap, 0, HEIGHT_MAP_ARRAY_SIZE);
     }
 
+    @StableAPI.Expose
     public static void resetUpdateSkylightColumns(boolean @NotNull [] updateSkylightColumns) {
         System.arraycopy(INITIAL_UPDATE_SKYLIGHT_COLUMNS_ARRAY,
                          0,

@@ -17,6 +17,7 @@
 
 package com.falsepattern.lumina.api.chunk;
 
+import com.falsepattern.lib.StableAPI;
 import com.falsepattern.lumina.api.lighting.LightType;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.NibbleArray;
@@ -24,47 +25,70 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 
-@SuppressWarnings("unused")
+import static com.falsepattern.lib.StableAPI.Expose;
+
+@StableAPI(since = "__EXPERIMENTAL__")
 public interface LumiSubChunk {
+    @Expose
     String BLOCK_LIGHT_NBT_TAG_NAME = "block_light";
+    @Expose
     String SKY_LIGHT_NBT_TAG_NAME = "sky_light";
+    @Expose
     String BLOCK_LIGHT_NBT_TAG_NAME_VANILLA = "BlockLight";
+    @Expose
     String SKY_LIGHT_NBT_TAG_NAME_VANILLA = "SkyLight";
 
-    @NotNull LumiSubChunkRoot lumi$root();
+    @Expose
+    @NotNull
+    LumiSubChunkRoot lumi$root();
 
-    @NotNull String lumi$subChunkID();
+    @Expose
+    @NotNull
+    String lumi$subChunkID();
 
+    @Expose
     void lumi$writeToNBT(@NotNull NBTTagCompound output);
 
+    @Expose
     void lumi$readFromNBT(@NotNull NBTTagCompound input);
 
+    @Expose
     void lumi$cloneFrom(LumiSubChunk from);
 
+    @Expose
     void lumi$writeToPacket(@NotNull ByteBuffer output);
 
+    @Expose
     void lumi$readFromPacket(@NotNull ByteBuffer input);
 
+    @Expose
     void lumi$setLightValue(@NotNull LightType lightType,
                             int subChunkPosX,
                             int subChunkPosY,
                             int subChunkPosZ,
                             int lightValue);
 
+    @Expose
     int lumi$getLightValue(@NotNull LightType lightType,
                            int subChunkPosX,
                            int subChunkPosY,
                            int subChunkPosZ);
 
+    @Expose
     void lumi$setBlockLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
 
+    @Expose
     int lumi$getBlockLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 
+    @Expose
     void lumi$setSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue);
 
+    @Expose
     int lumi$getSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 
+    @Expose
     NibbleArray lumi$getBlockLightArray();
 
+    @Expose
     NibbleArray lumi$getSkyLightArray();
 }

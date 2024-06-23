@@ -17,17 +17,27 @@
 
 package com.falsepattern.lumina.api.world;
 
+import com.falsepattern.lib.StableAPI;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings("unused")
+import static com.falsepattern.lib.StableAPI.Expose;
+
+@StableAPI(since = "__EXPERIMENTAL__")
 public interface LumiWorldProvider {
-    static final String WORLD_PROVIDER_VERSION_NBT_TAG_NAME = "lumi_world_provider_version";
+    @Expose
+    String WORLD_PROVIDER_VERSION_NBT_TAG_NAME = "lumi_world_provider_version";
 
-    @NotNull String worldProviderID();
+    @Expose
+    @NotNull
+    String worldProviderID();
 
-    @NotNull String worldProviderVersion();
+    @Expose
+    @NotNull
+    String worldProviderVersion();
 
-    @Nullable LumiWorld provideWorld(@Nullable World worldBase);
+    @Expose
+    @Nullable
+    LumiWorld provideWorld(@Nullable World worldBase);
 }

@@ -17,29 +17,45 @@
 
 package com.falsepattern.lumina.api.chunk;
 
+import com.falsepattern.lib.StableAPI;
 import net.minecraft.block.Block;
 import org.jetbrains.annotations.NotNull;
 
-@SuppressWarnings("unused")
+import static com.falsepattern.lib.StableAPI.Expose;
+
+@StableAPI(since = "__EXPERIMENTAL__")
 public interface LumiChunkRoot {
+    @Expose
     int BLOCK_LIGHT_ARRAY_SIZE = 16 * 16 * 16;
+    @Expose
     int SKY_LIGHT_ARRAY_SIZE = 16 * 16 * 16;
 
-    @NotNull String lumi$chunkRootID();
+    @Expose
+    @NotNull
+    String lumi$chunkRootID();
 
+    @Expose
     boolean lumi$isUpdating();
 
+    @Expose
     void lumi$markDirty();
 
+    @Expose
     boolean lumi$isDirty();
 
+    @Expose
     void lumi$prepareSubChunk(int chunkPosY);
 
+    @Expose
     boolean lumi$isSubChunkPrepared(int chunkPosY);
 
+    @Expose
     int lumi$topPreparedSubChunkBasePosY();
 
-    @NotNull Block lumi$getBlock(int subChunkPosX, int posY, int subChunkPosZ);
+    @Expose
+    @NotNull
+    Block lumi$getBlock(int subChunkPosX, int posY, int subChunkPosZ);
 
+    @Expose
     int lumi$getBlockMeta(int subChunkPosX, int posY, int subChunkPosZ);
 }

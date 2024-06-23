@@ -18,11 +18,12 @@
 package com.falsepattern.lumina.api.event;
 
 
+import com.falsepattern.lib.StableAPI;
 import cpw.mods.fml.common.eventhandler.Event;
 
 import static com.falsepattern.lumina.api.chunk.LumiChunk.SUB_CHUNK_ARRAY_SIZE;
 
-@SuppressWarnings("unused")
+@StableAPI(since = "__EXPERIMENTAL__")
 public final class ChunkPacketSizeEvent extends Event {
     /**
      * Size limited to 1MiB
@@ -33,12 +34,14 @@ public final class ChunkPacketSizeEvent extends Event {
     private int subChunkMaxPacketSize;
     private int lightingEngineMaxPacketSize;
 
+    @StableAPI.Internal
     public ChunkPacketSizeEvent(int chunkMaxPacketSize, int subChunkMaxPacketSize, int lightingEngineMaxPacketSize) {
         this.chunkMaxPacketSize = chunkMaxPacketSize;
         this.subChunkMaxPacketSize = subChunkMaxPacketSize;
         this.lightingEngineMaxPacketSize = lightingEngineMaxPacketSize;
     }
 
+    @StableAPI.Expose
     public void chunkMaxPacketSize(int chunkMaxPacketSize) {
         if (chunkMaxPacketSize <= 0)
             return;
@@ -46,6 +49,7 @@ public final class ChunkPacketSizeEvent extends Event {
         this.chunkMaxPacketSize = Math.max(this.chunkMaxPacketSize, chunkMaxPacketSize);
     }
 
+    @StableAPI.Expose
     public void lightingEngineMaxPacketSize(int lightingEngineMaxPacketSize) {
         if (lightingEngineMaxPacketSize <= 0)
             return;
@@ -53,6 +57,7 @@ public final class ChunkPacketSizeEvent extends Event {
         this.lightingEngineMaxPacketSize = Math.max(this.subChunkMaxPacketSize, lightingEngineMaxPacketSize);
     }
 
+    @StableAPI.Expose
     public void subChunkMaxPacketSize(int subChunkMaxPacketSize) {
         if (subChunkMaxPacketSize <= 0)
             return;
@@ -60,6 +65,7 @@ public final class ChunkPacketSizeEvent extends Event {
         this.subChunkMaxPacketSize = Math.max(this.subChunkMaxPacketSize, subChunkMaxPacketSize);
     }
 
+    @StableAPI.Expose
     public int totalMaxPacketSize() {
         return chunkMaxPacketSize + (subChunkMaxPacketSize * SUB_CHUNK_ARRAY_SIZE) + lightingEngineMaxPacketSize;
     }

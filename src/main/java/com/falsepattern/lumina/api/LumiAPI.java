@@ -17,6 +17,7 @@
 
 package com.falsepattern.lumina.api;
 
+import com.falsepattern.lib.StableAPI;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngine;
 import com.falsepattern.lumina.api.lighting.LumiLightingEngineProvider;
 import com.falsepattern.lumina.api.world.LumiWorld;
@@ -26,24 +27,27 @@ import org.jetbrains.annotations.NotNull;
 import static com.falsepattern.lumina.internal.Tags.*;
 import static com.falsepattern.lumina.internal.lighting.LightingEngineManager.lightingEngineManager;
 
-@SuppressWarnings("unused")
+@StableAPI(since = "1.0.0")
 public final class LumiAPI {
+    @StableAPI.Expose
     public static final String LUMI_MOD_ID = MOD_ID;
+    @StableAPI.Expose
     public static final String LUMI_MOD_NAME = MOD_NAME;
+    @StableAPI.Expose
     public static final String LUMI_VERSION = VERSION;
-
-    private static final LumiLightingEngineProvider LIGHTING_ENGINE_PROVIDER = lightingEngineManager();
 
     private LumiAPI() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");
     }
 
+    @StableAPI.Expose(since = "__EXPERIMENTAL__")
     public static @NotNull LumiLightingEngine provideLightingEngine(@NotNull LumiWorld world,
                                                                     @NotNull Profiler profiler) {
-        return LIGHTING_ENGINE_PROVIDER.provideLightingEngine(world, profiler);
+        return lightingEngineManager().provideLightingEngine(world, profiler);
     }
 
+    @StableAPI.Expose(since = "__EXPERIMENTAL__")
     public static @NotNull LumiLightingEngineProvider lightingEngineProvider() {
-        return LIGHTING_ENGINE_PROVIDER;
+        return lightingEngineManager();
     }
 }

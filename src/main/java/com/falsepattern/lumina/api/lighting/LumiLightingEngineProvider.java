@@ -17,13 +17,20 @@
 
 package com.falsepattern.lumina.api.lighting;
 
+import com.falsepattern.lib.StableAPI;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import net.minecraft.profiler.Profiler;
 import org.jetbrains.annotations.NotNull;
 
-@SuppressWarnings("unused")
-public interface LumiLightingEngineProvider {
-    @NotNull String lightingEngineProviderID();
+import static com.falsepattern.lib.StableAPI.Expose;
 
-    @NotNull LumiLightingEngine provideLightingEngine(@NotNull LumiWorld world, @NotNull Profiler profiler);
+@StableAPI(since = "__EXPERIMENTAL__")
+public interface LumiLightingEngineProvider {
+    @Expose
+    @NotNull
+    String lightingEngineProviderID();
+
+    @Expose
+    @NotNull
+    LumiLightingEngine provideLightingEngine(@NotNull LumiWorld world, @NotNull Profiler profiler);
 }
