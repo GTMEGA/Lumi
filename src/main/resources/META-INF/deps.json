@@ -5,8 +5,7 @@
     ],
     "dependencies": {
         "always": {
-            "common": [
-            ],
+            "common": [],
             "client": [],
             "server": []
         },
