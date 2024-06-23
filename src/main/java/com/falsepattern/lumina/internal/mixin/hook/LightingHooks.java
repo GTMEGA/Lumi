@@ -19,6 +19,7 @@ package com.falsepattern.lumina.internal.mixin.hook;
 
 import com.falsepattern.lumina.api.LumiChunkAPI;
 import com.falsepattern.lumina.api.lighting.LightType;
+import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.internal.config.LumiConfig;
 import cpw.mods.fml.relauncher.SideOnly;
 import lombok.experimental.UtilityClass;
@@ -31,7 +32,7 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 import java.util.Arrays;
 
-import static com.falsepattern.lumina.api.LumiAPI.lumiWorldsFromBaseWorld;
+import static com.falsepattern.lumina.internal.world.WorldProviderManager.worldProviderManager;
 import static cpw.mods.fml.relauncher.Side.CLIENT;
 
 @SuppressWarnings("ForLoopReplaceableByForEach")
@@ -253,6 +254,10 @@ public final class LightingHooks {
             val lightingEngine = world.lumi$lightingEngine();
             lightingEngine.processLightingUpdatesForAllTypes();
         }
+    }
+
+    private static LumiWorld[] lumiWorldsFromBaseWorld(World worldBase) {
+        return worldProviderManager().lumiWorldsFromBaseWorld(worldBase);
     }
 
     private static void resetPrecipitationHeightMap(Chunk chunkBase) {

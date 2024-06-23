@@ -20,31 +20,27 @@ package com.falsepattern.lumina.internal.world;
 import com.falsepattern.lumina.api.world.LumiWorld;
 import com.falsepattern.lumina.api.world.LumiWorldProvider;
 import com.falsepattern.lumina.api.world.LumiWorldProviderRegistry;
-import com.falsepattern.lumina.api.world.LumiWorldWrapper;
 import com.falsepattern.lumina.internal.LumiDefaultValues;
-import com.falsepattern.lumina.internal.collection.WeakIdentityHashMap;
 import com.falsepattern.lumina.internal.event.EventPoster;
 import com.falsepattern.lumina.internal.mixin.interfaces.LumiWorldRootCache;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.val;
-import net.minecraft.world.World;
-
 import lombok.var;
+import net.minecraft.world.World;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.falsepattern.lumina.internal.LUMINA.createLogger;
 import static lombok.AccessLevel.PRIVATE;
 
 @Accessors(fluent = true, chain = false)
 @NoArgsConstructor(access = PRIVATE)
-public final class WorldProviderManager implements LumiWorldProviderRegistry, LumiWorldWrapper {
+public final class WorldProviderManager implements LumiWorldProviderRegistry {
     private static final Logger LOG = createLogger("World Provider Manager");
 
     private static final WorldProviderManager INSTANCE = new WorldProviderManager();
@@ -142,8 +138,7 @@ public final class WorldProviderManager implements LumiWorldProviderRegistry, Lu
 
     private static final LumiWorld[] NULL_ARR = new LumiWorld[0];
 
-    @Override
-    public @NotNull @Unmodifiable LumiWorld[] lumiWorldsFromBaseWorld(@Nullable World worldBase) {
+    public @NotNull LumiWorld[] lumiWorldsFromBaseWorld(@Nullable World worldBase) {
         if (!isRegistered) {
             LOG.error(new IllegalStateException("No world providers exist during registration, " +
                                                 "an empty iterable will be returned."));

@@ -20,7 +20,6 @@ package com.falsepattern.lumina.api.chunk;
 import com.falsepattern.lumina.api.lighting.LightType;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.NibbleArray;
-
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
@@ -66,5 +65,6 @@ public interface LumiSubChunk {
     int lumi$getSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ);
 
     NibbleArray lumi$getBlockLightArray();
+
     NibbleArray lumi$getSkyLightArray();
 }
