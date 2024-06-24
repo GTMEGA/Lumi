@@ -5,13 +5,13 @@
     "description": "Illuminate your world",
     "version": "${modVersion}",
     "mcversion": "${minecraftVersion}",
-    "url": "https://github.com/GTMEGA/LUMINA",
+    "url": "https://github.com/GTMEGA/LUMI",
     "updateUrl": "",
     "authorList": [
       "FalsePattern",
       "Ven"
     ],
     "credits": "Special thanks to: CaffeineMC for Phosphor, embeddedt for the backport inside ArchaicFix.",
-    "logoFile": "assets/lumina/lumi_logo_small.png"
+    "logoFile": "assets/lumi/lumi_logo_small.png"
   }
 ]

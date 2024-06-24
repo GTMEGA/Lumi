@@ -28,4 +28,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "Lumina"
+rootProject.name = "Lumi"

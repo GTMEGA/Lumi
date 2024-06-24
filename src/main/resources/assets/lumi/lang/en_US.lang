@@ -1,0 +1,3 @@
+config.lumi.enableLocks=Enable locks
+config.lumi.enableIllegalThreadAccessWarnings=Enable illegal thread access warnings
+config.lumi.doRandomLightUpdates=Do random chunk light updates

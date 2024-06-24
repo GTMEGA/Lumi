@@ -6,9 +6,9 @@ plugins {
 group = "com.falsepattern"
 minecraft_fp {
     mod {
-        modid = "lumina"
-        name = "Lumina"
-        rootPkg = "$group.lumina"
+        modid = "lumi"
+        name = "Lumi"
+        rootPkg = "$group.lumi"
     }
     api {
         packages = listOf("api")
@@ -18,7 +18,7 @@ minecraft_fp {
         pluginClass = "internal.mixin.plugin.MixinPlugin"
     }
     core {
-        accessTransformerFile = "lumina_at.cfg"
+        accessTransformerFile = "lumi_at.cfg"
         coreModClass = "internal.asm.ASMLoadingPlugin"
     }
     tokens {
@@ -29,7 +29,7 @@ minecraft_fp {
         rootPkg = "GROUPNAME"
     }
     publish {
-        changelog = "https://github.com/GTMEGA/Lumina/releases/tag/$version"
+        changelog = "https://github.com/GTMEGA/Lumi/releases/tag/$version"
         maven {
             repoUrl = "https://mvn.falsepattern.com/releases/"
             repoName = "mavenpattern"

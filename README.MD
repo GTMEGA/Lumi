@@ -1,9 +1,9 @@
-# LUMINA
+# Lumi
 
 <a rel="license" href="https://www.gnu.org/licenses/lgpl-3.0.en.html#license-text"><img alt="LGPLv3" style="height:40px" src="https://cdn.discordapp.com/attachments/648723216747069441/1140482016438141028/LGPLv3_Logo.svg" /></a>
 
 A full replacement of the Minecraft lighting engine with an extendable API, shipping
-with [Phosphor](src/main/java/com/falsepattern/lumina/internal/lighting/phosphor/PhosphorLightingEngine.java) as a
+with [Phosphor](src/main/java/com/falsepattern/lumi/internal/lighting/phosphor/PhosphorLightingEngine.java) as a
 reference implementation.
 
 [Join us on Discord](https://discord.gg/h7XAeCSfbT)

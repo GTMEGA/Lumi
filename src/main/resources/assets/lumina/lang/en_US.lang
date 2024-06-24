@@ -1,3 +1,0 @@
-config.lumina.enableLocks=Enable locks
-config.lumina.enableIllegalThreadAccessWarnings=Enable illegal thread access warnings
-config.lumina.doRandomLightUpdates=Do random chunk light updates
