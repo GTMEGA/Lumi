@@ -49,7 +49,7 @@ dependencies {
 
     apiSplit("com.falsepattern:chunkapi-mc1.7.10:0.5.1")
 
-    compileOnly("com.falsepattern:falsetweaks-mc1.7.10:3.0.0-pre2:api")
+    compileOnly("com.falsepattern:falsetweaks-mc1.7.10:3.0.0:api")
 
     compileOnly(deobfCurse("journeymap-32274:4500658"))
 }
