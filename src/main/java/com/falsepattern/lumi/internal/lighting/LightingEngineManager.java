@@ -71,23 +71,23 @@ public final class LightingEngineManager implements LumiLightingEngineRegistry, 
     public void registerLightingEngineProvider(@NotNull LumiLightingEngineProvider lightingEngineProvider,
                                                boolean displace) {
         if (isRegistered) {
-            LOG.error(new IllegalStateException("Cannot register lighting engine provider post registration"));
+            LOG.error("Cannot register lighting engine provider post registration", new IllegalStateException());
             return;
         }
 
         if (lightingEngineProvider == null) {
-            LOG.error(new IllegalArgumentException("Lighting engine provider can't be null"));
+            LOG.error("Lighting engine provider can't be null", new IllegalArgumentException());
             return;
         }
 
         val lightingEngineProviderID = lightingEngineProvider.lightingEngineProviderID();
         if (lightingEngineProviderID == null) {
-            LOG.error(new IllegalArgumentException("Lighting engine provider id can't be null"));
+            LOG.error("Lighting engine provider id can't be null", new IllegalArgumentException());
             return;
         }
 
         if (lightingEngineProviderID.isEmpty()) {
-            LOG.error(new IllegalArgumentException("Lighting engine provider id can't be empty"));
+            LOG.error("Lighting engine provider id can't be empty", new IllegalArgumentException());
             return;
         }
 

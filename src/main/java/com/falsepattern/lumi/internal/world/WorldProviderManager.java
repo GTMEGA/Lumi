@@ -113,29 +113,29 @@ public final class WorldProviderManager implements LumiWorldProviderRegistry {
     @SuppressWarnings("ConstantValue")
     public void registerWorldProvider(@NotNull LumiWorldProvider worldProvider) {
         if (isRegistered) {
-            LOG.error(new IllegalStateException("Cannot registration world providers post registration"));
+            LOG.error("Cannot registration world providers post registration", new IllegalStateException());
             return;
         }
 
         if (worldProvider == null) {
-            LOG.error(new IllegalArgumentException("World provider can't be null"));
+            LOG.error("World provider can't be null", new IllegalArgumentException());
             return;
         }
 
         val worldProviderID = worldProvider.worldProviderID();
         if (worldProviderID == null) {
-            LOG.error(new IllegalArgumentException("World provider id can't be null"));
+            LOG.error("World provider id can't be null", new IllegalArgumentException());
             return;
         }
 
         if (worldProviderID.isEmpty()) {
-            LOG.error(new IllegalArgumentException("World provider id can't be empty"));
+            LOG.error("World provider id can't be empty", new IllegalArgumentException());
             return;
         }
 
         if (worldProviders.contains(worldProvider)) {
-            LOG.error(new IllegalArgumentException(
-                    String.format("World provider [%s] already registered", worldProviderID)));
+            LOG.error(String.format("World provider [%s] already registered", worldProviderID),
+                      new IllegalArgumentException());
             return;
         }
 
@@ -147,8 +147,8 @@ public final class WorldProviderManager implements LumiWorldProviderRegistry {
 
     public @NotNull LumiWorld[] lumiWorldsFromBaseWorld(@Nullable World worldBase) {
         if (!isRegistered) {
-            LOG.error(new IllegalStateException("No world providers exist during registration, " +
-                                                "an empty iterable will be returned."));
+            LOG.error("No world providers exist during registration, an empty iterable will be returned.",
+                      new IllegalStateException());
             return NULL_ARR;
         }
         if (worldBase == null)
