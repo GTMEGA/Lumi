@@ -41,6 +41,10 @@ import static cpw.mods.fml.relauncher.IFMLLoadingPlugin.*;
 @TransformerExclusions("com.falsepattern.lumi.internal.asm")
 @NoArgsConstructor
 public final class ASMLoadingPlugin implements IFMLLoadingPlugin {
+    static {
+        ConfigFixer.fixConfigs();
+    }
+
     @Override
     public String[] getASMTransformerClass() {
         return new String[]{Tags.GROUPNAME + ".internal.asm.LumiClassTransformer"};
