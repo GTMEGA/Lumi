@@ -1,6 +1,8 @@
-# Lumi
+# Lumi <img src="src/main/resources/assets/lumi/lumi_logo_small.png" align="right" width=150>
 
-<a rel="license" href="https://www.gnu.org/licenses/lgpl-3.0.en.html#license-text"><img alt="LGPLv3" style="height:40px" src="https://cdn.discordapp.com/attachments/648723216747069441/1140482016438141028/LGPLv3_Logo.svg" /></a>
+<sup>**[CurseForge](https://www.curseforge.com/minecraft/mc-mods/lumi) | [Modrinth](https://modrinth.com/mod/lumi1710)**</sup>
+
+<a rel="license" href="https://www.gnu.org/licenses/lgpl-3.0.en.html"><img alt="LGPLv3 logo" style="border-width:0" src="https://www.gnu.org/graphics/lgplv3-with-text-162x68.png" /></a>
 
 A full replacement of the Minecraft lighting engine with an extendable API, shipping
 with [Phosphor](src/main/java/com/falsepattern/lumi/internal/lighting/phosphor/PhosphorLightingEngine.java) as a

@@ -1,6 +1,6 @@
 import com.falsepattern.fpgradle.dsl.*
 plugins {
-    id("fpgradle-minecraft") version ("0.3.2")
+    id("fpgradle-minecraft") version ("0.3.3")
 }
 
 group = "com.falsepattern"
@@ -33,6 +33,22 @@ minecraft_fp {
         maven {
             repoUrl = "https://mvn.falsepattern.com/releases/"
             repoName = "mavenpattern"
+        }
+        curseforge {
+            projectId = "1050470"
+            dependencies {
+                required("chunkapi")
+                required("fplib")
+                required("unimixins")
+            }
+        }
+        modrinth {
+            projectId = "RIP6DWIB"
+            dependencies {
+                required("chunkapi")
+                required("fplib")
+                required("unimixins")
+            }
         }
     }
 }
