@@ -39,7 +39,6 @@ minecraft_fp {
             dependencies {
                 required("chunkapi")
                 required("fplib")
-                required("unimixins")
             }
         }
         modrinth {
@@ -47,7 +46,6 @@ minecraft_fp {
             dependencies {
                 required("chunkapi")
                 required("fplib")
-                required("unimixins")
             }
         }
     }
