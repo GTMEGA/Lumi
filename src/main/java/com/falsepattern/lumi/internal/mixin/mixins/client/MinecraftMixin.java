@@ -37,24 +37,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Minecraft.class)
 public abstract class MinecraftMixin {
-    @Final
-    @Shadow
-    public Profiler mcProfiler;
-
     @Shadow
     public WorldClient theWorld;
-
-    //TODO: Benchmark
-
-//    @Inject(method = "runTick",
-//            at = @At(value = "CONSTANT",
-//                     args = "stringValue=levelRenderer",
-//                     shift = At.Shift.BY,
-//                     by = -3),
-//            require = 1)
-//    private void updateClientLighting(CallbackInfo ci) {
-//        LightingHooks.processLightUpdates(theWorld);
-//    }
 
     @Inject(method = "runGameLoop",
             at = @At(value = "CONSTANT",
@@ -62,6 +46,7 @@ public abstract class MinecraftMixin {
                      shift = At.Shift.AFTER),
             require = 1)
     private void updateClientLighting(CallbackInfo ci) {
-        LightingHooks.processLightingUpdatesForAllTypes(theWorld);
+        if (theWorld != null)
+            LightingHooks.processLightingUpdatesForAllTypes(theWorld);
     }
 }
