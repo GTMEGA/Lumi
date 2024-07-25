@@ -1,6 +1,5 @@
-import com.falsepattern.fpgradle.dsl.*
 plugins {
-    id("fpgradle-minecraft") version ("0.3.3")
+    id("fpgradle-minecraft") version ("0.7.0")
 }
 
 group = "com.falsepattern"
@@ -52,8 +51,12 @@ minecraft_fp {
 }
 
 repositories {
-    maven("mavenpattern", uri("https://mvn.falsepattern.com/releases/"))
-    maven("cursemaven", uri("https://mvn.falsepattern.com/cursemaven/"))
+    cursemavenEX()
+    mavenpattern {
+        content {
+            includeGroup("com.falsepattern")
+        }
+    }
 }
 
 dependencies {
