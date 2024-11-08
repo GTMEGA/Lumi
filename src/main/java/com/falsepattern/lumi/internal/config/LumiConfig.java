@@ -49,6 +49,13 @@ public final class LumiConfig {
     @Config.DefaultBoolean(false)
     public static boolean DO_RANDOM_LIGHT_UPDATES;
 
+    @Config.Comment("Increases the lighting engine internal buffer sizes from 256kB to 4MB per serverside world. Uses more ram, but improves worldgen speed.\n" +
+                    "Not recommended on 4GB heap or smaller.")
+    @Config.LangKey("config.lumi.enoughRam")
+    @Config.DefaultBoolean(false)
+    @Config.RequiresMcRestart
+    public static boolean I_HAVE_ENOUGH_RAM;
+
     static {
         ConfigurationManager.selfInit();
     }
