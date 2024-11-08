@@ -1,5 +1,5 @@
 plugins {
-    id("fpgradle-minecraft") version ("0.7.0")
+    id("fpgradle-minecraft") version ("0.8.2")
 }
 
 group = "com.falsepattern"
@@ -52,21 +52,17 @@ minecraft_fp {
 
 repositories {
     cursemavenEX()
-    mavenpattern {
-        content {
-            includeGroup("com.falsepattern")
-        }
-    }
+    exclusive(mavenpattern(), "com.falsepattern")
 }
 
 dependencies {
-    apiSplit("com.falsepattern:falsepatternlib-mc1.7.10:1.2.5")
+    apiSplit("com.falsepattern:falsepatternlib-mc1.7.10:1.4.4")
 
     implementation("it.unimi.dsi:fastutil:8.5.13")
 
-    apiSplit("com.falsepattern:chunkapi-mc1.7.10:0.5.1")
+    apiSplit("com.falsepattern:chunkapi-mc1.7.10:0.5.2")
 
-    compileOnly("com.falsepattern:falsetweaks-mc1.7.10:3.0.0:api")
+    compileOnly("com.falsepattern:falsetweaks-mc1.7.10:3.2.2:api")
 
     compileOnly(deobfCurse("journeymap-32274:4500658"))
 }
