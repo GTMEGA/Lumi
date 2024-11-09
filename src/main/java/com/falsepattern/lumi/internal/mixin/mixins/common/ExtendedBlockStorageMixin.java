@@ -24,6 +24,7 @@
 
 package com.falsepattern.lumi.internal.mixin.mixins.common;
 
+import com.falsepattern.lumi.internal.ArrayHelper;
 import lombok.val;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.chunk.NibbleArray;
@@ -189,26 +190,12 @@ public abstract class ExtendedBlockStorageMixin {
             return false;
 
         if (lumi$isDirty) {
-            val blockLightEqual = lumi$checkLightArrayEqual(blocklightArray, EnumSkyBlock.Block);
-            val skyLightEqual = lumi$checkLightArrayEqual(skylightArray, EnumSkyBlock.Sky);
-            lumi$isTrivial = blockLightEqual && skyLightEqual;
+            val blockLightEmpty = ArrayHelper.isEmpty(blocklightArray);
+            val skyLightEmpty = ArrayHelper.isEmpty(skylightArray);
+            lumi$isTrivial = blockLightEmpty && skyLightEmpty;
             lumi$isDirty = false;
         }
 
         return lumi$isTrivial;
-    }
-
-    @Unique
-    private boolean lumi$checkLightArrayEqual(NibbleArray storage, EnumSkyBlock baseLightType) {
-        if (storage == null)
-            return true;
-
-        val expectedValue = (byte) baseLightType.defaultLightValue;
-        val data = storage.data;
-        for (val value : data)
-            if (value != expectedValue)
-                return false;
-
-        return true;
     }
 }

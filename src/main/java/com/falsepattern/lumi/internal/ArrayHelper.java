@@ -26,8 +26,17 @@ package com.falsepattern.lumi.internal;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import net.minecraft.world.chunk.NibbleArray;
 
 public class ArrayHelper {
+    public static boolean isEmpty(@Nullable NibbleArray arr) {
+        if (arr == null) {
+            return true;
+        }
+        return isZero(arr.data);
+    }
     @Contract(pure = true)
     public static boolean isZero(byte @NotNull [] arr) {
         for (int i = 0; i < arr.length; i++) {
