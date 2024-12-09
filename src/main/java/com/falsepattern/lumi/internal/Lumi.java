@@ -47,8 +47,8 @@ import static com.falsepattern.lumi.internal.world.WorldProviderManager.worldPro
      version = VERSION,
      name = MOD_NAME,
      acceptedMinecraftVersions = "[1.7.10]",
-     dependencies = "required-after:chunkapi@[0.5.0,0.6.0);" +
-             "required-after:falsepatternlib@[1.2.0,);" +
+     dependencies = "required-after:chunkapi@[0.6.0,);" +
+             "required-after:falsepatternlib@[1.5.4,);" +
              "after:falsetweaks;",
      guiFactory = GROUPNAME + ".internal.config.LumiGuiFactory")
 @NoArgsConstructor
