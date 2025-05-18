@@ -24,8 +24,8 @@
 package com.falsepattern.lumi.internal.mixin.mixins.common;
 
 import com.falsepattern.lumi.internal.ArrayHelper;
+import com.falsepattern.lumi.internal.mixin.interfaces.LumiSubChunkImpl;
 import lombok.val;
-import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import org.spongepowered.asm.mixin.Mixin;
@@ -42,7 +42,7 @@ import static com.falsepattern.lumi.internal.util.LazyUtil.lazyGet;
 import static com.falsepattern.lumi.internal.util.LazyUtil.lazySet;
 
 @Mixin(ExtendedBlockStorage.class)
-public abstract class ExtendedBlockStorageMixin {
+public abstract class ExtendedBlockStorageMixin implements LumiSubChunkImpl {
     @Shadow
     private int blockRefCount;
     @Shadow
@@ -196,5 +196,10 @@ public abstract class ExtendedBlockStorageMixin {
         }
 
         return lumi$isTrivial;
+    }
+
+    @Override
+    public void lumi$setDirty(boolean state) {
+        lumi$isDirty = state;
     }
 }

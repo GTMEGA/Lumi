@@ -28,6 +28,8 @@ import com.falsepattern.lumi.api.chunk.LumiSubChunk;
 import com.falsepattern.lumi.api.chunk.LumiSubChunkRoot;
 import com.falsepattern.lumi.api.lighting.LightType;
 import com.falsepattern.lumi.internal.ArrayHelper;
+import com.falsepattern.lumi.internal.mixin.interfaces.LumiSubChunkImpl;
+import com.falsepattern.lumi.internal.util.LazyUtil;
 import lombok.val;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.NibbleArray;
@@ -51,7 +53,7 @@ import static com.falsepattern.lumi.api.init.LumiExtendedBlockStorageInitHook.LU
 
 @Unique
 @Mixin(ExtendedBlockStorage.class)
-public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
+public abstract class LumiSubChunkImplMixin implements LumiSubChunk, LumiSubChunkImpl {
     @Nullable
     @Shadow
     private NibbleArray blocklightArray;
@@ -127,10 +129,14 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
 
     @Override
     public void lumi$writeToPacket(@NotNull ByteBuffer output) {
-        if (blocklightArray != null && ArrayHelper.isZero(blocklightArray.data))
+        if (blocklightArray != null && ArrayHelper.isZero(blocklightArray.data)) {
             blocklightArray = null;
-        if (skylightArray != null && ArrayHelper.isZero(skylightArray.data))
+            lumi$setDirty(true);
+        }
+        if (skylightArray != null && ArrayHelper.isZero(skylightArray.data)) {
             skylightArray = null;
+            lumi$setDirty(true);
+        }
 
         byte flag = (byte) ((blocklightArray != null ? 1 : 0) | (skylightArray != null ? 2 : 0));
         output.put(flag);
@@ -162,6 +168,7 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
         } else {
             skylightArray = null;
         }
+        lumi$setDirty(true);
     }
 
     @Override
@@ -199,41 +206,26 @@ public abstract class LumiSubChunkImplMixin implements LumiSubChunk {
 
     @Override
     public void lumi$setBlockLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue) {
-        if (blocklightArray == null) {
-            if (lightValue == 0)
-                return;
-
-            blocklightArray = new NibbleArray(4096, 4);
-        }
-
-        blocklightArray.set(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+        blocklightArray = LazyUtil.lazySet(blocklightArray, subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+        if (blocklightArray != null)
+            lumi$setDirty(true);
     }
 
     @Override
     public int lumi$getBlockLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ) {
-        if (blocklightArray == null)
-            return 0;
-
-        return blocklightArray.get(subChunkPosX, subChunkPosY, subChunkPosZ);
+        return LazyUtil.lazyGet(blocklightArray, subChunkPosX, subChunkPosY, subChunkPosZ);
     }
 
     @Override
     public void lumi$setSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ, int lightValue) {
-        if (skylightArray == null) {
-            if (lightValue == 0)
-                return;
-            skylightArray = new NibbleArray(4096, 4);
-        }
-
-        skylightArray.set(subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+        skylightArray = LazyUtil.lazySet(skylightArray, subChunkPosX, subChunkPosY, subChunkPosZ, lightValue);
+        if (skylightArray != null)
+            lumi$setDirty(true);
     }
 
     @Override
     public int lumi$getSkyLightValue(int subChunkPosX, int subChunkPosY, int subChunkPosZ) {
-        if (skylightArray == null)
-            return 0;
-
-        return skylightArray.get(subChunkPosX, subChunkPosY, subChunkPosZ);
+        return LazyUtil.lazyGet(skylightArray, subChunkPosX, subChunkPosY, subChunkPosZ);
     }
 
     @Override
