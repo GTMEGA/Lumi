@@ -213,63 +213,7 @@ final class PhosphorUtil {
         val basePosX = (chunk.lumi$chunkPosX() << 4) + subChunkPosX;
         val basePosZ = (chunk.lumi$chunkPosZ() << 4) + subChunkPosZ;
 
-        val minChunkPosY = startPosY / 16;
-        val maxChunkPosY = endPosY / 16;
-
         lightingEngine.scheduleLightingUpdateForColumn(SKY_LIGHT_TYPE, basePosX, basePosZ, startPosY, endPosY);
-
-        val bottomSubChunk = chunk.lumi$getSubChunkIfPrepared(minChunkPosY);
-        if (bottomSubChunk == null && startPosY > 0) {
-            val posY = startPosY - 1;
-            lightingEngine.scheduleLightingUpdate(SKY_LIGHT_TYPE, basePosX, posY, basePosZ);
-        }
-
-        short flags = 0;
-        for (var chunkPosY = maxChunkPosY; chunkPosY >= minChunkPosY; chunkPosY--) {
-            val subChunk = chunk.lumi$getSubChunkIfPrepared(chunkPosY);
-            if (subChunk != null)
-                continue;
-
-            val subChunkFlag = 1 << chunkPosY;
-            flags |= subChunkFlag;
-        }
-
-        if (flags == 0)
-            return;
-
-        for (int i = 0; i < HORIZONTAL_DIRECTIONS_SIZE; i++) {
-            val direction = HORIZONTAL_DIRECTIONS[i];
-            val xOffset = direction.xOffset;
-            val zOffset = direction.zOffset;
-            val chunkPosX = chunk.lumi$chunkPosX() + xOffset;
-            val chunkPosZ = chunk.lumi$chunkPosZ() + zOffset;
-
-            // Checks whether the position is at the specified border (the 16 bit is set for both 15+1 and 0-1)
-            val someInterestingExpression = ((subChunkPosX + xOffset) | (subChunkPosZ + zOffset)) & 16;
-            val neighborChunk = getLoadedChunk(world, chunkPosX, chunkPosZ);
-            if (someInterestingExpression != 0 && neighborChunk == null) {
-                val axisDirection = DirectionSign.of(direction, subChunkPosX, subChunkPosZ);
-                flagChunkBoundaryForUpdate(chunk,
-                                           flags,
-                                           direction,
-                                           axisDirection
-                );
-                continue;
-            }
-
-            for (var chunkPosY = maxChunkPosY; chunkPosY >= minChunkPosY; chunkPosY--) {
-                val subChunkFlag = 1 << chunkPosY;
-                val subChunkExists = (flags & subChunkFlag) != 0;
-                if (!subChunkExists)
-                    continue;
-
-                val posX = basePosX + xOffset;
-                val posZ = basePosZ + zOffset;
-                val minPosY = chunkPosY * 16;
-                val maxPosY = minPosY + 15;
-                lightingEngine.scheduleLightingUpdateForColumn(SKY_LIGHT_TYPE, posX, posZ, minPosY, maxPosY);
-            }
-        }
     }
 
     private static void doRecheckGaps(LumiChunk chunk, WorldChunkSlice slice, Profiler profiler) {
@@ -540,10 +484,6 @@ final class PhosphorUtil {
         val lightingEngine = world.lumi$lightingEngine();
         var scheduledBlockUpdate = false;
         for (var chunkPosY = 0; chunkPosY < 16; chunkPosY++) {
-            val subChunk = chunk.lumi$getSubChunkIfPrepared(chunkPosY);
-            if (subChunk == null)
-                continue;
-
             val basePosY = chunkPosY * 16;
             for (var subChunkPosY = 0; subChunkPosY < 16; subChunkPosY++) {
                 for (var subChunkPosZ = 0; subChunkPosZ < 16; subChunkPosZ++) {

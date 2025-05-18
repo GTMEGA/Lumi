@@ -52,7 +52,7 @@ public interface LumiChunkRoot {
     @Expose
     void lumi$prepareSubChunk(int chunkPosY);
 
-    @Expose
+    @Deprecated
     boolean lumi$isSubChunkPrepared(int chunkPosY);
 
     @Expose

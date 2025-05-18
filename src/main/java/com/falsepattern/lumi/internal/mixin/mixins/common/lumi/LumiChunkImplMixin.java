@@ -268,9 +268,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
     public int lumi$getBlockLightValue(int subChunkPosX, int posY, int subChunkPosZ) {
         val chunkPosY = (posY & 255) / 16;
 
-        val subChunk = lumi$getSubChunkIfPrepared(chunkPosY);
-        if (subChunk == null)
-            return BLOCK_LIGHT_TYPE.defaultLightValue();
+        val subChunk = lumi$getSubChunk(chunkPosY);
 
         subChunkPosX &= 15;
         val subChunkPosY = posY & 15;
@@ -306,12 +304,7 @@ public abstract class LumiChunkImplMixin implements LumiChunk {
         subChunkPosX &= 15;
         subChunkPosZ &= 15;
 
-        val subChunk = lumi$getSubChunkIfPrepared(chunkPosY);
-        if (subChunk == null) {
-            if (lumi$canBlockSeeSky(subChunkPosX, posY, subChunkPosZ))
-                return SKY_LIGHT_TYPE.defaultLightValue();
-            return 0;
-        }
+        val subChunk = lumi$getSubChunk(chunkPosY);
 
         val subChunkPosY = posY & 15;
         return subChunk.lumi$getSkyLightValue(subChunkPosX, subChunkPosY, subChunkPosZ);

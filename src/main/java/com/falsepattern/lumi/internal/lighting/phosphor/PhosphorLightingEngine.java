@@ -390,17 +390,15 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                                 val chunkPosY = skyLightHeight / 16;
                                 val subChunkPosY = skyLightHeight & 15;
 
-                                val subChunk = chunk.lumi$getSubChunkIfPrepared(chunkPosY);
-                                if (subChunk != null) {
-                                    val posX = basePosX + subChunkPosX;
-                                    val posZ = basePosZ + subChunkPosZ;
+                                val subChunk = chunk.lumi$getSubChunk(chunkPosY);
+                                val posX = basePosX + subChunkPosX;
+                                val posZ = basePosZ + subChunkPosZ;
 
-                                    subChunk.lumi$setSkyLightValue(subChunkPosX,
-                                                                   subChunkPosY,
-                                                                   subChunkPosZ,
-                                                                   lightLevel);
-                                    worldRoot.lumi$markBlockForRenderUpdate(posX, skyLightHeight, posZ);
-                                }
+                                subChunk.lumi$setSkyLightValue(subChunkPosX,
+                                                               subChunkPosY,
+                                                               subChunkPosZ,
+                                                               lightLevel);
+                                worldRoot.lumi$markBlockForRenderUpdate(posX, skyLightHeight, posZ);
                             }
 
                             skyLightHeight--;
@@ -527,9 +525,6 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             val posX = minPosX + subChunkPosX;
             val posZ = minPosZ + subChunkPosZ;
 
-
-            if (!chunkRoot.lumi$isSubChunkPrepared(chunkPosY))
-                continue;
 
             try {
                 acquireLock();
@@ -910,7 +905,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             val cursorDataLightValue = (int) (cursor.data >> LIGHT_VALUE_BIT_SHIFT & LIGHT_VALUE_BIT_MASK);
             if (cursorDataLightValue > cursor.lightValue) {
                 val posLong = cursor.data & BLOCK_POS_BIT_MASK;
-                enqueueBrightening(cursor.blockPos, posLong, cursorDataLightValue, cursor.chunk);
+                enqueueBrightening(cursor.posX, cursor.posY, cursor.posZ, posLong, cursorDataLightValue, cursor.chunk);
                 cursor.setLightValue(cursorDataLightValue);
             }
         }
@@ -921,7 +916,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         while (nextItem()) {
             // Sets the light to 0 to only schedule once
             if (cursor.lightValue != MIN_LIGHT_VALUE) {
-                enqueueDarkening(cursor.blockPos, cursor.data, cursor.lightValue, cursor.chunk);
+                enqueueDarkening(cursor.posX, cursor.posY, cursor.posZ, cursor.data, cursor.lightValue, cursor.chunk);
                 cursor.setLightValue(MIN_LIGHT_VALUE);
             }
         }
@@ -963,7 +958,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
                 // If we can't darken the neighbor, no one else can (because of processing order) -> safe to let us be illuminated by it
                 if (queueIndex - neighbor.opacityValue >= neighbor.lightValue) {
                     // Schedule neighbor for darkening if we possibly light it
-                    enqueueDarkening(neighbor.blockPos, neighbor.data, neighbor.lightValue, neighbor.chunk);
+                    enqueueDarkening(neighbor.posX, neighbor.posY, neighbor.posZ, neighbor.data, neighbor.lightValue, neighbor.chunk);
                 } else {
                     // Only use for new light calculation if not
                     newLightValue = Math.max(newLightValue, neighbor.lightValue - cursorBlockOpacity);
@@ -1036,23 +1031,19 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
 
             val newLightValue = cursorLightValue - neighbor.opacityValue;
             if (newLightValue > neighbor.lightValue)
-                enqueueBrightening(neighbor.blockPos, neighbor.data, newLightValue, neighbor.chunk);
+                enqueueBrightening(neighbor.posX, neighbor.posY, neighbor.posZ, neighbor.data, newLightValue, neighbor.chunk);
         }
     }
 
     private void enqueueBrighteningFromCursor(int lightValue) {
         if (cursor.isValid) {
-            enqueueBrightening(cursor.blockPos, cursor.data, lightValue, cursor.chunk);
+            enqueueBrightening(cursor.posX, cursor.posY, cursor.posZ, cursor.data, lightValue, cursor.chunk);
             cursor.setLightValue(lightValue);
         }
     }
 
-    private void enqueueBrightening(BlockPos blockPos, long posLong, int lightValue, LumiChunk chunk) {
+    private void enqueueBrightening(int posX, int posY, int posZ, long posLong, int lightValue, LumiChunk chunk) {
         assert currentLightType != null;
-
-        val posX = blockPos.getX();
-        val posY = blockPos.getY();
-        val posZ = blockPos.getZ();
 
         val subChunkPosX = posX & 15;
         val subChunkPosZ = posZ & 15;
@@ -1062,12 +1053,8 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         chunk.lumi$root().lumi$markDirty();
     }
 
-    private void enqueueDarkening(BlockPos blockPos, long posLong, int oldLightValue, LumiChunk chunk) {
+    private void enqueueDarkening(int posX, int posY, int posZ, long posLong, int oldLightValue, LumiChunk chunk) {
         assert currentLightType != null;
-
-        val posX = blockPos.getX();
-        val posY = blockPos.getY();
-        val posZ = blockPos.getZ();
 
         val subChunkPosX = posX & 15;
         val subChunkPosZ = posZ & 15;
@@ -1111,7 +1098,6 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         long data = 0;
         long chunkLongPos = -1;
 
-        final BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos();
         int posX = 0;
         int posY = 0;
         int posZ = 0;
@@ -1156,7 +1142,8 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
         }
 
         void updateNeighbour() {
-            this.data = cursor.data + neighbourBlockSideBitOffset;
+            val data = cursor.data + neighbourBlockSideBitOffset;
+            this.data = data;
             if ((data & POS_OVERFLOW_CHECK_BIT_MASK) != 0) {
                 this.isValid = false;
                 return;
@@ -1171,8 +1158,6 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             this.posX = (int) ((data >> POS_X_BIT_SHIFT & POS_X_BIT_MASK) - (1L << POS_X_BIT_LENGTH - 1L));
             this.posY = (int) (data >> POS_Y_BIT_SHIFT & POS_Y_BIT_MASK);
             this.posZ = (int) ((data >> POS_Z_BIT_SHIFT & POS_Z_BIT_MASK) - (1L << POS_Z_BIT_LENGTH - 1L));
-
-            this.blockPos.setPos(posX, posY, posZ);
         }
 
         boolean updateChunk() {
@@ -1195,9 +1180,7 @@ public final class PhosphorLightingEngine implements LumiLightingEngine {
             // We can only re-use the subchunk, if we are re-using the chunk itself.
             val chunkPosY = posY >> 4;
             if (!(this.chunkPosY == chunkPosY && subChunk != null)) {
-                this.subChunk = chunk.lumi$getSubChunkIfPrepared(chunkPosY);
-                if (subChunk == null)
-                    return false;
+                this.subChunk = chunk.lumi$getSubChunk(chunkPosY);
                 this.subChunkRoot = subChunk.lumi$root();
             }
             this.chunkPosY = chunkPosY;

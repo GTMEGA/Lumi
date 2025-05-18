@@ -84,8 +84,8 @@ public interface LumiChunk {
     @Expose
     void lumi$readFromPacket(@NotNull ByteBuffer input);
 
-    @Expose
     @Nullable
+    @Deprecated
     LumiSubChunk lumi$getSubChunkIfPrepared(int chunkPosY);
 
     @Expose

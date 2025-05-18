@@ -180,6 +180,6 @@ public final class ChunkPacketManager implements DataManager.PacketDataManager {
     private static @Nullable LumiSubChunk getSubChunk(LumiChunk chunk, int subChunkMask, int chunkPosY) {
         if ((subChunkMask & (1 << chunkPosY)) == 0)
             return null;
-        return chunk.lumi$getSubChunkIfPrepared(chunkPosY);
+        return chunk.lumi$getSubChunk(chunkPosY);
     }
 }
