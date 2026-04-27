@@ -56,13 +56,13 @@ repositories {
 }
 
 dependencies {
-    apiSplit("com.falsepattern:falsepatternlib-mc1.7.10:1.6.0")
+    apiSplit("com.falsepattern:falsepatternlib-mc1.7.10:1.11.0")
 
-    implementation("it.unimi.dsi:fastutil:8.5.15")
+    implementation("it.unimi.dsi:fastutil:8.5.18")
 
-    apiSplit("com.falsepattern:chunkapi-mc1.7.10:0.6.1")
+    apiSplit("com.falsepattern:chunkapi-mc1.7.10:0.8.2")
 
-    compileOnly("com.falsepattern:falsetweaks-mc1.7.10:3.9.6:api")
+    compileOnly("com.falsepattern:falsetweaks-mc1.7.10:4.4.1:api")
 
     compileOnly(deobfCurse("journeymap-32274:4500658"))
 }
