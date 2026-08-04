@@ -26,6 +26,7 @@ package com.falsepattern.lumi.internal.mixin.hook;
 import com.falsepattern.lumi.api.LumiChunkAPI;
 import com.falsepattern.lumi.api.lighting.LightType;
 import com.falsepattern.lumi.api.world.LumiWorld;
+import com.falsepattern.lumi.internal.Share;
 import com.falsepattern.lumi.internal.config.LumiConfig;
 import cpw.mods.fml.relauncher.SideOnly;
 import lombok.experimental.UtilityClass;
@@ -37,6 +38,7 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.falsepattern.lumi.internal.world.WorldProviderManager.worldProviderManager;
 import static cpw.mods.fml.relauncher.Side.CLIENT;
@@ -235,16 +237,27 @@ public final class LightingHooks {
         scheduleLightingUpdate(worldBase, lightType, posX, posY, posZ);
     }
 
+    private static final ThreadLocal<AtomicInteger> RECURSION_GUARD = ThreadLocal.withInitial(AtomicInteger::new);
     public static void scheduleLightingUpdate(World worldBase,
                                               LightType lightType,
                                               int posX,
                                               int posY,
                                               int posZ) {
-        val lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
-        for (var i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
-            val world = lumiWorldsFromBaseWorld[i];
-            val lightingEngine = world.lumi$lightingEngine();
-            lightingEngine.scheduleLightingUpdate(lightType, posX, posY, posZ);
+        val guard = RECURSION_GUARD.get();
+        val g = guard.getAndIncrement();
+        if (g != 0) {
+            guard.getAndDecrement();
+            return;
+        }
+        try {
+            val lumiWorldsFromBaseWorld = lumiWorldsFromBaseWorld(worldBase);
+            for (var i = 0; i < lumiWorldsFromBaseWorld.length; i++) {
+                val world = lumiWorldsFromBaseWorld[i];
+                val lightingEngine = world.lumi$lightingEngine();
+                lightingEngine.scheduleLightingUpdate(lightType, posX, posY, posZ);
+            }
+        } finally {
+            guard.getAndDecrement();
         }
     }
 
